@@ -1,0 +1,135 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { ShareCertificateService } from './share-certificate.service';
+import { CreateShareCertificateDto } from './dto/create-share-certificate.dto';
+import { UpdateShareCertificateDto } from './dto/update-share-certificate.dto';
+import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
+
+/**
+ * Controller handling Share Certificate HTTP endpoints
+ */
+@Controller('share-certificate')
+export class ShareCertificateController {
+  constructor(private readonly shareCertificateService: ShareCertificateService) {}
+
+  /**
+   * Create new share certificate submission
+   * POST /api/share-certificate
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() createDto: CreateShareCertificateDto) {
+    const certificate = await this.shareCertificateService.create(createDto);
+    return {
+      success: true,
+      message: 'Share certificate submitted successfully',
+      data: {
+        acknowledgementNumber: certificate.acknowledgementNumber,
+        email: certificate.email,
+      },
+    };
+  }
+
+  /**
+   * Get all share certificates (Admin only)
+   * GET /api/share-certificate
+   */
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findAll() {
+    const certificates = await this.shareCertificateService.findAll();
+    return {
+      success: true,
+      data: certificates,
+    };
+  }
+
+  /**
+   * Get statistics (Admin only)
+   * GET /api/share-certificate/statistics
+   */
+  @Get('statistics')
+  @UseGuards(JwtAuthGuard)
+  async getStatistics() {
+    const stats = await this.shareCertificateService.getStatistics();
+    return {
+      success: true,
+      data: stats,
+    };
+  }
+
+  /**
+   * Check status by acknowledgement number (Public)
+   * GET /api/share-certificate/status/:acknowledgementNumber
+   */
+  @Get('status/:acknowledgementNumber')
+  async getStatus(@Param('acknowledgementNumber') acknowledgementNumber: string) {
+    const certificate =
+      await this.shareCertificateService.findByAcknowledgementNumber(acknowledgementNumber);
+    return {
+      success: true,
+      data: {
+        type: 'share-certificate',
+        acknowledgementNumber: certificate.acknowledgementNumber,
+        fullName: certificate.fullName,
+        flatNumber: certificate.flatNumber,
+        wing: certificate.wing,
+        email: certificate.email,
+        status: certificate.status,
+        submittedAt: certificate.createdAt,
+        updatedAt: certificate.updatedAt,
+        adminNotes: certificate.adminRemarks,
+      },
+    };
+  }
+
+  /**
+   * Get share certificate details by ID (Admin only)
+   * GET /api/share-certificate/:id
+   */
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string) {
+    const certificate = await this.shareCertificateService.findById(id);
+    return {
+      success: true,
+      data: certificate,
+    };
+  }
+
+  /**
+   * Update share certificate status (Admin only)
+   * PUT /api/share-certificate/:id
+   */
+  @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  async update(@Param('id') id: string, @Body() updateDto: UpdateShareCertificateDto) {
+    const certificate = await this.shareCertificateService.update(id, updateDto);
+    return {
+      success: true,
+      message: 'Share certificate updated successfully',
+      data: certificate,
+    };
+  }
+
+  /**
+   * Delete share certificate (Admin only)
+   * DELETE /api/share-certificate/:id
+   */
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(@Param('id') id: string) {
+    await this.shareCertificateService.delete(id);
+  }
+}
