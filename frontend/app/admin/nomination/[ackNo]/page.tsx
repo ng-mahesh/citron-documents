@@ -352,7 +352,7 @@ export default function NominationDetailPage() {
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value as Status)}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                    disabled={updatingStatus}>
+                    disabled={updatingStatus || (selectedStatus === nomination.status && adminRemarks === (nomination.adminRemarks || ''))}>
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>

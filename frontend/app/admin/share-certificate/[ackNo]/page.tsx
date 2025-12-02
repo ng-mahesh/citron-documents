@@ -357,7 +357,7 @@ export default function ShareCertificateDetailPage() {
                 </div>
                 <Button
                   onClick={handleStatusUpdate}
-                  disabled={updatingStatus}
+                  disabled={updatingStatus || (selectedStatus === certificate.status && adminRemarks === (certificate.adminRemarks || ''))}
                   isLoading={updatingStatus}
                   className="w-full gap-2">
                   <Save className="h-4 w-4" />
