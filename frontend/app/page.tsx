@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { FileText, Users, Search, Shield, CheckCircle, Clock, Award } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import {
+  FileText,
+  Users,
+  Search,
+  Shield,
+  CheckCircle,
+  Clock,
+  Award,
+} from "lucide-react";
 
 export default function Home() {
   return (
@@ -17,8 +25,12 @@ export default function Home() {
                 <FileText className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-900">
-                  Citron Phase 2 C & D Co-operative Housing Society Limited
+                {/* Full title on desktop, short on mobile */}
+                <h1 className="text-base sm:text-lg font-bold text-slate-900">
+                  <span className="hidden sm:inline">
+                    Citron Phase 2 C & D Co-operative Housing Society Limited
+                  </span>
+                  <span className="sm:hidden">Citron Phase - 2</span>
                 </h1>
                 <p className="text-xs text-slate-500">Documents Portal</p>
               </div>
@@ -36,14 +48,14 @@ export default function Home() {
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-6 lg:px-8 pt-16 pb-12">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-5xl font-bold text-slate-900 mb-6 leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
             Manage Your Society
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
               Documents Online
             </span>
           </h2>
-          <p className="text-lg text-slate-600 leading-relaxed">
+          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
             Apply for share certificates, register nominations, and track
             applications—all from the comfort of your home
           </p>
@@ -54,7 +66,7 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link href="/share-certificate" className="group h-full">
-            <div className="bg-white rounded-2xl p-8 border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 h-full flex flex-col">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
               <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <FileText className="h-7 w-7 text-white" />
               </div>
@@ -74,7 +86,7 @@ export default function Home() {
           </Link>
 
           <Link href="/nomination" className="group h-full">
-            <div className="bg-white rounded-2xl p-8 border border-slate-200 hover:border-purple-300 hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 h-full flex flex-col">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-purple-300 hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
               <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <Users className="h-7 w-7 text-white" />
               </div>
@@ -94,7 +106,7 @@ export default function Home() {
           </Link>
 
           <Link href="/status" className="group h-full">
-            <div className="bg-white rounded-2xl p-8 border border-slate-200 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-300 h-full flex flex-col">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
               <div className="h-14 w-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <Search className="h-7 w-7 text-white" />
               </div>

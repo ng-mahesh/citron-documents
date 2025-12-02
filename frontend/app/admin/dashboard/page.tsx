@@ -48,6 +48,15 @@ export default function AdminDashboard() {
     fileType: string;
   } | null>(null);
 
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    id: string;
+    type: "certificate" | "nomination";
+    name: string;
+    flatNumber: string;
+  } | null>(null);
+
   // Pagination and search states for certificates
   const [certSearchQuery, setCertSearchQuery] = useState("");
   const [certCurrentPage, setCertCurrentPage] = useState(1);
@@ -129,17 +138,25 @@ export default function AdminDashboard() {
 
   const handleDelete = async (
     id: string,
-    type: "certificate" | "nomination"
+    type: "certificate" | "nomination",
+    name: string,
+    flatNumber: string
   ) => {
-    if (!confirm("Are you sure you want to delete this entry?")) return;
+    // Open confirmation modal instead of JavaScript alert
+    setDeleteModal({ isOpen: true, id, type, name, flatNumber });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
 
     try {
-      if (type === "certificate") {
-        await shareCertificateAPI.delete(id);
+      if (deleteModal.type === "certificate") {
+        await shareCertificateAPI.delete(deleteModal.id);
       } else {
-        await nominationAPI.delete(id);
+        await nominationAPI.delete(deleteModal.id);
       }
       fetchDashboardData();
+      setDeleteModal(null);
     } catch (error) {
       alert("Failed to delete entry");
     }
@@ -215,7 +232,9 @@ export default function AdminDashboard() {
     return filteredCertificates.slice(startIndex, endIndex);
   }, [filteredCertificates, certCurrentPage, certItemsPerPage]);
 
-  const certTotalPages = Math.ceil(filteredCertificates.length / certItemsPerPage);
+  const certTotalPages = Math.ceil(
+    filteredCertificates.length / certItemsPerPage
+  );
 
   // Filter and paginate nominations
   const filteredNominations = useMemo(() => {
@@ -265,14 +284,14 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                <FileText className="h-6 w-6 text-white" />
+              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">
+                <h1 className="text-lg sm:text-xl font-bold text-slate-900">
                   Admin Dashboard
                 </h1>
                 <p className="text-xs text-slate-500">Citron Documents App</p>
@@ -282,15 +301,15 @@ export default function AdminDashboard() {
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="gap-2">
-              <LogOut className="h-4 w-4" />
+              className="gap-2 text-xs sm:text-sm">
+              <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
               Logout
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
@@ -358,15 +377,15 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
-          <div className="flex items-center justify-between">
-            <nav className="flex gap-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+            <nav className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setActiveTab("certificates")}
                 className={`${
                   activeTab === "certificates"
                     ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
                 Share Certificates ({shareCertificates.length})
               </button>
               <button
@@ -375,7 +394,7 @@ export default function AdminDashboard() {
                   activeTab === "nominations"
                     ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md"
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
                 Nominations ({nominations.length})
               </button>
             </nav>
@@ -383,7 +402,7 @@ export default function AdminDashboard() {
               onClick={() => handleExport(activeTab)}
               variant="outline"
               size="sm"
-              className="gap-2">
+              className="gap-2 w-full sm:w-auto justify-center">
               <Download className="h-4 w-4" />
               Export to Excel
             </Button>
@@ -441,17 +460,14 @@ export default function AdminDashboard() {
                           {cert.acknowledgementNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
-                          <div className="truncate">
-                            {cert.fullName}
-                          </div>
+                          <div className="truncate">{cert.fullName}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          {cert.wing && `Wing ${cert.wing} - `}{cert.flatNumber}
+                          {cert.wing && `${cert.wing} - `}
+                          {cert.flatNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
-                          <div className="truncate">
-                            {cert.email}
-                          </div>
+                          <div className="truncate">{cert.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(cert.status!)}
@@ -459,12 +475,23 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => router.push(`/admin/share-certificate/${cert.acknowledgementNumber}`)}
+                              onClick={() =>
+                                router.push(
+                                  `/admin/share-certificate/${cert.acknowledgementNumber}`
+                                )
+                              }
                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                               View Details
                             </button>
                             <button
-                              onClick={() => handleDelete(cert._id!, "certificate")}
+                              onClick={() =>
+                                handleDelete(
+                                  cert._id!,
+                                  "certificate",
+                                  cert.fullName,
+                                  `${cert.wing} - ${cert.flatNumber}`
+                                )
+                              }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete certificate">
                               <Trash2 className="h-4 w-4" />
@@ -475,7 +502,9 @@ export default function AdminDashboard() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                      <td
+                        colSpan={6}
+                        className="px-6 py-8 text-center text-slate-500">
                         No certificates found matching your search.
                       </td>
                     </tr>
@@ -488,9 +517,17 @@ export default function AdminDashboard() {
             {certTotalPages > 1 && (
               <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                 <div className="text-sm text-slate-600">
-                  Showing {Math.min((certCurrentPage - 1) * certItemsPerPage + 1, filteredCertificates.length)} to{" "}
-                  {Math.min(certCurrentPage * certItemsPerPage, filteredCertificates.length)} of{" "}
-                  {filteredCertificates.length} results
+                  Showing{" "}
+                  {Math.min(
+                    (certCurrentPage - 1) * certItemsPerPage + 1,
+                    filteredCertificates.length
+                  )}{" "}
+                  to{" "}
+                  {Math.min(
+                    certCurrentPage * certItemsPerPage,
+                    filteredCertificates.length
+                  )}{" "}
+                  of {filteredCertificates.length} results
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -500,7 +537,10 @@ export default function AdminDashboard() {
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: certTotalPages }, (_, i) => i + 1).map((page) => (
+                    {Array.from(
+                      { length: certTotalPages },
+                      (_, i) => i + 1
+                    ).map((page) => (
                       <button
                         key={page}
                         onClick={() => setCertCurrentPage(page)}
@@ -580,11 +620,14 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
                           <div className="truncate">
-                            {nom.memberFullName || nom.primaryMemberName || "N/A"}
+                            {nom.memberFullName ||
+                              nom.primaryMemberName ||
+                              "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          {nom.wing && `Wing ${nom.wing} - `}{nom.flatNumber}
+                          {nom.wing && `${nom.wing} - `}
+                          {nom.flatNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
                           <div className="truncate">
@@ -611,7 +654,16 @@ export default function AdminDashboard() {
                               View Details
                             </button>
                             <button
-                              onClick={() => handleDelete(nom._id!, "nomination")}
+                              onClick={() =>
+                                handleDelete(
+                                  nom._id!,
+                                  "nomination",
+                                  nom.memberFullName ||
+                                    nom.primaryMemberName ||
+                                    "N/A",
+                                  `${nom.wing} - ${nom.flatNumber}`
+                                )
+                              }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete nomination">
                               <Trash2 className="h-4 w-4" />
@@ -622,7 +674,9 @@ export default function AdminDashboard() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                      <td
+                        colSpan={7}
+                        className="px-6 py-8 text-center text-slate-500">
                         No nominations found matching your search.
                       </td>
                     </tr>
@@ -635,9 +689,17 @@ export default function AdminDashboard() {
             {nomTotalPages > 1 && (
               <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                 <div className="text-sm text-slate-600">
-                  Showing {Math.min((nomCurrentPage - 1) * nomItemsPerPage + 1, filteredNominations.length)} to{" "}
-                  {Math.min(nomCurrentPage * nomItemsPerPage, filteredNominations.length)} of{" "}
-                  {filteredNominations.length} results
+                  Showing{" "}
+                  {Math.min(
+                    (nomCurrentPage - 1) * nomItemsPerPage + 1,
+                    filteredNominations.length
+                  )}{" "}
+                  to{" "}
+                  {Math.min(
+                    nomCurrentPage * nomItemsPerPage,
+                    filteredNominations.length
+                  )}{" "}
+                  of {filteredNominations.length} results
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -647,18 +709,20 @@ export default function AdminDashboard() {
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: nomTotalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setNomCurrentPage(page)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                          nomCurrentPage === page
-                            ? "bg-purple-600 text-white"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}>
-                        {page}
-                      </button>
-                    ))}
+                    {Array.from({ length: nomTotalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => setNomCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            nomCurrentPage === page
+                              ? "bg-purple-600 text-white"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}>
+                          {page}
+                        </button>
+                      )
+                    )}
                   </div>
                   <button
                     onClick={() => setNomCurrentPage(nomCurrentPage + 1)}
@@ -735,6 +799,77 @@ export default function AdminDashboard() {
               </a>
               <Button onClick={closeDocumentPopup} variant="outline" size="sm">
                 Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && deleteModal.isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setDeleteModal(null)}>
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center gap-3 p-6 border-b border-slate-200">
+              <div className="h-12 w-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  Confirm Deletion
+                </h3>
+                <p className="text-sm text-slate-600">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <p className="text-slate-700 mb-4">
+                Are you sure you want to delete this{" "}
+                <span className="font-semibold">
+                  {deleteModal.type === "certificate"
+                    ? "share certificate"
+                    : "nomination"}
+                </span>{" "}
+                application?
+              </p>
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Name:</span>
+                    <span className="font-semibold text-slate-900">
+                      {deleteModal.name}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Flat:</span>
+                    <span className="font-semibold text-slate-900">
+                      {deleteModal.flatNumber}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 bg-slate-50">
+              <Button
+                onClick={() => setDeleteModal(null)}
+                variant="outline"
+                size="sm">
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white">
+                Delete
               </Button>
             </div>
           </div>

@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { FileUpload } from '@/components/forms/FileUpload';
-import { shareCertificateAPI } from '@/lib/api';
-import { DocumentMetadata, MembershipType } from '@/lib/types';
-import { CheckCircle, Download } from 'lucide-react';
-import { generateShareCertificateReceipt } from '@/lib/pdfGenerator';
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { FileUpload } from "@/components/forms/FileUpload";
+import { shareCertificateAPI } from "@/lib/api";
+import { DocumentMetadata, MembershipType } from "@/lib/types";
+import { CheckCircle, Download } from "lucide-react";
+import { generateShareCertificateReceipt } from "@/lib/pdfGenerator";
 
 export default function ShareCertificatePage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    fullName: '',
-    flatNumber: '',
-    wing: '' as 'C' | 'D' | '',
-    email: '',
-    mobileNumber: '',
-    carpetArea: '',
-    builtUpArea: '',
-    membershipType: '' as MembershipType,
-    digitalSignature: '',
+    fullName: "",
+    flatNumber: "",
+    wing: "" as "C" | "D" | "",
+    email: "",
+    mobileNumber: "",
+    carpetArea: "",
+    builtUpArea: "",
+    membershipType: "" as MembershipType,
+    digitalSignature: "",
     declarationAccepted: false,
   });
 
@@ -37,29 +37,31 @@ export default function ShareCertificatePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [acknowledgementNumber, setAcknowledgementNumber] = useState('');
+  const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [submittedFormData, setSubmittedFormData] = useState<any>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
   const membershipTypes = [
-    { value: 'Primary', label: 'Primary Member' },
-    { value: 'Spouse', label: 'Spouse' },
-    { value: 'Son', label: 'Son' },
-    { value: 'Daughter', label: 'Daughter' },
-    { value: 'Legal Heir', label: 'Legal Heir' },
+    { value: "Primary", label: "Primary Member" },
+    { value: "Spouse", label: "Spouse" },
+    { value: "Son", label: "Son" },
+    { value: "Daughter", label: "Daughter" },
+    { value: "Legal Heir", label: "Legal Heir" },
   ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
 
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -76,7 +78,10 @@ export default function ShareCertificatePage() {
 
     setCheckingDuplicate(true);
     try {
-      const response = await shareCertificateAPI.checkDuplicate(formData.flatNumber, formData.wing);
+      const response = await shareCertificateAPI.checkDuplicate(
+        formData.flatNumber,
+        formData.wing
+      );
       if (response.data.data.exists) {
         setErrors((prev) => ({
           ...prev,
@@ -91,7 +96,7 @@ export default function ShareCertificatePage() {
         });
       }
     } catch (error: any) {
-      console.error('Error checking duplicate:', error);
+      console.error("Error checking duplicate:", error);
     } finally {
       setCheckingDuplicate(false);
     }
@@ -100,24 +105,38 @@ export default function ShareCertificatePage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!formData.flatNumber.trim()) newErrors.flatNumber = 'Flat number is required';
-    else if (!/^\d+$/.test(formData.flatNumber)) newErrors.flatNumber = 'Flat number must contain only numbers';
-    if (!formData.wing) newErrors.wing = 'Wing is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = 'Please enter a valid email to receive updates';
-    if (!formData.mobileNumber.trim()) newErrors.mobileNumber = 'Mobile number is required';
-    else if (!/^[6-9]\d{9}$/.test(formData.mobileNumber)) newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number with WhatsApp';
+    if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
+    if (!formData.flatNumber.trim())
+      newErrors.flatNumber = "Flat number is required";
+    else if (!/^\d+$/.test(formData.flatNumber))
+      newErrors.flatNumber = "Flat number must contain only numbers";
+    if (!formData.wing) newErrors.wing = "Wing is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email))
+      newErrors.email = "Please enter a valid email to receive updates";
+    if (!formData.mobileNumber.trim())
+      newErrors.mobileNumber = "Mobile number is required";
+    else if (!/^[6-9]\d{9}$/.test(formData.mobileNumber))
+      newErrors.mobileNumber =
+        "Please enter a valid 10-digit mobile number with WhatsApp";
     // Carpet area and built-up area are now optional
-    if (formData.carpetArea && Number(formData.carpetArea) <= 0) newErrors.carpetArea = 'Carpet area must be greater than 0';
-    if (formData.builtUpArea && Number(formData.builtUpArea) <= 0) newErrors.builtUpArea = 'Built-up area must be greater than 0';
-    if (!formData.membershipType) newErrors.membershipType = 'Membership type is required';
-    if (!formData.digitalSignature.trim()) newErrors.digitalSignature = 'Digital signature is required';
-    if (!formData.declarationAccepted) newErrors.declarationAccepted = 'You must accept the declaration';
+    if (formData.carpetArea && Number(formData.carpetArea) <= 0)
+      newErrors.carpetArea = "Carpet area must be greater than 0";
+    if (formData.builtUpArea && Number(formData.builtUpArea) <= 0)
+      newErrors.builtUpArea = "Built-up area must be greater than 0";
+    if (!formData.membershipType)
+      newErrors.membershipType = "Membership type is required";
+    if (!formData.digitalSignature.trim())
+      newErrors.digitalSignature = "Digital signature is required";
+    if (!formData.declarationAccepted)
+      newErrors.declarationAccepted = "You must accept the declaration";
 
-    if (!documents.index2Document?.fileName) newErrors.index2Document = 'Index II document is required';
-    if (!documents.possessionLetterDocument?.fileName) newErrors.possessionLetterDocument = 'Possession letter is required';
-    if (!documents.aadhaarCardDocument?.fileName) newErrors.aadhaarCardDocument = 'Aadhaar card is required';
+    if (!documents.index2Document?.fileName)
+      newErrors.index2Document = "Index II document is required";
+    if (!documents.possessionLetterDocument?.fileName)
+      newErrors.possessionLetterDocument = "Possession letter is required";
+    if (!documents.aadhaarCardDocument?.fileName)
+      newErrors.aadhaarCardDocument = "Aadhaar card is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -129,10 +148,16 @@ export default function ShareCertificatePage() {
 
     // Check required fields
     if (!formData.fullName.trim()) return false;
-    if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber)) return false;
+    if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber))
+      return false;
     if (!formData.wing) return false;
-    if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email)) return false;
-    if (!formData.mobileNumber.trim() || !/^[6-9]\d{9}$/.test(formData.mobileNumber)) return false;
+    if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email))
+      return false;
+    if (
+      !formData.mobileNumber.trim() ||
+      !/^[6-9]\d{9}$/.test(formData.mobileNumber)
+    )
+      return false;
     if (!formData.membershipType) return false;
     if (!formData.digitalSignature.trim()) return false;
     if (!formData.declarationAccepted) return false;
@@ -165,7 +190,7 @@ export default function ShareCertificatePage() {
     e.preventDefault();
 
     if (!validateForm()) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -174,8 +199,12 @@ export default function ShareCertificatePage() {
     try {
       const payload = {
         ...formData,
-        carpetArea: formData.carpetArea ? Number(formData.carpetArea) : undefined,
-        builtUpArea: formData.builtUpArea ? Number(formData.builtUpArea) : undefined,
+        carpetArea: formData.carpetArea
+          ? Number(formData.carpetArea)
+          : undefined,
+        builtUpArea: formData.builtUpArea
+          ? Number(formData.builtUpArea)
+          : undefined,
         index2Document: documents.index2Document,
         possessionLetterDocument: documents.possessionLetterDocument,
         aadhaarCardDocument: documents.aadhaarCardDocument,
@@ -183,22 +212,27 @@ export default function ShareCertificatePage() {
 
       const response = await shareCertificateAPI.create(payload);
       // Backend returns { success, message, data: { acknowledgementNumber, email } }
-      const ackNumber = response.data.data?.acknowledgementNumber || response.data.acknowledgementNumber;
+      const ackNumber =
+        response.data.data?.acknowledgementNumber ||
+        response.data.acknowledgementNumber;
       setAcknowledgementNumber(ackNumber);
       setSubmittedFormData({
         ...formData,
-        submittedDate: new Date().toLocaleString('en-IN', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
+        submittedDate: new Date().toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         }),
       });
       setSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to submit application. Please try again.');
+      alert(
+        error.response?.data?.message ||
+          "Failed to submit application. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -212,23 +246,35 @@ export default function ShareCertificatePage() {
             <div className="h-20 w-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">Successfully Submitted!</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+              Successfully Submitted!
+            </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
             <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-500 rounded-xl p-5 mb-8">
-              <p className="text-3xl font-bold text-blue-700 tracking-wide">{acknowledgementNumber}</p>
+              <p className="text-3xl font-bold text-blue-700 tracking-wide">
+                {acknowledgementNumber}
+              </p>
             </div>
             <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-              Save this number for tracking. A confirmation email has been sent to your inbox.
+              Save this number for tracking. A confirmation email has been sent
+              to your inbox.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleDownloadReceipt} className="flex-1 sm:flex-initial gap-2">
+              <Button
+                onClick={handleDownloadReceipt}
+                className="flex-1 sm:flex-initial gap-2">
                 <Download className="h-4 w-4" />
                 Download Receipt
               </Button>
-              <Button onClick={() => router.push('/status')} className="flex-1 sm:flex-initial">
+              <Button
+                onClick={() => router.push("/status")}
+                className="flex-1 sm:flex-initial">
                 Track Status
               </Button>
-              <Button variant="outline" onClick={() => window.location.reload()} className="flex-1 sm:flex-initial">
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="flex-1 sm:flex-initial">
                 Submit Another
               </Button>
             </div>
@@ -243,19 +289,29 @@ export default function ShareCertificatePage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-4">
             <span className="mr-2">←</span> Back to Home
           </Link>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Share Certificate Application</h1>
-          <p className="text-lg text-slate-600">Complete the form below to apply for your share certificate</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-3">
+            Share Certificate Application
+          </h1>
+          <p className="text-lg text-slate-600">
+            Complete the form below to apply for your share certificate
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Personal Information</h3>
-              <p className="text-sm text-slate-600 mt-1">Enter your basic details as per official documents</p>
+              <h3 className="text-xl font-bold text-slate-900">
+                Personal Information
+              </h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Enter your basic details as per official documents
+              </p>
             </div>
             <div className="px-8 py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -286,11 +342,11 @@ export default function ShareCertificatePage() {
                   onChange={handleInputChange}
                   onBlur={checkDuplicate}
                   options={[
-                    { value: 'C', label: 'C' },
-                    { value: 'D', label: 'D' },
+                    { value: "C", label: "C" },
+                    { value: "D", label: "D" },
                   ]}
                   error={errors.wing}
-                  helperText={checkingDuplicate ? 'Checking...' : undefined}
+                  helperText={checkingDuplicate ? "Checking..." : undefined}
                   required
                 />
                 <Input
@@ -322,8 +378,12 @@ export default function ShareCertificatePage() {
           {/* Property Details */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Property Details</h3>
-              <p className="text-sm text-slate-600 mt-1">Provide information about your flat</p>
+              <h3 className="text-xl font-bold text-slate-900">
+                Property Details
+              </h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Provide information about your flat
+              </p>
             </div>
             <div className="px-8 py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -365,11 +425,15 @@ export default function ShareCertificatePage() {
           {/* Required Documents */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Required Documents</h3>
-              <p className="text-sm text-slate-600 mt-1">Upload clear copies in PDF or JPEG format (max 2MB each)</p>
+              <h3 className="text-xl font-bold text-slate-900">
+                Required Documents
+              </h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Upload clear copies in PDF or JPEG format (max 2MB each)
+              </p>
             </div>
             <div className="px-8 py-6">
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FileUpload
                   label="Index II Document"
                   required
@@ -377,7 +441,10 @@ export default function ShareCertificatePage() {
                   documentType="INDEX2"
                   fullName={formData.fullName}
                   onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({ ...prev, index2Document: metadata }))
+                    setDocuments((prev) => ({
+                      ...prev,
+                      index2Document: metadata,
+                    }))
                   }
                   value={documents.index2Document}
                   error={errors.index2Document}
@@ -389,7 +456,10 @@ export default function ShareCertificatePage() {
                   documentType="POSSESSION_LETTER"
                   fullName={formData.fullName}
                   onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({ ...prev, possessionLetterDocument: metadata }))
+                    setDocuments((prev) => ({
+                      ...prev,
+                      possessionLetterDocument: metadata,
+                    }))
                   }
                   value={documents.possessionLetterDocument}
                   error={errors.possessionLetterDocument}
@@ -401,7 +471,10 @@ export default function ShareCertificatePage() {
                   documentType="AADHAAR"
                   fullName={formData.fullName}
                   onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({ ...prev, aadhaarCardDocument: metadata }))
+                    setDocuments((prev) => ({
+                      ...prev,
+                      aadhaarCardDocument: metadata,
+                    }))
                   }
                   value={documents.aadhaarCardDocument}
                   error={errors.aadhaarCardDocument}
@@ -414,7 +487,9 @@ export default function ShareCertificatePage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="px-8 py-5 border-b border-slate-200">
               <h3 className="text-xl font-bold text-slate-900">Declaration</h3>
-              <p className="text-sm text-slate-600 mt-1">Confirm the accuracy of your information</p>
+              <p className="text-sm text-slate-600 mt-1">
+                Confirm the accuracy of your information
+              </p>
             </div>
             <div className="px-8 py-6">
               <div className="space-y-5">
@@ -439,10 +514,15 @@ export default function ShareCertificatePage() {
                     />
                     <div className="flex-1">
                       <label className="text-sm text-slate-700 leading-relaxed">
-                        I hereby declare that all the information provided above is true and correct to the best of my knowledge. I understand that any false information may result in rejection of my application.
+                        I hereby declare that all the information provided above
+                        is true and correct to the best of my knowledge. I
+                        understand that any false information may result in
+                        rejection of my application.
                       </label>
                       {errors.declarationAccepted && (
-                        <span className="block text-red-600 text-sm mt-2">{errors.declarationAccepted}</span>
+                        <span className="block text-red-600 text-sm mt-2">
+                          {errors.declarationAccepted}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -453,11 +533,19 @@ export default function ShareCertificatePage() {
 
           {/* Form Actions */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-            <Button type="button" variant="secondary" onClick={() => router.push('/')} className="sm:w-auto">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push("/")}
+              className="sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" isLoading={submitting} disabled={!isFormValid() || submitting} className="sm:w-auto">
-              {submitting ? 'Submitting...' : 'Submit Application'}
+            <Button
+              type="submit"
+              isLoading={submitting}
+              disabled={!isFormValid() || submitting}
+              className="sm:w-auto">
+              {submitting ? "Submitting..." : "Submit Application"}
             </Button>
           </div>
         </form>

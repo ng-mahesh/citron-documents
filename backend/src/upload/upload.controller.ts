@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Delete,
   UploadedFile,
   UseInterceptors,
   BadRequestException,
@@ -49,6 +50,24 @@ export class UploadController {
       success: true,
       message: 'File uploaded successfully',
       data: uploadedDocument,
+    };
+  }
+
+  /**
+   * Delete a file from S3
+   * DELETE /api/upload
+   */
+  @Delete()
+  async deleteFile(@Body('key') key: string) {
+    if (!key) {
+      throw new BadRequestException('No file key provided');
+    }
+
+    await this.uploadService.deleteFile(key);
+
+    return {
+      success: true,
+      message: 'File deleted successfully',
     };
   }
 }

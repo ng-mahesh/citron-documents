@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
-import { shareCertificateAPI, adminAPI } from '@/lib/api';
-import { ShareCertificate, Status } from '@/lib/types';
-import { ToastContainer, ToastType } from '@/components/ui/Toast';
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
+import { shareCertificateAPI, adminAPI } from "@/lib/api";
+import { ShareCertificate, Status } from "@/lib/types";
+import { ToastContainer, ToastType } from "@/components/ui/Toast";
 import {
   FileText,
   ArrowLeft,
@@ -23,7 +23,7 @@ import {
   Save,
   Home,
   Ruler,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function ShareCertificateDetailPage() {
   const router = useRouter();
@@ -32,10 +32,13 @@ export default function ShareCertificateDetailPage() {
 
   const [certificate, setCertificate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState<Status>('Pending');
-  const [adminRemarks, setAdminRemarks] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
+  const [adminRemarks, setAdminRemarks] = useState<string>("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
   const [documentPopup, setDocumentPopup] = useState<{
     isOpen: boolean;
     url: string;
@@ -44,9 +47,9 @@ export default function ShareCertificateDetailPage() {
   } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem("adminToken");
     if (!token) {
-      router.push('/admin/login');
+      router.push("/admin/login");
       return;
     }
     fetchCertificateDetails();
@@ -57,11 +60,14 @@ export default function ShareCertificateDetailPage() {
       const response = await shareCertificateAPI.getByAckNumber(ackNo);
       setCertificate(response.data.data);
       setSelectedStatus(response.data.data.status);
-      setAdminRemarks(response.data.data.adminRemarks || '');
+      setAdminRemarks(response.data.data.adminRemarks || "");
     } catch (error) {
-      console.error('Failed to fetch certificate details:', error);
-      setToast({ message: 'Failed to load certificate details', type: 'error' });
-      setTimeout(() => router.push('/admin/dashboard'), 2000);
+      console.error("Failed to fetch certificate details:", error);
+      setToast({
+        message: "Failed to load certificate details",
+        type: "error",
+      });
+      setTimeout(() => router.push("/admin/dashboard"), 2000);
     } finally {
       setLoading(false);
     }
@@ -76,15 +82,22 @@ export default function ShareCertificateDetailPage() {
     try {
       await shareCertificateAPI.update(certificate._id, {
         status: selectedStatus,
-        adminRemarks: adminRemarks
+        adminRemarks: adminRemarks,
       });
-      setCertificate({ ...certificate, status: selectedStatus, adminRemarks: adminRemarks });
-      setToast({ message: 'Status updated successfully', type: 'success' });
+      setCertificate({
+        ...certificate,
+        status: selectedStatus,
+        adminRemarks: adminRemarks,
+      });
+      setToast({ message: "Status updated successfully", type: "success" });
     } catch (error) {
-      console.error('Failed to update status:', error);
-      setToast({ message: 'Failed to update status. Please try again.', type: 'error' });
+      console.error("Failed to update status:", error);
+      setToast({
+        message: "Failed to update status. Please try again.",
+        type: "error",
+      });
       setSelectedStatus(certificate.status);
-      setAdminRemarks(certificate.adminRemarks || '');
+      setAdminRemarks(certificate.adminRemarks || "");
     } finally {
       setUpdatingStatus(false);
     }
@@ -100,8 +113,11 @@ export default function ShareCertificateDetailPage() {
       const presignedUrl = response.data.data.presignedUrl;
       setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType });
     } catch (error) {
-      console.error('Failed to fetch document URL:', error);
-      setToast({ message: 'Failed to load document. Please try again.', type: 'error' });
+      console.error("Failed to fetch document URL:", error);
+      setToast({
+        message: "Failed to load document. Please try again.",
+        type: "error",
+      });
     }
   };
 
@@ -112,19 +128,21 @@ export default function ShareCertificateDetailPage() {
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
       Pending:
-        'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300',
-      'Under Review':
-        'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border border-amber-300',
+        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300",
+      "Under Review":
+        "bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border border-amber-300",
       Approved:
-        'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 border border-emerald-300',
+        "bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 border border-emerald-300",
       Rejected:
-        'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-      'Document Required':
-        'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300',
+        "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300",
+      "Document Required":
+        "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300",
     };
     return (
       <span
-        className={`px-4 py-2 rounded-lg text-sm font-bold ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+        className={`px-4 py-2 rounded-lg text-sm font-bold ${
+          colors[status] || "bg-gray-100 text-gray-800"
+        }`}>
         {status}
       </span>
     );
@@ -132,11 +150,11 @@ export default function ShareCertificateDetailPage() {
 
   const getMembershipTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      'Primary': 'Primary Member',
-      'Spouse': 'Spouse',
-      'Son': 'Son',
-      'Daughter': 'Daughter',
-      'Legal Heir': 'Legal Heir',
+      Primary: "Primary Member",
+      Spouse: "Spouse",
+      Son: "Son",
+      Daughter: "Daughter",
+      "Legal Heir": "Legal Heir",
     };
     return labels[type] || type;
   };
@@ -146,7 +164,9 @@ export default function ShareCertificateDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading certificate details...</p>
+          <p className="text-slate-600 font-medium">
+            Loading certificate details...
+          </p>
         </div>
       </div>
     );
@@ -157,7 +177,9 @@ export default function ShareCertificateDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-600">Certificate not found</p>
-          <Button onClick={() => router.push('/admin/dashboard')} className="mt-4">
+          <Button
+            onClick={() => router.push("/admin/dashboard")}
+            className="mt-4">
             Back to Dashboard
           </Button>
         </div>
@@ -169,11 +191,11 @@ export default function ShareCertificateDetailPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
               <Button
-                onClick={() => router.push('/admin/dashboard')}
+                onClick={() => router.push("/admin/dashboard")}
                 variant="outline"
                 size="sm"
                 className="gap-2">
@@ -185,7 +207,7 @@ export default function ShareCertificateDetailPage() {
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-slate-900">
+                  <h1 className="text-lg sm:text-xl font-bold text-slate-900">
                     Share Certificate Details
                   </h1>
                   <p className="text-xs text-slate-500">
@@ -194,12 +216,14 @@ export default function ShareCertificateDetailPage() {
                 </div>
               </div>
             </div>
-            {getStatusBadge(certificate.status)}
+            <div className="self-end sm:self-auto">
+              {getStatusBadge(certificate.status)}
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
@@ -214,7 +238,9 @@ export default function ShareCertificateDetailPage() {
               <div className="px-8 py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Full Name</label>
+                    <label className="text-sm font-medium text-slate-500">
+                      Full Name
+                    </label>
                     <p className="text-base font-semibold text-slate-900 mt-1">
                       {certificate.fullName}
                     </p>
@@ -233,14 +259,18 @@ export default function ShareCertificateDetailPage() {
                       <Mail className="h-4 w-4" />
                       Email
                     </label>
-                    <p className="text-base text-slate-900 mt-1">{certificate.email}</p>
+                    <p className="text-base text-slate-900 mt-1">
+                      {certificate.email}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <Phone className="h-4 w-4" />
                       Mobile
                     </label>
-                    <p className="text-base text-slate-900 mt-1">{certificate.mobileNumber}</p>
+                    <p className="text-base text-slate-900 mt-1">
+                      {certificate.mobileNumber}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
@@ -257,16 +287,23 @@ export default function ShareCertificateDetailPage() {
                       Submitted On
                     </label>
                     <p className="text-base text-slate-900 mt-1">
-                      {new Date(certificate.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
+                      {new Date(certificate.createdAt).toLocaleDateString(
+                        "en-IN",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        }
+                      )}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Digital Signature</label>
-                    <p className="text-base italic text-slate-900 mt-1">{certificate.digitalSignature}</p>
+                    <label className="text-sm font-medium text-slate-500">
+                      Digital Signature
+                    </label>
+                    <p className="text-base italic text-slate-900 mt-1">
+                      {certificate.digitalSignature}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -286,7 +323,9 @@ export default function ShareCertificateDetailPage() {
                     <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl border-2 border-blue-200">
                       <div className="flex items-center gap-3 mb-2">
                         <Ruler className="h-5 w-5 text-blue-600" />
-                        <label className="text-sm font-medium text-slate-600">Carpet Area</label>
+                        <label className="text-sm font-medium text-slate-600">
+                          Carpet Area
+                        </label>
                       </div>
                       <p className="text-2xl font-bold text-slate-900">
                         {certificate.carpetArea} sq.ft
@@ -297,7 +336,9 @@ export default function ShareCertificateDetailPage() {
                     <div className="p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl border-2 border-emerald-200">
                       <div className="flex items-center gap-3 mb-2">
                         <Ruler className="h-5 w-5 text-emerald-600" />
-                        <label className="text-sm font-medium text-slate-600">Built-up Area</label>
+                        <label className="text-sm font-medium text-slate-600">
+                          Built-up Area
+                        </label>
                       </div>
                       <p className="text-2xl font-bold text-slate-900">
                         {certificate.builtUpArea} sq.ft
@@ -314,7 +355,9 @@ export default function ShareCertificateDetailPage() {
             {/* Status Update */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-6 py-4 border-b border-slate-200">
-                <h3 className="text-lg font-bold text-slate-900">Update Status</h3>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Update Status
+                </h3>
               </div>
               <div className="px-6 py-4 space-y-4">
                 <div>
@@ -329,7 +372,9 @@ export default function ShareCertificateDetailPage() {
                   </label>
                   <select
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value as Status)}
+                    onChange={(e) =>
+                      setSelectedStatus(e.target.value as Status)
+                    }
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                     disabled={updatingStatus}>
                     <option value="Pending">Pending</option>
@@ -357,11 +402,15 @@ export default function ShareCertificateDetailPage() {
                 </div>
                 <Button
                   onClick={handleStatusUpdate}
-                  disabled={updatingStatus || (selectedStatus === certificate.status && adminRemarks === (certificate.adminRemarks || ''))}
+                  disabled={
+                    updatingStatus ||
+                    (selectedStatus === certificate.status &&
+                      adminRemarks === (certificate.adminRemarks || ""))
+                  }
                   isLoading={updatingStatus}
                   className="w-full gap-2">
                   <Save className="h-4 w-4" />
-                  {updatingStatus ? 'Updating...' : 'Update Status'}
+                  {updatingStatus ? "Updating..." : "Update Status"}
                 </Button>
               </div>
             </div>
@@ -385,7 +434,9 @@ export default function ShareCertificateDetailPage() {
                     className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
                     <FileText className="h-8 w-8 text-blue-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">Index-2 Document</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        Index-2 Document
+                      </p>
                       <p className="text-xs text-slate-600 truncate">
                         {certificate.index2Document.fileName}
                       </p>
@@ -407,7 +458,9 @@ export default function ShareCertificateDetailPage() {
                     className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
                     <FileText className="h-8 w-8 text-green-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">Possession Letter</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        Possession Letter
+                      </p>
                       <p className="text-xs text-slate-600 truncate">
                         {certificate.possessionLetterDocument.fileName}
                       </p>
@@ -429,7 +482,9 @@ export default function ShareCertificateDetailPage() {
                     className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
                     <FileText className="h-8 w-8 text-purple-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">Aadhaar Card</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        Aadhaar Card
+                      </p>
                       <p className="text-xs text-slate-600 truncate">
                         {certificate.aadhaarCardDocument.fileName}
                       </p>
@@ -443,7 +498,9 @@ export default function ShareCertificateDetailPage() {
             {/* Declaration */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-6 py-4 border-b border-slate-200">
-                <h3 className="text-lg font-bold text-slate-900">Declaration</h3>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Declaration
+                </h3>
               </div>
               <div className="px-6 py-4">
                 <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
@@ -453,8 +510,8 @@ export default function ShareCertificateDetailPage() {
                       Declaration Accepted
                     </p>
                     <p className="text-xs text-slate-600">
-                      The member has accepted all terms and conditions and confirmed that the
-                      information provided is accurate.
+                      The member has accepted all terms and conditions and
+                      confirmed that the information provided is accurate.
                     </p>
                   </div>
                 </div>
@@ -479,7 +536,9 @@ export default function ShareCertificateDetailPage() {
                   <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900">Document Viewer</h3>
+                  <h3 className="font-semibold text-slate-900">
+                    Document Viewer
+                  </h3>
                   <p className="text-xs text-slate-500 truncate max-w-md">
                     {documentPopup.fileName}
                   </p>
@@ -494,7 +553,7 @@ export default function ShareCertificateDetailPage() {
 
             {/* Document Content */}
             <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
-              {documentPopup.fileType?.includes('pdf') ? (
+              {documentPopup.fileType?.includes("pdf") ? (
                 <iframe
                   src={documentPopup.url}
                   className="w-full h-[70vh] border-0 rounded-lg"
