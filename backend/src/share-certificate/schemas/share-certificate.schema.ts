@@ -14,6 +14,9 @@ export class ShareCertificate extends Document {
   @Prop({ required: true })
   fullName: string;
 
+  @Prop({ type: [String], default: [] })
+  index2ApplicantNames: string[];
+
   @Prop({ required: true })
   flatNumber: string;
 

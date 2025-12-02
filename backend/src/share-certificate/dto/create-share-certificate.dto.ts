@@ -11,6 +11,7 @@ import {
   IsObject,
   IsIn,
   IsNumberString,
+  IsArray,
 } from 'class-validator';
 import { UploadedDocument } from '../../common/interfaces/document.interface';
 
@@ -23,6 +24,11 @@ export class CreateShareCertificateDto {
   @IsNotEmpty()
   @MaxLength(100)
   fullName: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  index2ApplicantNames?: string[];
 
   @IsNumberString()
   @IsNotEmpty()

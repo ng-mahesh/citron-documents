@@ -14,6 +14,7 @@ export interface ShareCertificate {
   _id?: string;
   acknowledgementNumber?: string;
   fullName: string;
+  index2ApplicantNames?: string[];
   flatNumber: string;
   wing: 'C' | 'D';
   email: string;

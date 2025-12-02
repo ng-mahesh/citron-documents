@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 interface ShareCertificateData {
   acknowledgementNumber: string;
   fullName: string;
+  index2ApplicantNames?: string[];
   flatNumber: string;
   wing: string;
   email: string;
@@ -159,6 +160,25 @@ export const generateShareCertificateReceipt = (
   doc.text(data.fullName, leftValCol, yPosition);
 
   yPosition += lineHeight;
+
+  // Add Index-2 Applicant Names if available
+  if (data.index2ApplicantNames && data.index2ApplicantNames.length > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Index-2 Applicants:", leftCol, yPosition);
+    doc.setFont("helvetica", "normal");
+
+    // Display all applicant names with proper spacing
+    data.index2ApplicantNames.forEach((name, index) => {
+      if (index === 0) {
+        doc.text(`${index + 1}. ${name}`, leftValCol, yPosition);
+      } else {
+        yPosition += lineHeight;
+        doc.text(`${index + 1}. ${name}`, leftValCol, yPosition);
+      }
+    });
+    yPosition += lineHeight;
+  }
+
   doc.setFont("helvetica", "bold");
   doc.text("Flat Number:", leftCol, yPosition);
   doc.setFont("helvetica", "normal");

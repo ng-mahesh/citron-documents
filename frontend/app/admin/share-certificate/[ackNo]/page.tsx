@@ -254,6 +254,24 @@ export default function ShareCertificateDetailPage() {
                       {certificate.flatNumber} - Wing {certificate.wing}
                     </p>
                   </div>
+                  {certificate.index2ApplicantNames && certificate.index2ApplicantNames.length > 0 && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        Index-2 Applicant Names
+                      </label>
+                      <div className="mt-2 space-y-2">
+                        {certificate.index2ApplicantNames.map((name:any, index:any) => (
+                          <div key={index} className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                            <span className="text-xs font-bold text-blue-700 bg-blue-200 rounded-full h-6 w-6 flex items-center justify-center">
+                              {index + 1}
+                            </span>
+                            <p className="text-base text-slate-900">{name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <Mail className="h-4 w-4" />

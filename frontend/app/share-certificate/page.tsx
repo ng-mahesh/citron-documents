@@ -17,6 +17,7 @@ export default function ShareCertificatePage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: "",
+    index2ApplicantNames: [] as string[],
     flatNumber: "",
     wing: "" as "C" | "D" | "",
     email: "",
@@ -63,6 +64,31 @@ export default function ShareCertificatePage() {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handleAddApplicantName = () => {
+    setFormData((prev) => ({
+      ...prev,
+      index2ApplicantNames: [...prev.index2ApplicantNames, ""],
+    }));
+  };
+
+  const handleRemoveApplicantName = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      index2ApplicantNames: prev.index2ApplicantNames.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleApplicantNameChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const updatedNames = [...prev.index2ApplicantNames];
+      updatedNames[index] = value;
+      return {
+        ...prev,
+        index2ApplicantNames: updatedNames,
+      };
+    });
   };
 
   const checkDuplicate = async () => {
@@ -173,6 +199,7 @@ export default function ShareCertificatePage() {
       generateShareCertificateReceipt({
         acknowledgementNumber,
         fullName: submittedFormData.fullName,
+        index2ApplicantNames: submittedFormData.index2ApplicantNames,
         flatNumber: submittedFormData.flatNumber,
         wing: submittedFormData.wing,
         email: submittedFormData.email,
@@ -205,6 +232,7 @@ export default function ShareCertificatePage() {
         builtUpArea: formData.builtUpArea
           ? Number(formData.builtUpArea)
           : undefined,
+        index2ApplicantNames: formData.index2ApplicantNames.filter(name => name.trim() !== ""),
         index2Document: documents.index2Document,
         possessionLetterDocument: documents.possessionLetterDocument,
         aadhaarCardDocument: documents.aadhaarCardDocument,
@@ -314,27 +342,89 @@ export default function ShareCertificatePage() {
               </p>
             </div>
             <div className="px-8 py-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Primary Applicant Full Name - Full Width */}
+              <div className="mb-6">
                 <Input
-                  label="Full Name"
+                  label="Primary Applicant Full Name"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
                   error={errors.fullName}
                   placeholder="Enter full name"
-                  helperText="As per Index II document"
+                  helperText="As per Index - 2 document"
                   required
                 />
-                <Input
-                  label="Flat Number"
-                  name="flatNumber"
-                  value={formData.flatNumber}
-                  onChange={handleInputChange}
-                  error={errors.flatNumber}
-                  placeholder="e.g., 101"
-                  type="text"
-                  required
-                />
+              </div>
+
+              {/* Index-2 Multiple Co-Applicant Names Section */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-900">
+                      Index-2 Co-Applicant Names
+                    </label>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Add co-applicant names as per Index-2 document only if any
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAddApplicantName}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs">
+                    + Add Name
+                  </Button>
+                </div>
+
+                {formData.index2ApplicantNames.length > 0 && (
+                  <div className="space-y-3">
+                    {formData.index2ApplicantNames.map((name, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <div className="flex-1">
+                          <Input
+                            label={`Co-Applicant ${index + 1}`}
+                            value={name}
+                            onChange={(e) =>
+                              handleApplicantNameChange(index, e.target.value)
+                            }
+                            placeholder="Enter co-applicant name"
+                            helperText="As listed in Index-2"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveApplicantName(index)}
+                          className="mt-8 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove applicant name">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path
+                              fillRule="evenodd"
+                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {formData.index2ApplicantNames.length === 0 && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
+                    <p className="text-sm text-slate-600">
+                      No additional applicant names added. Click &quot;Add Name&quot; to add multiple applicants from Index-2 if any.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Flat Number and Wing */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Select
                   label="Wing"
                   name="wing"
@@ -349,6 +439,20 @@ export default function ShareCertificatePage() {
                   helperText={checkingDuplicate ? "Checking..." : undefined}
                   required
                 />
+                <Input
+                  label="Flat Number"
+                  name="flatNumber"
+                  value={formData.flatNumber}
+                  onChange={handleInputChange}
+                  error={errors.flatNumber}
+                  placeholder="e.g., 101"
+                  type="text"
+                  required
+                />
+              </div>
+
+              {/* Email and Mobile Number */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Email Address"
                   type="email"

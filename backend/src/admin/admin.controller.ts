@@ -168,7 +168,8 @@ export class AdminController {
     // Define columns
     worksheet.columns = [
       { header: 'Acknowledgement Number', key: 'acknowledgementNumber', width: 25 },
-      { header: 'Full Name', key: 'fullName', width: 30 },
+      { header: 'Primary Applicant Name', key: 'fullName', width: 30 },
+      { header: 'Co-Applicant Name', key: 'coApplicantName', width: 30 },
       { header: 'Flat Number', key: 'flatNumber', width: 15 },
       { header: 'Wing', key: 'wing', width: 15 },
       { header: 'Email', key: 'email', width: 30 },
@@ -181,11 +182,17 @@ export class AdminController {
       { header: 'Admin Remarks', key: 'adminRemarks', width: 30 },
     ];
 
-    // Add rows
+    // Add rows - all data in single row with co-applicants separated by line breaks
     certificates.forEach((cert) => {
+      // Join co-applicant names with line breaks
+      const coApplicantNames = cert.index2ApplicantNames && cert.index2ApplicantNames.length > 0
+        ? cert.index2ApplicantNames.join('\n')
+        : '';
+
       worksheet.addRow({
         acknowledgementNumber: cert.acknowledgementNumber,
         fullName: cert.fullName,
+        coApplicantName: coApplicantNames,
         flatNumber: cert.flatNumber,
         wing: cert.wing,
         email: cert.email,
@@ -198,6 +205,12 @@ export class AdminController {
         adminRemarks: cert.adminRemarks || '',
       });
     });
+
+    // Enable text wrapping for Co-Applicant Name column
+    worksheet.getColumn('coApplicantName').alignment = {
+      vertical: 'top',
+      wrapText: true
+    };
 
     // Style header row
     worksheet.getRow(1).font = { bold: true };
