@@ -2,9 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import * as express from 'express';
+import express from 'express';
 
-const expressApp = express();
+const server = express();
 let cachedApp;
 
 /**
@@ -14,7 +14,7 @@ async function bootstrap() {
   if (!cachedApp) {
     const app = await NestFactory.create(
       AppModule,
-      new ExpressAdapter(expressApp),
+      new ExpressAdapter(server),
     );
 
     // Enable CORS for frontend communication
@@ -53,5 +53,5 @@ if (process.env.NODE_ENV !== 'production') {
 // Serverless handler for Vercel
 export default async (req, res) => {
   await bootstrap();
-  return expressApp(req, res);
+  return server(req, res);
 };
