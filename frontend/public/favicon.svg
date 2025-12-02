@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#2563eb"/>
+
+  <!-- Document shape -->
+  <g transform="translate(9, 6)">
+    <!-- Main document body -->
+    <rect x="0" y="3" width="14" height="17" fill="white" rx="1"/>
+
+    <!-- Folded corner -->
+    <path d="M 11 0 L 14 3 L 11 3 Z" fill="#93c5fd"/>
+    <path d="M 0 3 L 11 3 L 11 0 L 1 0 C 0.45 0 0 0.45 0 1 Z" fill="white"/>
+
+    <!-- Document lines -->
+    <line x1="3" y1="8" x2="11" y2="8" stroke="#2563eb" stroke-width="0.8" stroke-linecap="round"/>
+    <line x1="3" y1="11" x2="11" y2="11" stroke="#2563eb" stroke-width="0.8" stroke-linecap="round"/>
+    <line x1="3" y1="14" x2="8" y2="14" stroke="#2563eb" stroke-width="0.8" stroke-linecap="round"/>
+  </g>
+</svg>
