@@ -15,16 +15,16 @@ async function seedAdmin() {
   try {
     // Create default admin user
     const defaultAdmin = await adminService.createAdmin(
-      'admin', // username
-      'admin123', // password - CHANGE THIS IN PRODUCTION!
-      'admin@citronsociety.in', // email
-      'Administrator', // full name
+      'chairman', // username
+      'chairman@2611', // password - CHANGE THIS IN PRODUCTION!
+      'chairman@citronsociety.in', // email
+      'Chairman', // full name
     );
 
     console.log('✅ Default admin user created successfully!');
     console.log('📧 Email:', defaultAdmin.email);
-    console.log('👤 Username: admin');
-    console.log('🔑 Password: admin123');
+    console.log('👤 Username: chairman');
+    console.log('🔑 Password: chairman@2611');
     console.log('\n⚠️  IMPORTANT: Change the default password after first login!');
   } catch (error) {
     if (error.message.includes('already exists')) {
