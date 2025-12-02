@@ -10,8 +10,11 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { NominationService } from './nomination.service';
+import { NominationPdfService } from './nomination-pdf.service';
 import { CreateNominationDto } from './dto/create-nomination.dto';
 import { UpdateNominationDto } from './dto/update-nomination.dto';
 import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
@@ -21,7 +24,10 @@ import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
  */
 @Controller('nomination')
 export class NominationController {
-  constructor(private readonly nominationService: NominationService) {}
+  constructor(
+    private readonly nominationService: NominationService,
+    private readonly pdfService: NominationPdfService,
+  ) {}
 
   /**
    * Create new nomination submission
@@ -160,5 +166,27 @@ export class NominationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
     await this.nominationService.delete(id);
+  }
+
+  /**
+   * Download nomination PDF by acknowledgement number (Public)
+   * GET /api/nomination/download-pdf/:acknowledgementNumber
+   */
+  @Get('download-pdf/:acknowledgementNumber')
+  async downloadPdf(
+    @Param('acknowledgementNumber') acknowledgementNumber: string,
+    @Res() res: Response,
+  ) {
+    const nomination =
+      await this.nominationService.findByAcknowledgementNumber(acknowledgementNumber);
+    const pdfBuffer = await this.pdfService.generatePdf(nomination);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="Nomination_${acknowledgementNumber}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+
+    res.send(pdfBuffer);
   }
 }

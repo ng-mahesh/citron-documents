@@ -10,8 +10,11 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ShareCertificateService } from './share-certificate.service';
+import { ShareCertificatePdfService } from './share-certificate-pdf.service';
 import { CreateShareCertificateDto } from './dto/create-share-certificate.dto';
 import { UpdateShareCertificateDto } from './dto/update-share-certificate.dto';
 import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
@@ -21,7 +24,10 @@ import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
  */
 @Controller('share-certificate')
 export class ShareCertificateController {
-  constructor(private readonly shareCertificateService: ShareCertificateService) {}
+  constructor(
+    private readonly shareCertificateService: ShareCertificateService,
+    private readonly pdfService: ShareCertificatePdfService,
+  ) {}
 
   /**
    * Create new share certificate submission
@@ -160,5 +166,27 @@ export class ShareCertificateController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
     await this.shareCertificateService.delete(id);
+  }
+
+  /**
+   * Download share certificate PDF by acknowledgement number (Public)
+   * GET /api/share-certificate/download-pdf/:acknowledgementNumber
+   */
+  @Get('download-pdf/:acknowledgementNumber')
+  async downloadPdf(
+    @Param('acknowledgementNumber') acknowledgementNumber: string,
+    @Res() res: Response,
+  ) {
+    const certificate =
+      await this.shareCertificateService.findByAcknowledgementNumber(acknowledgementNumber);
+    const pdfBuffer = await this.pdfService.generatePdf(certificate);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="ShareCertificate_${acknowledgementNumber}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+
+    res.send(pdfBuffer);
   }
 }

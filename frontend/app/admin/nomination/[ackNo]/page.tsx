@@ -44,6 +44,7 @@ export default function NominationDetailPage() {
     fileName: string;
     fileType: string;
   } | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -119,6 +120,33 @@ export default function NominationDetailPage() {
 
   const closeDocumentPopup = () => {
     setDocumentPopup(null);
+  };
+
+  const handleGeneratePdf = async () => {
+    if (!nomination) return;
+
+    setGeneratingPdf(true);
+    try {
+      const response = await nominationAPI.downloadPdf(nomination.acknowledgementNumber);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Nomination_${nomination.acknowledgementNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      setToast({ message: "PDF generated successfully", type: "success" });
+    } catch (error: any) {
+      console.error("Failed to generate PDF:", error);
+      setToast({
+        message: "Failed to generate PDF. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -615,6 +643,28 @@ export default function NominationDetailPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Generate Form */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-200">
+                <h3 className="text-lg font-bold text-slate-900">
+                  Generate Form
+                </h3>
+              </div>
+              <div className="px-6 py-4">
+                <p className="text-sm text-slate-600 mb-4">
+                  Download the official nomination form PDF with all submitted details.
+                </p>
+                <Button
+                  onClick={handleGeneratePdf}
+                  disabled={generatingPdf}
+                  isLoading={generatingPdf}
+                  className="w-full gap-2">
+                  <Download className="h-4 w-4" />
+                  {generatingPdf ? "Generating..." : "Generate PDF Form"}
+                </Button>
               </div>
             </div>
           </div>

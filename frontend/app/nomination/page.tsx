@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/forms/FileUpload";
 import { nominationAPI } from "@/lib/api";
 import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
-import { CheckCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
 
 export default function NominationPage() {
   const router = useRouter();
@@ -63,6 +63,7 @@ export default function NominationPage() {
   const [success, setSuccess] = useState(false);
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -384,6 +385,31 @@ export default function NominationPage() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!acknowledgementNumber) return;
+
+    setDownloadingPdf(true);
+    try {
+      const response = await nominationAPI.downloadPdf(acknowledgementNumber);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Nomination_${acknowledgementNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(
+        error.response?.data?.message ||
+          "Failed to download PDF. Please try again."
+      );
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
@@ -405,18 +431,29 @@ export default function NominationPage() {
               Save this number for tracking. A confirmation email has been sent
               to your inbox.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col gap-3">
               <Button
-                onClick={() => router.push("/status")}
-                className="flex-1 sm:flex-initial">
-                Track Status
+                onClick={handleDownloadPdf}
+                isLoading={downloadingPdf}
+                disabled={downloadingPdf}
+                className="w-full gap-2">
+                <Download className="h-5 w-5" />
+                {downloadingPdf ? "Downloading..." : "Download PDF Form"}
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="flex-1 sm:flex-initial">
-                Submit Another
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={() => router.push("/status")}
+                  variant="outline"
+                  className="flex-1 sm:flex-initial">
+                  Track Status
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="flex-1 sm:flex-initial">
+                  Submit Another
+                </Button>
+              </div>
             </div>
           </div>
         </div>

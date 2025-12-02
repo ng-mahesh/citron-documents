@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NominationController } from './nomination.controller';
 import { NominationService } from './nomination.service';
+import { NominationPdfService } from './nomination-pdf.service';
 import { Nomination, NominationSchema } from './schemas/nomination.schema';
 import { EmailModule } from '../email/email.module';
 
@@ -14,7 +15,7 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
   ],
   controllers: [NominationController],
-  providers: [NominationService],
+  providers: [NominationService, NominationPdfService],
   exports: [NominationService],
 })
 export class NominationModule {}

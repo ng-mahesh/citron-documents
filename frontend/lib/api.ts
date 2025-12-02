@@ -31,6 +31,7 @@ export const shareCertificateAPI = {
   getByAckNumber: (ackNo: string) => api.get(`/share-certificate/details/${ackNo}`),
   update: (id: string, data: any) => api.put(`/share-certificate/${id}`, data),
   delete: (id: string) => api.delete(`/share-certificate/${id}`),
+  downloadPdf: (ackNo: string) => api.get(`/share-certificate/download-pdf/${ackNo}`, { responseType: 'blob' }),
 };
 
 export const nominationAPI = {
@@ -43,6 +44,7 @@ export const nominationAPI = {
   getByAckNumber: (ackNo: string) => api.get(`/nomination/details/${ackNo}`),
   update: (id: string, data: any) => api.put(`/nomination/${id}`, data),
   delete: (id: string) => api.delete(`/nomination/${id}`),
+  downloadPdf: (ackNo: string) => api.get(`/nomination/download-pdf/${ackNo}`, { responseType: 'blob' }),
 };
 
 export const uploadAPI = {

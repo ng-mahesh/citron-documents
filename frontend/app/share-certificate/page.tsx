@@ -41,6 +41,7 @@ export default function ShareCertificatePage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [submittedFormData, setSubmittedFormData] = useState<any>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const membershipTypes = [
     { value: "Primary", label: "Primary Member" },
@@ -194,22 +195,28 @@ export default function ShareCertificatePage() {
     return true;
   };
 
-  const handleDownloadReceipt = () => {
-    if (submittedFormData && acknowledgementNumber) {
-      generateShareCertificateReceipt({
-        acknowledgementNumber,
-        fullName: submittedFormData.fullName,
-        index2ApplicantNames: submittedFormData.index2ApplicantNames,
-        flatNumber: submittedFormData.flatNumber,
-        wing: submittedFormData.wing,
-        email: submittedFormData.email,
-        mobileNumber: submittedFormData.mobileNumber,
-        carpetArea: submittedFormData.carpetArea,
-        builtUpArea: submittedFormData.builtUpArea,
-        membershipType: submittedFormData.membershipType,
-        digitalSignature: submittedFormData.digitalSignature,
-        submittedDate: submittedFormData.submittedDate,
-      });
+  const handleDownloadReceipt = async () => {
+    if (!acknowledgementNumber) return;
+
+    setDownloadingPdf(true);
+    try {
+      const response = await shareCertificateAPI.downloadPdf(acknowledgementNumber);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ShareCertificate_${acknowledgementNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(
+        error.response?.data?.message ||
+          "Failed to download PDF. Please try again."
+      );
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -287,24 +294,29 @@ export default function ShareCertificatePage() {
               Save this number for tracking. A confirmation email has been sent
               to your inbox.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col gap-3">
               <Button
                 onClick={handleDownloadReceipt}
-                className="flex-1 sm:flex-initial gap-2">
-                <Download className="h-4 w-4" />
-                Download Receipt
+                isLoading={downloadingPdf}
+                disabled={downloadingPdf}
+                className="w-full gap-2">
+                <Download className="h-5 w-5" />
+                {downloadingPdf ? "Generating..." : "Download Application Form"}
               </Button>
-              <Button
-                onClick={() => router.push("/status")}
-                className="flex-1 sm:flex-initial">
-                Track Status
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="flex-1 sm:flex-initial">
-                Submit Another
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={() => router.push("/status")}
+                  variant="outline"
+                  className="flex-1 sm:flex-initial">
+                  Track Status
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="flex-1 sm:flex-initial">
+                  Submit Another
+                </Button>
+              </div>
             </div>
           </div>
         </div>
