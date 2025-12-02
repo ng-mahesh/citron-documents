@@ -33,7 +33,9 @@ export class EmailService {
   private transporter: Transporter;
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
+    const isDevelopment = this.configService.get<string>('NODE_ENV') !== 'production';
+
+    const smtpConfig = {
       host: this.configService.get<string>('SMTP_HOST'),
       port: this.configService.get<number>('SMTP_PORT'),
       secure: this.configService.get<boolean>('SMTP_SECURE'), // true for 465, false for other ports
@@ -41,7 +43,91 @@ export class EmailService {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASS'),
       },
+      tls: {
+        // Do not fail on invalid certs (common with shared hosting)
+        rejectUnauthorized: false,
+      },
+      logger: isDevelopment, // Enable nodemailer logging in development only
+      debug: false, // Disable verbose debug output (too noisy)
+    };
+
+    console.log('🔧 Email Service Configuration:', {
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      user: smtpConfig.auth.user,
+      from: this.configService.get<string>('SMTP_FROM_EMAIL'),
     });
+
+    this.transporter = nodemailer.createTransport(smtpConfig);
+
+    // Verify connection on startup (with error handling)
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.warn('⚠️  SMTP Connection Warning:', error.message);
+        console.warn(
+          '   This may not be a critical issue. Email sending will be attempted when needed.',
+        );
+      } else {
+        console.log('✅ SMTP Server is ready to send emails', success);
+      }
+    });
+  }
+
+  /**
+   * Verify SMTP connection
+   */
+  async verifyConnection(): Promise<{ success: boolean; message: string }> {
+    try {
+      await this.transporter.verify();
+      console.log('✅ SMTP connection verified successfully');
+      return { success: true, message: 'SMTP connection verified successfully' };
+    } catch (error) {
+      console.error('❌ SMTP connection verification failed:', error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * Send test email
+   */
+  async sendTestEmail(toEmail: string): Promise<void> {
+    const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL');
+    const mailOptions = {
+      from: fromEmail,
+      to: toEmail,
+      subject: 'Test Email - Citron Society Documents',
+      html: `
+        <h1>Test Email</h1>
+        <p>This is a test email to verify SMTP configuration.</p>
+        <p>If you receive this email, your SMTP settings are working correctly!</p>
+        <p>Sent at: ${new Date().toLocaleString()}</p>
+      `,
+      text: 'This is a test email to verify SMTP configuration. If you receive this email, your SMTP settings are working correctly!',
+    };
+
+    try {
+      console.log('📧 Attempting to send test email...');
+      console.log('   From:', fromEmail);
+      console.log('   To:', toEmail);
+      console.log('   Subject:', mailOptions.subject);
+
+      const info = await this.transporter.sendMail(mailOptions);
+
+      console.log('✅ Test email sent successfully!');
+      console.log('   Message ID:', info.messageId);
+      console.log('   Response:', info.response);
+      console.log('   Accepted:', info.accepted);
+      console.log('   Rejected:', info.rejected);
+      console.log('   Pending:', info.pending);
+    } catch (error) {
+      console.error('❌ Error sending test email:');
+      console.error('   Error Type:', error.name);
+      console.error('   Error Message:', error.message);
+      console.error('   Error Code:', error.code);
+      console.error('   Full Error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -50,10 +136,12 @@ export class EmailService {
   async sendAcknowledgementEmail(data: AcknowledgementEmailData): Promise<void> {
     const { email, name, acknowledgementNumber, type } = data;
 
+    const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL');
     const mailOptions = {
-      from: this.configService.get<string>('SMTP_FROM_EMAIL'),
+      from: `"Citron Society" <${fromEmail}>`,
       to: email,
-      subject: `${type} Submission Acknowledgement`,
+      subject: `${type} Submission Acknowledgement - ${acknowledgementNumber}`,
+      text: `Dear ${name},\n\nThank you for submitting your ${type} application. We have received your documents successfully.\n\nAcknowledgement Number: ${acknowledgementNumber}\n\nYou can track your application status using this number.\n\nBest regards,\nCitron Phase 2 C & D Co-operative Housing Society Limited`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -96,7 +184,7 @@ export class EmailService {
 
               <div class="footer">
                 <p>This is an automated email. Please do not reply to this email.</p>
-                <p>&copy; ${new Date().getFullYear()} Housing Society. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} Citron Phase 2 C & D Co-operative Housing Society Limited. All rights reserved.</p>
               </div>
             </div>
           </div>
@@ -106,9 +194,31 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      console.log('='.repeat(60));
+      console.log(`📧 Sending ${type} acknowledgement email`);
+      console.log(`   From: ${mailOptions.from}`);
+      console.log(`   To: ${email}`);
+      console.log(`   Subject: ${mailOptions.subject}`);
+      console.log(`   Acknowledgement #: ${acknowledgementNumber}`);
+
+      const info = await this.transporter.sendMail(mailOptions);
+
+      console.log('✅ Email sent successfully!');
+      console.log(`   Message ID: ${info.messageId}`);
+      console.log(`   Server Response: ${info.response}`);
+      console.log(`   Accepted: ${JSON.stringify(info.accepted)}`);
+      console.log(`   Rejected: ${JSON.stringify(info.rejected)}`);
+      if (info.pending && info.pending.length > 0) {
+        console.log(`   Pending: ${JSON.stringify(info.pending)}`);
+      }
+      console.log('='.repeat(60));
     } catch (error) {
-      console.error('Error sending acknowledgement email:', error);
+      console.error('='.repeat(60));
+      console.error('❌ Error sending acknowledgement email');
+      console.error(`   To: ${email}`);
+      console.error(`   Error: ${error.message}`);
+      console.error(`   Code: ${error.code}`);
+      console.error('='.repeat(60));
       throw error;
     }
   }
@@ -191,7 +301,7 @@ export class EmailService {
 
               <div class="footer">
                 <p>This is an automated email. Please do not reply to this email.</p>
-                <p>&copy; ${new Date().getFullYear()} Housing Society. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} Citron Phase 2 C & D Co-operative Housing Society Limited. All rights reserved.</p>
               </div>
             </div>
           </div>
@@ -201,9 +311,31 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      console.log('='.repeat(60));
+      console.log(`📧 Sending ${type} status update email`);
+      console.log(`   From: ${mailOptions.from}`);
+      console.log(`   To: ${email}`);
+      console.log(`   Subject: ${mailOptions.subject}`);
+      console.log(`   Status: ${status}`);
+
+      const info = await this.transporter.sendMail(mailOptions);
+
+      console.log('✅ Email sent successfully!');
+      console.log(`   Message ID: ${info.messageId}`);
+      console.log(`   Server Response: ${info.response}`);
+      console.log(`   Accepted: ${JSON.stringify(info.accepted)}`);
+      console.log(`   Rejected: ${JSON.stringify(info.rejected)}`);
+      if (info.pending && info.pending.length > 0) {
+        console.log(`   Pending: ${JSON.stringify(info.pending)}`);
+      }
+      console.log('='.repeat(60));
     } catch (error) {
-      console.error('Error sending status update email:', error);
+      console.error('='.repeat(60));
+      console.error('❌ Error sending status update email');
+      console.error(`   To: ${email}`);
+      console.error(`   Error: ${error.message}`);
+      console.error(`   Code: ${error.code}`);
+      console.error('='.repeat(60));
       throw error;
     }
   }

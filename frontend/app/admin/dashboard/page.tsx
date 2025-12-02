@@ -23,6 +23,8 @@ import {
   LogOut,
   Edit,
   Trash2,
+  Eye,
+  X,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -36,6 +38,12 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"certificates" | "nominations">(
     "certificates"
   );
+  const [documentPopup, setDocumentPopup] = useState<{
+    isOpen: boolean;
+    url: string;
+    fileName: string;
+    fileType: string;
+  } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -153,6 +161,27 @@ export default function AdminDashboard() {
     );
   };
 
+  const openDocumentPopup = async (
+    s3Key: string,
+    fileName: string,
+    fileType: string
+  ) => {
+    try {
+      // Fetch pre-signed URL from backend
+      const response = await adminAPI.getDocumentPresignedUrl(s3Key);
+      const presignedUrl = response.data.data.presignedUrl;
+
+      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType });
+    } catch (error) {
+      console.error("Failed to fetch document URL:", error);
+      alert("Failed to load document. Please try again.");
+    }
+  };
+
+  const closeDocumentPopup = () => {
+    setDocumentPopup(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
@@ -178,9 +207,7 @@ export default function AdminDashboard() {
                 <h1 className="text-xl font-bold text-slate-900">
                   Admin Dashboard
                 </h1>
-                <p className="text-xs text-slate-500">
-                  Housing Society Management
-                </p>
+                <p className="text-xs text-slate-500">Citron Documents App</p>
               </div>
             </div>
             <Button
@@ -327,48 +354,36 @@ export default function AdminDashboard() {
                     <tr
                       key={cert._id}
                       className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                         {cert.acknowledgementNumber}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                        {cert.fullName}
+                      <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
+                        <div className="truncate">
+                          {cert.fullName}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         {cert.flatNumber}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {cert.email}
+                      <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
+                        <div className="truncate">
+                          {cert.email}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(cert.status!)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={cert.status}
-                            onChange={(e) =>
-                              handleUpdateStatus(
-                                cert._id!,
-                                e.target.value as Status,
-                                "certificate"
-                              )
-                            }
-                            className="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                            style={{ colorScheme: "light" }}>
-                            {statuses.map((s) => (
-                              <option
-                                key={s.value}
-                                value={s.value}
-                                className="text-slate-900 bg-white">
-                                {s.label}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() =>
-                              handleDelete(cert._id!, "certificate")
-                            }
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            onClick={() => router.push(`/admin/share-certificate/${cert.acknowledgementNumber}`)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => handleDelete(cert._id!, "certificate")}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete certificate">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -441,30 +456,20 @@ export default function AdminDashboard() {
                         {getStatusBadge(nom.status!)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={nom.status}
-                            onChange={(e) =>
-                              handleUpdateStatus(
-                                nom._id!,
-                                e.target.value as Status,
-                                "nomination"
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              router.push(
+                                `/admin/nomination/${nom.acknowledgementNumber}`
                               )
                             }
-                            className="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                            style={{ colorScheme: "light" }}>
-                            {statuses.map((s) => (
-                              <option
-                                key={s.value}
-                                value={s.value}
-                                className="text-slate-900 bg-white">
-                                {s.label}
-                              </option>
-                            ))}
-                          </select>
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                            View Details
+                          </button>
                           <button
                             onClick={() => handleDelete(nom._id!, "nomination")}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete nomination">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -477,6 +482,73 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Popup */}
+      {documentPopup && documentPopup.isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={closeDocumentPopup}>
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Document Viewer
+                  </h3>
+                  <p className="text-xs text-slate-500 truncate max-w-md">
+                    {documentPopup.fileName}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={closeDocumentPopup}
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                <X className="h-5 w-5 text-slate-600" />
+              </button>
+            </div>
+
+            {/* Document Content */}
+            <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
+              {documentPopup.fileType?.includes("pdf") ? (
+                <iframe
+                  src={documentPopup.url}
+                  className="w-full h-[70vh] border-0 rounded-lg"
+                  title={documentPopup.fileName}
+                />
+              ) : (
+                <div className="flex items-center justify-center bg-slate-50 rounded-lg p-4">
+                  <img
+                    src={documentPopup.url}
+                    alt={documentPopup.fileName}
+                    className="max-w-full h-auto rounded-lg shadow-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 border-t border-slate-200 bg-slate-50">
+              <a
+                href={documentPopup.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                <Download className="h-4 w-4" />
+                Download Document
+              </a>
+              <Button onClick={closeDocumentPopup} variant="outline" size="sm">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

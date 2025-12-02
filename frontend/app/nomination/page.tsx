@@ -49,6 +49,7 @@ export default function NominationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [acknowledgementNumber, setAcknowledgementNumber] = useState('');
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -69,6 +70,40 @@ export default function NominationPage() {
     }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const checkDuplicate = async () => {
+    // Only check if both flatNumber and wing are provided
+    if (!formData.flatNumber || !formData.wing) {
+      return;
+    }
+
+    // Validate flat number format first
+    if (!/^\d+$/.test(formData.flatNumber)) {
+      return;
+    }
+
+    setCheckingDuplicate(true);
+    try {
+      const response = await nominationAPI.checkDuplicate(formData.flatNumber, formData.wing);
+      if (response.data.data.exists) {
+        setErrors((prev) => ({
+          ...prev,
+          wing: response.data.data.message,
+        }));
+      } else {
+        // Clear error if no duplicate
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.wing;
+          return newErrors;
+        });
+      }
+    } catch (error: any) {
+      console.error('Error checking duplicate:', error);
+    } finally {
+      setCheckingDuplicate(false);
     }
   };
 
@@ -166,6 +201,47 @@ export default function NominationPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const isFormValid = () => {
+    // Check if there are any errors
+    if (Object.keys(errors).length > 0) return false;
+
+    // Check required fields
+    if (!formData.primaryMemberName.trim()) return false;
+    if (!formData.flatNumber.trim()) return false;
+    if (!formData.wing) return false;
+    if (!formData.primaryMemberEmail.trim() || !/^\S+@\S+\.\S+$/.test(formData.primaryMemberEmail)) return false;
+    if (!formData.primaryMemberMobile.trim() || !/^[6-9]\d{9}$/.test(formData.primaryMemberMobile)) return false;
+    if (!formData.declarationAccepted) return false;
+
+    // Check documents
+    if (!index2Document?.fileName) return false;
+    if (!possessionLetterDocument?.fileName) return false;
+    if (!primaryMemberAadhaar?.fileName) return false;
+
+    // Check nominees
+    let totalPercentage = 0;
+    for (let i = 0; i < nominees.length; i++) {
+      const nominee = nominees[i];
+      if (!nominee.name.trim()) return false;
+      if (!nominee.relationship.trim()) return false;
+      if (!nominee.dateOfBirth.trim()) return false;
+      if (!nominee.aadhaarNumber.trim() || !/^\d{12}$/.test(nominee.aadhaarNumber)) return false;
+      if (!nominee.sharePercentage || nominee.sharePercentage <= 0) return false;
+      if (!nomineeAadhaars[i]?.fileName) return false;
+      totalPercentage += Number(nominee.sharePercentage);
+    }
+    if (totalPercentage !== 100) return false;
+
+    // Check witnesses
+    if (!witness1.name.trim() || !witness1.address.trim() || !witness1.signature.trim()) return false;
+    if (!witness2.name.trim() || !witness2.address.trim() || !witness2.signature.trim()) return false;
+
+    // Check member signature
+    if (!memberSignature.trim()) return false;
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -285,11 +361,13 @@ export default function NominationPage() {
                 name="wing"
                 value={formData.wing}
                 onChange={handleSelectChange}
+                onBlur={checkDuplicate}
                 options={[
                   { value: 'C', label: 'C' },
                   { value: 'D', label: 'D' },
                 ]}
                 error={errors.wing}
+                helperText={checkingDuplicate ? 'Checking...' : undefined}
                 required
               />
               <Input
@@ -326,44 +404,44 @@ export default function NominationPage() {
             </div>
             <div className="px-8 py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FileUpload
-                label="Index II Document"
-                required
-                flatNumber={formData.flatNumber}
-                documentType="INDEX_2"
-                fullName={formData.primaryMemberName}
-                onUploadSuccess={setIndex2Document}
-                value={index2Document}
-                error={errors.index2Document}
-              />
-              <FileUpload
-                label="Possession Letter"
-                required
-                flatNumber={formData.flatNumber}
-                documentType="POSSESSION_LETTER"
-                fullName={formData.primaryMemberName}
-                onUploadSuccess={setPossessionLetterDocument}
-                value={possessionLetterDocument}
-                error={errors.possessionLetterDocument}
-              />
-              <FileUpload
-                label="Primary Member Aadhaar Card"
-                required
-                flatNumber={formData.flatNumber}
-                documentType="PRIMARY_MEMBER_AADHAAR"
-                fullName={formData.primaryMemberName}
-                onUploadSuccess={setPrimaryMemberAadhaar}
-                value={primaryMemberAadhaar}
-                error={errors.primaryMemberAadhaar}
-              />
-              <FileUpload
-                label="Joint Member Aadhaar Card (Optional)"
-                flatNumber={formData.flatNumber}
-                documentType="JOINT_MEMBER_AADHAAR"
-                fullName="Joint Member"
-                onUploadSuccess={setJointMemberAadhaar}
-                value={jointMemberAadhaar}
-              />
+                <FileUpload
+                  label="Index II Document"
+                  required
+                  flatNumber={formData.flatNumber}
+                  documentType="INDEX_2"
+                  fullName={formData.primaryMemberName}
+                  onUploadSuccess={setIndex2Document}
+                  value={index2Document}
+                  error={errors.index2Document}
+                />
+                <FileUpload
+                  label="Possession Letter"
+                  required
+                  flatNumber={formData.flatNumber}
+                  documentType="POSSESSION_LETTER"
+                  fullName={formData.primaryMemberName}
+                  onUploadSuccess={setPossessionLetterDocument}
+                  value={possessionLetterDocument}
+                  error={errors.possessionLetterDocument}
+                />
+                <FileUpload
+                  label="Primary Member Aadhaar Card"
+                  required
+                  flatNumber={formData.flatNumber}
+                  documentType="PRIMARY_MEMBER_AADHAAR"
+                  fullName={formData.primaryMemberName}
+                  onUploadSuccess={setPrimaryMemberAadhaar}
+                  value={primaryMemberAadhaar}
+                  error={errors.primaryMemberAadhaar}
+                />
+                <FileUpload
+                  label="Joint Member Aadhaar Card (Optional)"
+                  flatNumber={formData.flatNumber}
+                  documentType="JOINT_MEMBER_AADHAAR"
+                  fullName="Joint Member"
+                  onUploadSuccess={setJointMemberAadhaar}
+                  value={jointMemberAadhaar}
+                />
               </div>
             </div>
           </div>
@@ -601,7 +679,7 @@ export default function NominationPage() {
             <Button type="button" variant="secondary" onClick={() => router.push('/')} className="sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" isLoading={submitting} className="sm:w-auto">
+            <Button type="submit" isLoading={submitting} disabled={!isFormValid() || submitting} className="sm:w-auto">
               {submitting ? 'Submitting...' : 'Submit Nomination'}
             </Button>
           </div>

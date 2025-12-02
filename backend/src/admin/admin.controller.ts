@@ -8,11 +8,13 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  Query,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ShareCertificateService } from '../share-certificate/share-certificate.service';
 import { NominationService } from '../nomination/nomination.service';
 import { EmailService } from '../email/email.service';
+import { UploadService } from '../upload/upload.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import * as ExcelJS from 'exceljs';
@@ -28,6 +30,7 @@ export class AdminController {
     private readonly shareCertificateService: ShareCertificateService,
     private readonly nominationService: NominationService,
     private readonly emailService: EmailService,
+    private readonly uploadService: UploadService,
   ) {}
 
   /**
@@ -77,6 +80,42 @@ export class AdminController {
         totalSubmissions: shareCertStats.total + nominationStats.total,
       },
     };
+  }
+
+  /**
+   * Verify SMTP connection
+   * GET /api/admin/email/verify
+   */
+  @Get('email/verify')
+  @UseGuards(JwtAuthGuard)
+  async verifyEmailConnection() {
+    const result = await this.emailService.verifyConnection();
+    return {
+      success: result.success,
+      message: result.message,
+    };
+  }
+
+  /**
+   * Send test email
+   * POST /api/admin/email/test
+   */
+  @Post('email/test')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async sendTestEmail(@Body() body: { email: string }) {
+    try {
+      await this.emailService.sendTestEmail(body.email);
+      return {
+        success: true,
+        message: 'Test email sent successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to send test email: ${error.message}`,
+      };
+    }
   }
 
   /**
@@ -247,5 +286,30 @@ export class AdminController {
     // Write to response
     await workbook.xlsx.write(res);
     res.end();
+  }
+
+  /**
+   * Get pre-signed URL for viewing a document
+   * GET /api/admin/document/presigned-url?s3Key=xxxxx
+   */
+  @Get('document/presigned-url')
+  @UseGuards(JwtAuthGuard)
+  async getDocumentPresignedUrl(@Query('s3Key') s3Key: string) {
+    if (!s3Key) {
+      return {
+        success: false,
+        message: 'S3 key is required',
+      };
+    }
+
+    const presignedUrl = await this.uploadService.getPresignedUrl(s3Key);
+
+    return {
+      success: true,
+      data: {
+        presignedUrl,
+        expiresIn: 3600, // 1 hour
+      },
+    };
   }
 }

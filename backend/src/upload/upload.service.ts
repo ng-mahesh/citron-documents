@@ -1,6 +1,12 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { UploadedDocument } from '../common/interfaces/document.interface';
 
 /**
@@ -120,6 +126,24 @@ export class UploadService {
       await this.s3Client.send(command);
     } catch (error) {
       throw new BadRequestException(`Failed to delete file: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generate a pre-signed URL for secure document viewing
+   * URL expires in 1 hour by default
+   */
+  async getPresignedUrl(s3Key: string, expiresIn: number = 3600): Promise<string> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: s3Key.startsWith('documents/') ? s3Key : `documents/${s3Key}`,
+      });
+
+      const signedUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
+      return signedUrl;
+    } catch (error) {
+      throw new BadRequestException(`Failed to generate presigned URL: ${error.message}`);
     }
   }
 }

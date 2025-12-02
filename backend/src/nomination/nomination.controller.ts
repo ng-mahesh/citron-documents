@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -55,6 +56,19 @@ export class NominationController {
   }
 
   /**
+   * Check duplicate flat and wing (Public)
+   * GET /api/nomination/check-duplicate?flatNumber=302&wing=D
+   */
+  @Get('check-duplicate')
+  async checkDuplicate(@Query('flatNumber') flatNumber: string, @Query('wing') wing: string) {
+    const result = await this.nominationService.checkDuplicate(flatNumber, wing);
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  /**
    * Get statistics (Admin only)
    * GET /api/nomination/statistics
    */
@@ -90,6 +104,21 @@ export class NominationController {
         updatedAt: nomination.updatedAt,
         adminNotes: nomination.adminRemarks,
       },
+    };
+  }
+
+  /**
+   * Get full nomination details by acknowledgement number (Admin only)
+   * GET /api/nomination/details/:acknowledgementNumber
+   */
+  @Get('details/:acknowledgementNumber')
+  @UseGuards(JwtAuthGuard)
+  async getDetailsByAckNumber(@Param('acknowledgementNumber') acknowledgementNumber: string) {
+    const nomination =
+      await this.nominationService.findByAcknowledgementNumber(acknowledgementNumber);
+    return {
+      success: true,
+      data: nomination,
     };
   }
 

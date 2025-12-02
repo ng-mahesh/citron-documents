@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +16,28 @@ export default function AdminLoginPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        setChecking(false);
+        return;
+      }
+
+      try {
+        await adminAPI.getProfile();
+        router.push("/admin/dashboard");
+      } catch (error) {
+        localStorage.removeItem("adminToken");
+        setChecking(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,6 +69,17 @@ export default function AdminLoginPage() {
     }
   };
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
@@ -55,7 +88,7 @@ export default function AdminLoginPage() {
             <Shield className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Login</h1>
-          <p className="text-gray-600">Housing Society Management System</p>
+          <p className="text-gray-600">Citron Documents App</p>
         </div>
 
         <Card>
@@ -91,7 +124,7 @@ export default function AdminLoginPage() {
         </Card>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Contact IT support for password reset</p>
+          <p>Contact Mahesh Bodhgire, Chairman for password reset</p>
         </div>
       </div>
     </div>

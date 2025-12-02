@@ -109,10 +109,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         </div>
       ) : (
         <div className="border border-gray-300 rounded-lg p-4 flex items-center justify-between bg-gray-50">
-          <div className="flex items-center space-x-3">
-            <File className="h-8 w-8 text-blue-600" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">{value.fileName}</p>
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <File className="h-8 w-8 text-blue-600 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate" title={value.fileName}>
+                {value.fileName}
+              </p>
               <p className="text-xs text-gray-500">
                 {(value.fileSize / 1024).toFixed(2)} KB
               </p>
@@ -121,7 +123,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <button
             type="button"
             onClick={handleRemove}
-            className="text-red-600 hover:text-red-800"
+            className="text-red-600 hover:text-red-800 flex-shrink-0 ml-3"
           >
             <X className="h-5 w-5" />
           </button>

@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { ShareCertificateModule } from '../share-certificate/share-certificate.module';
 import { NominationModule } from '../nomination/nomination.module';
 import { EmailModule } from '../email/email.module';
+import { UploadModule } from '../upload/upload.module';
 
 /**
  * Module for admin authentication and management
@@ -31,6 +32,7 @@ import { EmailModule } from '../email/email.module';
     ShareCertificateModule,
     NominationModule,
     EmailModule,
+    UploadModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, JwtStrategy],

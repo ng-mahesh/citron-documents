@@ -111,10 +111,14 @@ export default function StatusPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 mb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 mb-4">
             <span className="mr-2">←</span> Back to Home
           </Link>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Track Application Status</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-3">
+            Track Application Status
+          </h1>
           <p className="text-lg text-slate-600">
             Enter your acknowledgement number to check your application status
           </p>
@@ -130,11 +134,14 @@ export default function StatusPage() {
                 value={acknowledgementNumber}
                 onChange={(e) => {
                   setAcknowledgementNumber(e.target.value.toUpperCase());
-                  setError('');
+                  setError("");
                 }}
                 helperText="Format: SC-YYYYMMDD-XXXXX for Share Certificate or NOM-YYYYMMDD-XXXXX for Nomination"
               />
-              <Button onClick={handleSearch} isLoading={loading} className="w-full gap-2">
+              <Button
+                onClick={handleSearch}
+                isLoading={loading}
+                className="w-full gap-2">
                 <Search className="h-5 w-5" />
                 Search Application
               </Button>
@@ -161,9 +168,14 @@ export default function StatusPage() {
             <div className="text-center px-8 py-8 border-b border-slate-200">
               {getStatusIcon(result.status)}
               <h2 className="text-2xl font-bold text-slate-900 mt-6 mb-4">
-                {result.type === 'share-certificate' ? 'Share Certificate Application' : 'Nomination Application'}
+                {result.type === "share-certificate"
+                  ? "Share Certificate Application"
+                  : "Nomination Application"}
               </h2>
-              <div className={`inline-block px-6 py-3 rounded-xl border-2 ${getStatusColor(result.status)}`}>
+              <div
+                className={`inline-block px-6 py-3 rounded-xl border-2 ${getStatusColor(
+                  result.status
+                )}`}>
                 <p className="font-bold text-xl">{result.status}</p>
               </div>
             </div>
@@ -172,49 +184,77 @@ export default function StatusPage() {
             <div className="px-8 py-6">
               <dl className="grid grid-cols-1 gap-6">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <dt className="text-sm font-semibold text-slate-600 mb-1">Acknowledgement Number</dt>
-                  <dd className="text-xl font-bold text-slate-900">{result.acknowledgementNumber}</dd>
+                  <dt className="text-sm font-semibold text-slate-600 mb-1">
+                    Acknowledgement Number
+                  </dt>
+                  <dd className="text-xl font-bold text-slate-900">
+                    {result.acknowledgementNumber}
+                  </dd>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <dt className="text-sm font-semibold text-slate-600 mb-2">Full Name</dt>
+                    <dt className="text-sm font-semibold text-slate-600 mb-2">
+                      Full Name
+                    </dt>
                     <dd className="text-base text-slate-900">
                       {result.fullName || result.memberFullName}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-semibold text-slate-600 mb-2">Flat Number</dt>
-                    <dd className="text-base text-slate-900">{result.flatNumber}</dd>
+                    <dt className="text-sm font-semibold text-slate-600 mb-2">
+                      Flat Number
+                    </dt>
+                    <dd className="text-base text-slate-900">
+                      {result.flatNumber}
+                    </dd>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <dt className="text-sm font-semibold text-slate-600 mb-2">Wing</dt>
-                    <dd className="text-base text-slate-900">Wing {result.wing}</dd>
+                    <dt className="text-sm font-semibold text-slate-600 mb-2">
+                      Wing
+                    </dt>
+                    <dd className="text-base text-slate-900">
+                      Wing {result.wing}
+                    </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-semibold text-slate-600 mb-2">Email</dt>
+                    <dt className="text-sm font-semibold text-slate-600 mb-2">
+                      Email
+                    </dt>
                     <dd className="text-base text-slate-900">{result.email}</dd>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <dt className="text-sm font-semibold text-slate-600 mb-2">Submitted On</dt>
-                    <dd className="text-base text-slate-900">{formatDate(result.submittedAt)}</dd>
+                    <dt className="text-sm font-semibold text-slate-600 mb-2">
+                      Submitted On
+                    </dt>
+                    <dd className="text-base text-slate-900">
+                      {formatDate(result.submittedAt)}
+                    </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-semibold text-slate-600 mb-2">Last Updated</dt>
-                    <dd className="text-base text-slate-900">{formatDate(result.updatedAt)}</dd>
+                    <dt className="text-sm font-semibold text-slate-600 mb-2">
+                      Last Updated
+                    </dt>
+                    <dd className="text-base text-slate-900">
+                      {formatDate(result.updatedAt)}
+                    </dd>
                   </div>
                 </div>
 
                 {result.adminNotes && (
                   <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 rounded-xl p-5">
-                    <dt className="text-sm font-bold text-amber-900 mb-2">Admin Notes</dt>
-                    <dd className="text-sm text-amber-800 leading-relaxed">{result.adminNotes}</dd>
+                    <dt className="text-sm font-bold text-amber-900 mb-2">
+                      Admin Notes
+                    </dt>
+                    <dd className="text-sm text-amber-800 leading-relaxed">
+                      {result.adminNotes}
+                    </dd>
                   </div>
                 )}
               </dl>
@@ -230,7 +270,7 @@ export default function StatusPage() {
                   What happens next?
                 </h3>
                 <ul className="text-sm text-blue-800 space-y-2 leading-relaxed">
-                  {result.status === 'Pending' && (
+                  {result.status === "Pending" && (
                     <>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
@@ -238,7 +278,9 @@ export default function StatusPage() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>You will receive an email when the review begins</span>
+                        <span>
+                          You will receive an email when the review begins
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
@@ -246,39 +288,53 @@ export default function StatusPage() {
                       </li>
                     </>
                   )}
-                  {result.status === 'Under Review' && (
+                  {result.status === "Under Review" && (
                     <>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>Our team is currently reviewing your application</span>
+                        <span>
+                          Our team is currently reviewing your application
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>You will be notified of the decision via email</span>
+                        <span>
+                          You will be notified of the decision via email
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>Please check this page regularly for updates</span>
+                        <span>
+                          Please check this page regularly for updates
+                        </span>
                       </li>
                     </>
                   )}
-                  {result.status === 'Document Required' && (
+                  {result.status === "Document Required" && (
                     <>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>Additional documents are required to process your application</span>
+                        <span>
+                          Additional documents are required to process your
+                          application
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>Please check your email for specific requirements</span>
+                        <span>
+                          Please check your email for specific requirements
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>You may need to submit a new application with the required documents</span>
+                        <span>
+                          You may need to submit a new application with the
+                          required documents
+                        </span>
                       </li>
                     </>
                   )}
-                  {result.status === 'Approved' && (
+                  {result.status === "Approved" && (
                     <>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
@@ -286,7 +342,9 @@ export default function StatusPage() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>You will receive the certificate via email and post</span>
+                        <span>
+                          You will receive the certificate via email and post
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
@@ -294,7 +352,7 @@ export default function StatusPage() {
                       </li>
                     </>
                   )}
-                  {result.status === 'Rejected' && (
+                  {result.status === "Rejected" && (
                     <>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
@@ -302,11 +360,16 @@ export default function StatusPage() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>Please check the admin notes above for the reason</span>
+                        <span>
+                          Please check the admin notes above for the reason
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
-                        <span>You may submit a new application after addressing the issues</span>
+                        <span>
+                          You may submit a new application after addressing the
+                          issues
+                        </span>
                       </li>
                     </>
                   )}
@@ -318,9 +381,11 @@ export default function StatusPage() {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-sm text-slate-600 mb-2">Need help? We're here for you</p>
+          <p className="text-sm text-slate-600 mb-2">
+            Need help? We're here for you
+          </p>
           <p className="text-sm font-medium text-slate-900">
-            society@example.com • +91 1234567890
+            office@citronsociety.in • +91 9673639643
           </p>
         </div>
       </div>

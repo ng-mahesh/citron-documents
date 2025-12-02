@@ -14,11 +14,13 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                <Award className="h-6 w-6 text-white" />
+                <FileText className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-900">Housing Society</h1>
-                <p className="text-xs text-slate-500">Member Portal</p>
+                <h1 className="text-lg font-bold text-slate-900">
+                  Citron Phase 2 C & D Co-operative Housing Society Limited
+                </h1>
+                <p className="text-xs text-slate-500">Documents Portal</p>
               </div>
             </div>
             <Link href="/admin/login">
@@ -35,11 +37,15 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 lg:px-8 pt-16 pb-12">
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="text-5xl font-bold text-slate-900 mb-6 leading-tight">
-            Manage Your Society<br />
-            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Documents Online</span>
+            Manage Your Society
+            <br />
+            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              Documents Online
+            </span>
           </h2>
           <p className="text-lg text-slate-600 leading-relaxed">
-            Apply for share certificates, register nominations, and track applications—all from the comfort of your home
+            Apply for share certificates, register nominations, and track
+            applications—all from the comfort of your home
           </p>
         </div>
       </section>
@@ -52,13 +58,17 @@ export default function Home() {
               <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <FileText className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Share Certificate</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
+                Share Certificate
+              </h3>
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Apply for your share certificate with online document submission
               </p>
               <div className="flex items-center text-blue-600 font-medium text-sm group-hover:gap-2 transition-all">
                 Apply Now
-                <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
+                <span className="inline-block group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
               </div>
             </div>
           </Link>
@@ -68,13 +78,17 @@ export default function Home() {
               <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <Users className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Nomination Form</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
+                Nomination Form
+              </h3>
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Register your nominees for share certificate inheritance
               </p>
               <div className="flex items-center text-purple-600 font-medium text-sm group-hover:gap-2 transition-all">
                 Submit Form
-                <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
+                <span className="inline-block group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
               </div>
             </div>
           </Link>
@@ -84,13 +98,17 @@ export default function Home() {
               <div className="h-14 w-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <Search className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Track Status</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
+                Track Status
+              </h3>
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Check real-time status of your applications
               </p>
               <div className="flex items-center text-emerald-600 font-medium text-sm group-hover:gap-2 transition-all">
                 Track Now
-                <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
+                <span className="inline-block group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
               </div>
             </div>
           </Link>
@@ -101,7 +119,7 @@ export default function Home() {
       <section className="bg-slate-50 border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16">
           <h3 className="text-3xl font-bold text-slate-900 mb-12 text-center">
-            Why Choose Our Portal
+            Features
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -117,7 +135,9 @@ export default function Home() {
               <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="font-bold text-slate-900 mb-2">Always Available</h4>
+              <h4 className="font-bold text-slate-900 mb-2">
+                Always Available
+              </h4>
               <p className="text-sm text-slate-600 leading-relaxed">
                 Access portal 24/7 from anywhere
               </p>
@@ -192,12 +212,15 @@ export default function Home() {
       <footer className="bg-white border-t border-slate-200">
         <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
           <div className="text-center">
-            <p className="text-sm text-slate-600 mb-2">Need help? We're here for you</p>
+            <p className="text-sm text-slate-600 mb-2">
+              Need help? We're here for you
+            </p>
             <p className="text-sm font-medium text-slate-900">
-              society@example.com • +91 1234567890
+              office@citronsociety.in • +91 9673639643
             </p>
             <p className="mt-6 text-xs text-slate-500">
-              &copy; 2024 Housing Society. All rights reserved.
+              &copy; 2025 Citron Phase 2 C & D Co-operative Housing Society
+              Limited. All rights reserved.
             </p>
           </div>
         </div>

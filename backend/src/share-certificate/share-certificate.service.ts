@@ -42,6 +42,22 @@ export class ShareCertificateService {
    */
   async create(createDto: CreateShareCertificateDto): Promise<ShareCertificate> {
     try {
+      // Check for duplicate flat number and wing combination
+      const existingCertificate = await this.shareCertificateModel
+        .findOne({
+          flatNumber: createDto.flatNumber,
+          wing: createDto.wing,
+        })
+        .exec();
+
+      if (existingCertificate) {
+        const statusMessage =
+          existingCertificate.status === 'Approved' ? 'completed' : 'already requested';
+        throw new BadRequestException(
+          `Flat ${createDto.flatNumber} Wing ${createDto.wing} has ${statusMessage} for share certificate.`,
+        );
+      }
+
       const acknowledgementNumber = await this.generateAcknowledgementNumber();
 
       const shareCertificate = new this.shareCertificateModel({
@@ -119,6 +135,23 @@ export class ShareCertificateService {
       throw new NotFoundException(`Share certificate with ID ${id} not found`);
     }
 
+    // Send status update email if status has changed
+    if (updateDto.status) {
+      try {
+        await this.emailService.sendStatusUpdateEmail({
+          email: certificate.email,
+          name: certificate.fullName,
+          acknowledgementNumber: certificate.acknowledgementNumber,
+          status: certificate.status,
+          remarks: certificate.adminRemarks,
+          type: 'Share Certificate',
+        });
+      } catch (error) {
+        console.error('Error sending status update email:', error);
+        // Don't throw error - we don't want email failure to fail the update
+      }
+    }
+
     return certificate;
   }
 
@@ -156,5 +189,31 @@ export class ShareCertificateService {
       rejected,
       documentRequired,
     };
+  }
+
+  /**
+   * Check if flat number and wing combination already exists
+   */
+  async checkDuplicate(
+    flatNumber: string,
+    wing: string,
+  ): Promise<{ exists: boolean; status?: string; message?: string }> {
+    const existing = await this.shareCertificateModel
+      .findOne({
+        flatNumber,
+        wing,
+      })
+      .exec();
+
+    if (existing) {
+      const statusMessage = existing.status === 'Approved' ? 'completed' : 'already requested';
+      return {
+        exists: true,
+        status: existing.status,
+        message: `Flat ${flatNumber} Wing ${wing} has ${statusMessage} for share certificate.`,
+      };
+    }
+
+    return { exists: false };
   }
 }

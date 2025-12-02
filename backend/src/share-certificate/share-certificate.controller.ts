@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -55,6 +56,19 @@ export class ShareCertificateController {
   }
 
   /**
+   * Check duplicate flat and wing (Public)
+   * GET /api/share-certificate/check-duplicate?flatNumber=302&wing=D
+   */
+  @Get('check-duplicate')
+  async checkDuplicate(@Query('flatNumber') flatNumber: string, @Query('wing') wing: string) {
+    const result = await this.shareCertificateService.checkDuplicate(flatNumber, wing);
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  /**
    * Get statistics (Admin only)
    * GET /api/share-certificate/statistics
    */
@@ -90,6 +104,21 @@ export class ShareCertificateController {
         updatedAt: certificate.updatedAt,
         adminNotes: certificate.adminRemarks,
       },
+    };
+  }
+
+  /**
+   * Get full share certificate details by acknowledgement number (Admin only)
+   * GET /api/share-certificate/details/:acknowledgementNumber
+   */
+  @Get('details/:acknowledgementNumber')
+  @UseGuards(JwtAuthGuard)
+  async getDetailsByAckNumber(@Param('acknowledgementNumber') acknowledgementNumber: string) {
+    const certificate =
+      await this.shareCertificateService.findByAcknowledgementNumber(acknowledgementNumber);
+    return {
+      success: true,
+      data: certificate,
     };
   }
 

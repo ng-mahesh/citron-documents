@@ -10,7 +10,8 @@ import { Card } from '@/components/ui/Card';
 import { FileUpload } from '@/components/forms/FileUpload';
 import { shareCertificateAPI } from '@/lib/api';
 import { DocumentMetadata, MembershipType } from '@/lib/types';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Download } from 'lucide-react';
+import { generateShareCertificateReceipt } from '@/lib/pdfGenerator';
 
 export default function ShareCertificatePage() {
   const router = useRouter();
@@ -37,6 +38,8 @@ export default function ShareCertificatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [acknowledgementNumber, setAcknowledgementNumber] = useState('');
+  const [submittedFormData, setSubmittedFormData] = useState<any>(null);
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
   const membershipTypes = [
     { value: 'Primary', label: 'Primary Member' },
@@ -57,6 +60,40 @@ export default function ShareCertificatePage() {
 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const checkDuplicate = async () => {
+    // Only check if both flatNumber and wing are provided
+    if (!formData.flatNumber || !formData.wing) {
+      return;
+    }
+
+    // Validate flat number format first
+    if (!/^\d+$/.test(formData.flatNumber)) {
+      return;
+    }
+
+    setCheckingDuplicate(true);
+    try {
+      const response = await shareCertificateAPI.checkDuplicate(formData.flatNumber, formData.wing);
+      if (response.data.data.exists) {
+        setErrors((prev) => ({
+          ...prev,
+          wing: response.data.data.message,
+        }));
+      } else {
+        // Clear error if no duplicate
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.wing;
+          return newErrors;
+        });
+      }
+    } catch (error: any) {
+      console.error('Error checking duplicate:', error);
+    } finally {
+      setCheckingDuplicate(false);
     }
   };
 
@@ -86,6 +123,44 @@ export default function ShareCertificatePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const isFormValid = () => {
+    // Check if there are any errors
+    if (Object.keys(errors).length > 0) return false;
+
+    // Check required fields
+    if (!formData.fullName.trim()) return false;
+    if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber)) return false;
+    if (!formData.wing) return false;
+    if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email)) return false;
+    if (!formData.mobileNumber.trim() || !/^[6-9]\d{9}$/.test(formData.mobileNumber)) return false;
+    if (!formData.membershipType) return false;
+    if (!formData.digitalSignature.trim()) return false;
+    if (!formData.declarationAccepted) return false;
+    if (!documents.index2Document?.fileName) return false;
+    if (!documents.possessionLetterDocument?.fileName) return false;
+    if (!documents.aadhaarCardDocument?.fileName) return false;
+
+    return true;
+  };
+
+  const handleDownloadReceipt = () => {
+    if (submittedFormData && acknowledgementNumber) {
+      generateShareCertificateReceipt({
+        acknowledgementNumber,
+        fullName: submittedFormData.fullName,
+        flatNumber: submittedFormData.flatNumber,
+        wing: submittedFormData.wing,
+        email: submittedFormData.email,
+        mobileNumber: submittedFormData.mobileNumber,
+        carpetArea: submittedFormData.carpetArea,
+        builtUpArea: submittedFormData.builtUpArea,
+        membershipType: submittedFormData.membershipType,
+        digitalSignature: submittedFormData.digitalSignature,
+        submittedDate: submittedFormData.submittedDate,
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -110,6 +185,16 @@ export default function ShareCertificatePage() {
       // Backend returns { success, message, data: { acknowledgementNumber, email } }
       const ackNumber = response.data.data?.acknowledgementNumber || response.data.acknowledgementNumber;
       setAcknowledgementNumber(ackNumber);
+      setSubmittedFormData({
+        ...formData,
+        submittedDate: new Date().toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      });
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error: any) {
@@ -136,6 +221,10 @@ export default function ShareCertificatePage() {
               Save this number for tracking. A confirmation email has been sent to your inbox.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={handleDownloadReceipt} className="flex-1 sm:flex-initial gap-2">
+                <Download className="h-4 w-4" />
+                Download Receipt
+              </Button>
               <Button onClick={() => router.push('/status')} className="flex-1 sm:flex-initial">
                 Track Status
               </Button>
@@ -195,11 +284,13 @@ export default function ShareCertificatePage() {
                   name="wing"
                   value={formData.wing}
                   onChange={handleInputChange}
+                  onBlur={checkDuplicate}
                   options={[
                     { value: 'C', label: 'C' },
                     { value: 'D', label: 'D' },
                   ]}
                   error={errors.wing}
+                  helperText={checkingDuplicate ? 'Checking...' : undefined}
                   required
                 />
                 <Input
@@ -365,7 +456,7 @@ export default function ShareCertificatePage() {
             <Button type="button" variant="secondary" onClick={() => router.push('/')} className="sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" isLoading={submitting} className="sm:w-auto">
+            <Button type="submit" isLoading={submitting} disabled={!isFormValid() || submitting} className="sm:w-auto">
               {submitting ? 'Submitting...' : 'Submit Application'}
             </Button>
           </div>

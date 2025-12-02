@@ -55,6 +55,22 @@ export class NominationService {
       // Validate share percentages
       this.validateSharePercentages(createDto.nominees);
 
+      // Check for duplicate flat number and wing combination
+      const existingNomination = await this.nominationModel
+        .findOne({
+          flatNumber: createDto.flatNumber,
+          wing: createDto.wing,
+        })
+        .exec();
+
+      if (existingNomination) {
+        const statusMessage =
+          existingNomination.status === 'Approved' ? 'completed' : 'already requested';
+        throw new BadRequestException(
+          `Flat ${createDto.flatNumber} Wing ${createDto.wing} has ${statusMessage} for nomination.`,
+        );
+      }
+
       const acknowledgementNumber = await this.generateAcknowledgementNumber();
 
       const nomination = new this.nominationModel({
@@ -132,6 +148,23 @@ export class NominationService {
       throw new NotFoundException(`Nomination with ID ${id} not found`);
     }
 
+    // Send status update email if status has changed
+    if (updateDto.status) {
+      try {
+        await this.emailService.sendStatusUpdateEmail({
+          email: nomination.primaryMemberEmail,
+          name: nomination.primaryMemberName,
+          acknowledgementNumber: nomination.acknowledgementNumber,
+          status: nomination.status,
+          remarks: nomination.adminRemarks,
+          type: 'Nomination',
+        });
+      } catch (error) {
+        console.error('Error sending status update email:', error);
+        // Don't throw error - we don't want email failure to fail the update
+      }
+    }
+
     return nomination;
   }
 
@@ -169,5 +202,31 @@ export class NominationService {
       rejected,
       documentRequired,
     };
+  }
+
+  /**
+   * Check if flat number and wing combination already exists
+   */
+  async checkDuplicate(
+    flatNumber: string,
+    wing: string,
+  ): Promise<{ exists: boolean; status?: string; message?: string }> {
+    const existing = await this.nominationModel
+      .findOne({
+        flatNumber,
+        wing,
+      })
+      .exec();
+
+    if (existing) {
+      const statusMessage = existing.status === 'Approved' ? 'completed' : 'already requested';
+      return {
+        exists: true,
+        status: existing.status,
+        message: `Flat ${flatNumber} Wing ${wing} has ${statusMessage} for nomination.`,
+      };
+    }
+
+    return { exists: false };
   }
 }
