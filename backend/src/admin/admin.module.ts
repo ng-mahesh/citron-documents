@@ -9,6 +9,7 @@ import { Admin, AdminSchema } from './schemas/admin.schema';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ShareCertificateModule } from '../share-certificate/share-certificate.module';
 import { NominationModule } from '../nomination/nomination.module';
+import { NocRequestModule } from '../noc-request/noc-request.module';
 import { EmailModule } from '../email/email.module';
 import { UploadModule } from '../upload/upload.module';
 
@@ -31,6 +32,7 @@ import { UploadModule } from '../upload/upload.module';
     }),
     ShareCertificateModule,
     NominationModule,
+    NocRequestModule,
     EmailModule,
     UploadModule,
   ],

@@ -13,6 +13,7 @@ import {
 import { AdminService } from './admin.service';
 import { ShareCertificateService } from '../share-certificate/share-certificate.service';
 import { NominationService } from '../nomination/nomination.service';
+import { NocRequestService } from '../noc-request/noc-request.service';
 import { EmailService } from '../email/email.service';
 import { UploadService } from '../upload/upload.service';
 import { LoginDto } from './dto/login.dto';
@@ -29,6 +30,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly shareCertificateService: ShareCertificateService,
     private readonly nominationService: NominationService,
+    private readonly nocRequestService: NocRequestService,
     private readonly emailService: EmailService,
     private readonly uploadService: UploadService,
   ) {}
@@ -237,6 +239,8 @@ export class AdminController {
       { header: 'Mobile', key: 'primaryMemberMobile', width: 15 },
       { header: 'Joint Member Name', key: 'jointMemberName', width: 30 },
       { header: 'Number of Nominees', key: 'nomineeCount', width: 18 },
+      { header: 'Nominee Names', key: 'nomineeNames', width: 40 },
+      { header: 'Nominee Details', key: 'nomineeDetails', width: 60 },
       { header: 'Status', key: 'status', width: 20 },
       { header: 'Submitted At', key: 'createdAt', width: 20 },
       { header: 'Admin Remarks', key: 'adminRemarks', width: 30 },
@@ -244,6 +248,18 @@ export class AdminController {
 
     // Add rows
     nominations.forEach((nom) => {
+      // Format nominee names (just names)
+      const nomineeNames = nom.nominees && nom.nominees.length > 0
+        ? nom.nominees.map(n => n.name).join('\n')
+        : 'N/A';
+
+      // Format nominee details (name, relationship, share percentage)
+      const nomineeDetails = nom.nominees && nom.nominees.length > 0
+        ? nom.nominees.map(n =>
+            `${n.name} (${n.relationship}) - ${n.sharePercentage}%`
+          ).join('\n')
+        : 'N/A';
+
       worksheet.addRow({
         acknowledgementNumber: nom.acknowledgementNumber,
         primaryMemberName: nom.primaryMemberName,
@@ -253,9 +269,96 @@ export class AdminController {
         primaryMemberMobile: nom.primaryMemberMobile,
         jointMemberName: nom.jointMemberName || 'N/A',
         nomineeCount: nom.nominees.length,
+        nomineeNames: nomineeNames,
+        nomineeDetails: nomineeDetails,
         status: nom.status,
         createdAt: new Date(nom.createdAt).toLocaleString(),
         adminRemarks: nom.adminRemarks || '',
+      });
+    });
+
+    // Enable text wrapping for nominee columns
+    worksheet.getColumn('nomineeNames').alignment = {
+      vertical: 'top',
+      wrapText: true
+    };
+    worksheet.getColumn('nomineeDetails').alignment = {
+      vertical: 'top',
+      wrapText: true
+    };
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4F46E5' },
+    };
+    worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    // Set response headers
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename=nominations-${Date.now()}.xlsx`);
+
+    // Write to response
+    await workbook.xlsx.write(res);
+    res.end();
+  }
+
+  /**
+   * Export NOC requests to Excel
+   * GET /api/admin/export/noc-requests
+   */
+  @Get('export/noc-requests')
+  @UseGuards(JwtAuthGuard)
+  async exportNocRequests(@Res() res: Response) {
+    const nocRequests = await this.nocRequestService.findAll();
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('NOC Requests');
+
+    // Define columns
+    worksheet.columns = [
+      { header: 'Acknowledgement Number', key: 'acknowledgementNumber', width: 25 },
+      { header: 'Seller Name', key: 'sellerName', width: 30 },
+      { header: 'Seller Email', key: 'sellerEmail', width: 30 },
+      { header: 'Seller Mobile', key: 'sellerMobileNumber', width: 15 },
+      { header: 'Flat Number', key: 'flatNumber', width: 15 },
+      { header: 'Wing', key: 'wing', width: 15 },
+      { header: 'Buyer Name', key: 'buyerName', width: 30 },
+      { header: 'Buyer Email', key: 'buyerEmail', width: 30 },
+      { header: 'Buyer Mobile', key: 'buyerMobileNumber', width: 15 },
+      { header: 'Reason', key: 'reason', width: 15 },
+      { header: 'Expected Transfer Date', key: 'expectedTransferDate', width: 20 },
+      { header: 'Payment Status', key: 'paymentStatus', width: 15 },
+      { header: 'Status', key: 'status', width: 20 },
+      { header: 'Submitted At', key: 'createdAt', width: 20 },
+      { header: 'Admin Remarks', key: 'adminRemarks', width: 30 },
+    ];
+
+    // Add rows
+    nocRequests.forEach((noc) => {
+      worksheet.addRow({
+        acknowledgementNumber: noc.acknowledgementNumber,
+        sellerName: noc.sellerName,
+        sellerEmail: noc.sellerEmail,
+        sellerMobileNumber: noc.sellerMobileNumber,
+        flatNumber: noc.flatNumber,
+        wing: noc.wing,
+        buyerName: noc.buyerName,
+        buyerEmail: noc.buyerEmail,
+        buyerMobileNumber: noc.buyerMobileNumber,
+        reason: noc.reason,
+        expectedTransferDate: noc.expectedTransferDate
+          ? new Date(noc.expectedTransferDate).toLocaleDateString()
+          : 'N/A',
+        paymentStatus: noc.paymentStatus || 'Pending',
+        status: noc.status,
+        createdAt: new Date(noc.createdAt).toLocaleString(),
+        adminRemarks: noc.adminRemarks || '',
       });
     });
 
@@ -273,7 +376,7 @@ export class AdminController {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    res.setHeader('Content-Disposition', `attachment; filename=nominations-${Date.now()}.xlsx`);
+    res.setHeader('Content-Disposition', `attachment; filename=noc-requests-${Date.now()}.xlsx`);
 
     // Write to response
     await workbook.xlsx.write(res);
