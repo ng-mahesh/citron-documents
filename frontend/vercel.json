@@ -1,0 +1,10 @@
+{
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://documents.citronsociety.in"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_APP_URL": "https://documents.citronsociety.in"
+    }
+  }
+}
