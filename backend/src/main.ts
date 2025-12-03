@@ -12,10 +12,7 @@ let cachedApp;
  */
 async function bootstrap() {
   if (!cachedApp) {
-    const app = await NestFactory.create(
-      AppModule,
-      new ExpressAdapter(server),
-    );
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
     // Enable CORS for frontend communication
     // Remove trailing slash if present to ensure exact match

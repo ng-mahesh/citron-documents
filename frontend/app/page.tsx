@@ -22,7 +22,8 @@ export default function Home() {
 
       {/* Hero Section */}
       <section
-        className={`relative overflow-hidden ${theme.colors.background.section}`}>
+        className={`relative overflow-hidden ${theme.colors.background.section}`}
+      >
         <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 md:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Side - Content */}
@@ -30,7 +31,8 @@ export default function Home() {
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
                 Manage Your Society
                 <span
-                  className={`block mt-2 bg-gradient-to-r ${theme.colors.gradients.text} bg-clip-text text-transparent`}>
+                  className={`block mt-2 bg-gradient-to-r ${theme.colors.gradients.text} bg-clip-text text-transparent`}
+                >
                   Documents Online
                 </span>
               </h1>
@@ -45,7 +47,8 @@ export default function Home() {
             <div className="flex justify-center items-center order-1 lg:order-2">
               <div className="relative">
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${theme.colors.background.blur} rounded-full blur-3xl opacity-20 scale-110`}></div>
+                  className={`absolute inset-0 bg-gradient-to-br ${theme.colors.background.blur} rounded-full blur-3xl opacity-20 scale-110`}
+                ></div>
                 <div className="relative h-64 w-64 sm:h-80 sm:w-80 md:h-96 md:w-96">
                   <Image
                     src="/logo.png"
@@ -67,9 +70,11 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link href="/share-certificate" className="group h-full">
             <div
-              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
+            >
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+              >
                 <FileText className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -89,9 +94,11 @@ export default function Home() {
 
           <Link href="/nomination" className="group h-full">
             <div
-              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
+            >
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+              >
                 <Users className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -111,9 +118,11 @@ export default function Home() {
 
           <Link href="/noc-request" className="group h-full">
             <div
-              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
+            >
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+              >
                 <FileCheck className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -133,9 +142,11 @@ export default function Home() {
 
           <Link href="/status" className="group h-full">
             <div
-              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
+            >
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+              >
                 <Search className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -164,7 +175,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div
-                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}
+              >
                 <CheckCircle className="h-6 w-6 text-white" />
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Quick & Simple</h4>
@@ -174,7 +186,8 @@ export default function Home() {
             </div>
             <div className="text-center">
               <div
-                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}
+              >
                 <Clock className="h-6 w-6 text-white" />
               </div>
               <h4 className="font-bold text-slate-900 mb-2">
@@ -186,7 +199,8 @@ export default function Home() {
             </div>
             <div className="text-center">
               <div
-                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}
+              >
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Safe & Secure</h4>
@@ -207,7 +221,8 @@ export default function Home() {
           <div className="relative">
             <div className="text-center">
               <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
+              >
                 1
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Fill Details</h4>
@@ -219,7 +234,8 @@ export default function Home() {
           <div className="relative">
             <div className="text-center">
               <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
+              >
                 2
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Upload Files</h4>
@@ -231,7 +247,8 @@ export default function Home() {
           <div className="relative">
             <div className="text-center">
               <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
+              >
                 3
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Get Confirmed</h4>
@@ -243,7 +260,8 @@ export default function Home() {
           <div className="relative">
             <div className="text-center">
               <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
+              >
                 4
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Track Progress</h4>

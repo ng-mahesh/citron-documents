@@ -59,7 +59,8 @@ body {
 }
 
 @keyframes building-grow-delayed {
-  0%, 30% {
+  0%,
+  30% {
     opacity: 0;
     transform: scale(0);
   }
@@ -73,7 +74,8 @@ body {
 }
 
 @keyframes window-glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {

@@ -39,7 +39,8 @@ export default function NocRequestDetailPage() {
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
   const [adminRemarks, setAdminRemarks] = useState<string>("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("Pending");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] =
+    useState<string>("Pending");
   const [updatingPayment, setUpdatingPayment] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -126,7 +127,10 @@ export default function NocRequestDetailPage() {
         ...nocRequest,
         paymentStatus: selectedPaymentStatus,
       });
-      setToast({ message: "Payment status updated successfully", type: "success" });
+      setToast({
+        message: "Payment status updated successfully",
+        type: "success",
+      });
     } catch (error) {
       console.error("Failed to update payment status:", error);
       setToast({
@@ -144,12 +148,24 @@ export default function NocRequestDetailPage() {
     fileName: string,
     fileType: string
   ) => {
-    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+    setDocumentPopup({
+      isOpen: true,
+      url: "",
+      fileName,
+      fileType,
+      loading: true,
+    });
 
     try {
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
+      setDocumentPopup({
+        isOpen: true,
+        url: presignedUrl,
+        fileName,
+        fileType,
+        loading: false,
+      });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       setToast({
@@ -169,7 +185,9 @@ export default function NocRequestDetailPage() {
 
     setGeneratingPdf(true);
     try {
-      const response = await nocRequestAPI.downloadPdf(nocRequest.acknowledgementNumber);
+      const response = await nocRequestAPI.downloadPdf(
+        nocRequest.acknowledgementNumber
+      );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -208,7 +226,8 @@ export default function NocRequestDetailPage() {
       <span
         className={`px-4 py-2 rounded-lg text-sm font-bold ${
           colors[status] || "bg-gray-100 text-gray-800"
-        }`}>
+        }`}
+      >
         {status}
       </span>
     );
@@ -253,12 +272,15 @@ export default function NocRequestDetailPage() {
                 onClick={() => router.push("/admin/dashboard")}
                 variant="outline"
                 size="sm"
-                className="gap-2">
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg`}>
+                <div
+                  className={`h-10 w-10 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg`}
+                >
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -282,7 +304,6 @@ export default function NocRequestDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
-
             {/* Seller Information */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-8 py-5 border-b border-slate-200">
@@ -432,14 +453,13 @@ export default function NocRequestDetailPage() {
                       Expected Transfer Date
                     </label>
                     <p className="text-base text-slate-900 mt-1">
-                      {new Date(nocRequest.expectedTransferDate).toLocaleDateString(
-                        "en-IN",
-                        {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        }
-                      )}
+                      {new Date(
+                        nocRequest.expectedTransferDate
+                      ).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
                     </p>
                   </div>
                 </div>
@@ -479,14 +499,22 @@ export default function NocRequestDetailPage() {
                         ₹{nocRequest.transferFees || 25000}
                       </p>
                     </div>
-                    <div className={`p-6 ${theme.status.approved.bg} rounded-xl border-2 ${theme.status.approved.border}`}>
+                    <div
+                      className={`p-6 ${theme.status.approved.bg} rounded-xl border-2 ${theme.status.approved.border}`}
+                    >
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className={`h-5 w-5 ${theme.status.approved.text}`} />
-                        <label className={`text-sm font-medium ${theme.status.approved.text}`}>
+                        <IndianRupee
+                          className={`h-5 w-5 ${theme.status.approved.text}`}
+                        />
+                        <label
+                          className={`text-sm font-medium ${theme.status.approved.text}`}
+                        >
                           Total Amount
                         </label>
                       </div>
-                      <p className={`text-2xl font-bold ${theme.status.approved.text}`}>
+                      <p
+                        className={`text-2xl font-bold ${theme.status.approved.text}`}
+                      >
                         ₹{nocRequest.totalAmount || 26000}
                       </p>
                     </div>
@@ -509,14 +537,13 @@ export default function NocRequestDetailPage() {
                         </label>
                         <p className="text-base text-slate-900 mt-1">
                           {nocRequest.paymentDate
-                            ? new Date(nocRequest.paymentDate).toLocaleDateString(
-                                "en-IN",
-                                {
-                                  day: "numeric",
-                                  month: "long",
-                                  year: "numeric",
-                                }
-                              )
+                            ? new Date(
+                                nocRequest.paymentDate
+                              ).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })
                             : "Pending"}
                         </p>
                       </div>
@@ -536,7 +563,6 @@ export default function NocRequestDetailPage() {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Sidebar - 1 column */}
@@ -559,7 +585,8 @@ export default function NocRequestDetailPage() {
                       setSelectedStatus(e.target.value as Status)
                     }
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                    disabled={updatingStatus}>
+                    disabled={updatingStatus}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
@@ -591,7 +618,8 @@ export default function NocRequestDetailPage() {
                       adminRemarks === (nocRequest.adminRemarks || ""))
                   }
                   isLoading={updatingStatus}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Save className="h-4 w-4" />
                   {updatingStatus ? "Updating..." : "Update Status"}
                 </Button>
@@ -614,7 +642,8 @@ export default function NocRequestDetailPage() {
                     value={selectedPaymentStatus}
                     onChange={(e) => setSelectedPaymentStatus(e.target.value)}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                    disabled={updatingPayment}>
+                    disabled={updatingPayment}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
                     <option value="Failed">Failed</option>
@@ -627,7 +656,8 @@ export default function NocRequestDetailPage() {
                     selectedPaymentStatus === nocRequest.paymentStatus
                   }
                   isLoading={updatingPayment}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Save className="h-4 w-4" />
                   {updatingPayment ? "Updating..." : "Update Payment"}
                 </Button>
@@ -650,7 +680,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.agreementDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -674,7 +705,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.shareCertificateDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -698,7 +730,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.maintenanceReceiptDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -722,7 +755,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.buyerAadhaarDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -746,7 +780,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.buyerPanDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -794,15 +829,19 @@ export default function NocRequestDetailPage() {
               </div>
               <div className="px-6 py-4">
                 <p className="text-sm text-slate-600 mb-4">
-                  Download the official NOC request form PDF with all submitted details.
+                  Download the official NOC request form PDF with all submitted
+                  details.
                 </p>
                 <Button
                   onClick={handleGeneratePdf}
                   disabled={generatingPdf}
                   isLoading={generatingPdf}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Download className="h-4 w-4" />
-                  {generatingPdf ? "Generating..." : "Generate NOC Request Form"}
+                  {generatingPdf
+                    ? "Generating..."
+                    : "Generate NOC Request Form"}
                 </Button>
               </div>
             </div>
@@ -814,10 +853,12 @@ export default function NocRequestDetailPage() {
       {documentPopup && documentPopup.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={closeDocumentPopup}>
+          onClick={closeDocumentPopup}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
@@ -835,7 +876,8 @@ export default function NocRequestDetailPage() {
               </div>
               <button
                 onClick={closeDocumentPopup}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -875,7 +917,8 @@ export default function NocRequestDetailPage() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                >
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>
@@ -893,4 +936,3 @@ export default function NocRequestDetailPage() {
     </div>
   );
 }
-

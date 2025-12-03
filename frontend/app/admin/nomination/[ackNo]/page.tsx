@@ -108,12 +108,24 @@ export default function NominationDetailPage() {
     fileName: string,
     fileType: string
   ) => {
-    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+    setDocumentPopup({
+      isOpen: true,
+      url: "",
+      fileName,
+      fileType,
+      loading: true,
+    });
 
     try {
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
+      setDocumentPopup({
+        isOpen: true,
+        url: presignedUrl,
+        fileName,
+        fileType,
+        loading: false,
+      });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       setToast({
@@ -133,7 +145,9 @@ export default function NominationDetailPage() {
 
     setGeneratingPdf(true);
     try {
-      const response = await nominationAPI.downloadPdf(nomination.acknowledgementNumber);
+      const response = await nominationAPI.downloadPdf(
+        nomination.acknowledgementNumber
+      );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -167,7 +181,8 @@ export default function NominationDetailPage() {
       <span
         className={`px-4 py-2 rounded-lg text-sm font-bold ${
           colors[status] || "bg-gray-100 text-gray-800"
-        }`}>
+        }`}
+      >
         {status}
       </span>
     );
@@ -193,7 +208,8 @@ export default function NominationDetailPage() {
           <p className="text-slate-600">Nomination not found</p>
           <Button
             onClick={() => router.push("/admin/dashboard")}
-            className="mt-4">
+            className="mt-4"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -212,12 +228,15 @@ export default function NominationDetailPage() {
                 onClick={() => router.push("/admin/dashboard")}
                 variant="outline"
                 size="sm"
-                className="gap-2">
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg`}>
+                <div
+                  className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg`}
+                >
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -326,7 +345,8 @@ export default function NominationDetailPage() {
                 {nomination.nominees?.map((nominee: any, index: number) => (
                   <div
                     key={index}
-                    className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200">
+                    className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200"
+                  >
                     <div className="flex justify-between items-start mb-4">
                       <h4 className="text-lg font-bold text-slate-900">
                         Nominee {index + 1}
@@ -398,7 +418,8 @@ export default function NominationDetailPage() {
                 {nomination.witnesses?.map((witness: any, index: number) => (
                   <div
                     key={index}
-                    className="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                    className="p-5 bg-slate-50 rounded-xl border border-slate-200"
+                  >
                     <h4 className="text-base font-bold text-slate-900 mb-3">
                       Witness {index + 1}
                     </h4>
@@ -460,7 +481,8 @@ export default function NominationDetailPage() {
                       setSelectedStatus(e.target.value as Status)
                     }
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                    disabled={updatingStatus}>
+                    disabled={updatingStatus}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
@@ -492,7 +514,8 @@ export default function NominationDetailPage() {
                       adminRemarks === (nomination.adminRemarks || ""))
                   }
                   isLoading={updatingStatus}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Save className="h-4 w-4" />
                   {updatingStatus ? "Updating..." : "Update Status"}
                 </Button>
@@ -515,7 +538,8 @@ export default function NominationDetailPage() {
                         nomination.index2Document.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -539,7 +563,8 @@ export default function NominationDetailPage() {
                         nomination.possessionLetterDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -563,7 +588,8 @@ export default function NominationDetailPage() {
                         nomination.primaryMemberAadhaar.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -587,7 +613,8 @@ export default function NominationDetailPage() {
                         nomination.jointMemberAadhaar.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -608,7 +635,8 @@ export default function NominationDetailPage() {
                     onClick={() =>
                       openDocumentPopup(doc.s3Key, doc.fileName, doc.fileType)
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -656,13 +684,15 @@ export default function NominationDetailPage() {
               </div>
               <div className="px-6 py-4">
                 <p className="text-sm text-slate-600 mb-4">
-                  Download the official nomination form PDF with all submitted details.
+                  Download the official nomination form PDF with all submitted
+                  details.
                 </p>
                 <Button
                   onClick={handleGeneratePdf}
                   disabled={generatingPdf}
                   isLoading={generatingPdf}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Download className="h-4 w-4" />
                   {generatingPdf ? "Generating..." : "Generate PDF Form"}
                 </Button>
@@ -676,10 +706,12 @@ export default function NominationDetailPage() {
       {documentPopup && documentPopup.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={closeDocumentPopup}>
+          onClick={closeDocumentPopup}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
@@ -697,7 +729,8 @@ export default function NominationDetailPage() {
               </div>
               <button
                 onClick={closeDocumentPopup}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -737,7 +770,8 @@ export default function NominationDetailPage() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                >
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>

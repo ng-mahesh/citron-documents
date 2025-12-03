@@ -10,8 +10,11 @@ export function Header() {
         <div className="flex justify-between items-center">
           <Link
             href="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary}`}>
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <div
+              className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary}`}
+            >
               <FileText className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -23,7 +26,10 @@ export function Header() {
             </div>
           </Link>
           <Link href="/admin/login">
-            <Button size="sm" className={`gap-2 ${theme.button.primary.bg} ${theme.button.primary.text} ${theme.button.primary.hover}`}>
+            <Button
+              size="sm"
+              className={`gap-2 ${theme.button.primary.bg} ${theme.button.primary.text} ${theme.button.primary.hover}`}
+            >
               <Shield className="h-4 w-4" />
               Admin
             </Button>

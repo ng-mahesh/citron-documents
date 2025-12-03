@@ -121,16 +121,23 @@ export default function NocRequestPage() {
     const newErrors: Record<string, string> = {};
 
     // Seller Information
-    if (!formData.sellerName.trim()) newErrors.sellerName = "Seller name is required";
-    if (!formData.sellerEmail.trim()) newErrors.sellerEmail = "Seller email is required";
+    if (!formData.sellerName.trim())
+      newErrors.sellerName = "Seller name is required";
+    if (!formData.sellerEmail.trim())
+      newErrors.sellerEmail = "Seller email is required";
     else if (!/^\S+@\S+\.\S+$/.test(formData.sellerEmail))
       newErrors.sellerEmail = "Please enter a valid email";
     if (!formData.sellerMobileNumber.trim())
       newErrors.sellerMobileNumber = "Mobile number is required";
     else if (!/^[6-9]\d{9}$/.test(formData.sellerMobileNumber))
-      newErrors.sellerMobileNumber = "Please enter a valid 10-digit mobile number";
-    if (formData.sellerAlternateMobile.trim() && !/^[6-9]\d{9}$/.test(formData.sellerAlternateMobile))
-      newErrors.sellerAlternateMobile = "Please enter a valid 10-digit mobile number";
+      newErrors.sellerMobileNumber =
+        "Please enter a valid 10-digit mobile number";
+    if (
+      formData.sellerAlternateMobile.trim() &&
+      !/^[6-9]\d{9}$/.test(formData.sellerAlternateMobile)
+    )
+      newErrors.sellerAlternateMobile =
+        "Please enter a valid 10-digit mobile number";
     if (!formData.flatNumber.trim())
       newErrors.flatNumber = "Flat number is required";
     else if (!/^\d+$/.test(formData.flatNumber))
@@ -138,14 +145,17 @@ export default function NocRequestPage() {
     if (!formData.wing) newErrors.wing = "Wing is required";
 
     // Buyer Information
-    if (!formData.buyerName.trim()) newErrors.buyerName = "Buyer name is required";
-    if (!formData.buyerEmail.trim()) newErrors.buyerEmail = "Buyer email is required";
+    if (!formData.buyerName.trim())
+      newErrors.buyerName = "Buyer name is required";
+    if (!formData.buyerEmail.trim())
+      newErrors.buyerEmail = "Buyer email is required";
     else if (!/^\S+@\S+\.\S+$/.test(formData.buyerEmail))
       newErrors.buyerEmail = "Please enter a valid buyer email";
     if (!formData.buyerMobileNumber.trim())
       newErrors.buyerMobileNumber = "Buyer mobile number is required";
     else if (!/^[6-9]\d{9}$/.test(formData.buyerMobileNumber))
-      newErrors.buyerMobileNumber = "Please enter a valid 10-digit buyer mobile number";
+      newErrors.buyerMobileNumber =
+        "Please enter a valid 10-digit buyer mobile number";
 
     // NOC Details
     if (!formData.reason) newErrors.reason = "Reason for NOC is required";
@@ -174,13 +184,30 @@ export default function NocRequestPage() {
     if (Object.keys(errors).length > 0) return false;
 
     if (!formData.sellerName.trim()) return false;
-    if (!formData.sellerEmail.trim() || !/^\S+@\S+\.\S+$/.test(formData.sellerEmail)) return false;
-    if (!formData.sellerMobileNumber.trim() || !/^[6-9]\d{9}$/.test(formData.sellerMobileNumber)) return false;
-    if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber)) return false;
+    if (
+      !formData.sellerEmail.trim() ||
+      !/^\S+@\S+\.\S+$/.test(formData.sellerEmail)
+    )
+      return false;
+    if (
+      !formData.sellerMobileNumber.trim() ||
+      !/^[6-9]\d{9}$/.test(formData.sellerMobileNumber)
+    )
+      return false;
+    if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber))
+      return false;
     if (!formData.wing) return false;
     if (!formData.buyerName.trim()) return false;
-    if (!formData.buyerEmail.trim() || !/^\S+@\S+\.\S+$/.test(formData.buyerEmail)) return false;
-    if (!formData.buyerMobileNumber.trim() || !/^[6-9]\d{9}$/.test(formData.buyerMobileNumber)) return false;
+    if (
+      !formData.buyerEmail.trim() ||
+      !/^\S+@\S+\.\S+$/.test(formData.buyerEmail)
+    )
+      return false;
+    if (
+      !formData.buyerMobileNumber.trim() ||
+      !/^[6-9]\d{9}$/.test(formData.buyerMobileNumber)
+    )
+      return false;
     if (!formData.reason) return false;
     if (!formData.expectedTransferDate) return false;
     if (!formData.digitalSignature.trim()) return false;
@@ -250,15 +277,21 @@ export default function NocRequestPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
-            <div className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}>
+            <div
+              className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
+            >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
-            <div className={`${theme.status.approved.bg} border-2 ${theme.status.approved.border} rounded-xl p-5 mb-8`}>
-              <p className={`text-3xl font-bold ${theme.status.approved.text} tracking-wide`}>
+            <div
+              className={`${theme.status.approved.bg} border-2 ${theme.status.approved.border} rounded-xl p-5 mb-8`}
+            >
+              <p
+                className={`text-3xl font-bold ${theme.status.approved.text} tracking-wide`}
+              >
                 {acknowledgementNumber}
               </p>
             </div>
@@ -274,15 +307,25 @@ export default function NocRequestPage() {
                     <div className="space-y-1.5 bg-white rounded-lg p-3 mb-2 text-sm">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-700">NOC Fees:</span>
-                        <span className="font-bold text-gray-900">₹{paymentDetails.nocFees}</span>
+                        <span className="font-bold text-gray-900">
+                          ₹{paymentDetails.nocFees}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-700">Transfer Fees:</span>
-                        <span className="font-bold text-gray-900">₹{paymentDetails.transferFees}</span>
+                        <span className="font-bold text-gray-900">
+                          ₹{paymentDetails.transferFees}
+                        </span>
                       </div>
                       <div className="border-t border-yellow-300 pt-1.5 flex justify-between items-center">
-                        <span className="font-bold text-gray-900">Total Amount:</span>
-                        <span className={`font-bold ${theme.status.approved.text} text-lg`}>₹{paymentDetails.totalAmount}</span>
+                        <span className="font-bold text-gray-900">
+                          Total Amount:
+                        </span>
+                        <span
+                          className={`font-bold ${theme.status.approved.text} text-lg`}
+                        >
+                          ₹{paymentDetails.totalAmount}
+                        </span>
                       </div>
                     </div>
                     <p className="text-xs text-gray-700 bg-yellow-100/50 p-2 rounded">
@@ -294,12 +337,11 @@ export default function NocRequestPage() {
             )}
 
             <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-              Save this number for tracking. A confirmation email has been sent to your inbox.
+              Save this number for tracking. A confirmation email has been sent
+              to your inbox.
             </p>
             <div className="flex flex-col gap-3">
-              <Button
-                onClick={handleDownloadPdf}
-                className="w-full gap-2">
+              <Button onClick={handleDownloadPdf} className="w-full gap-2">
                 <Download className="h-5 w-5" />
                 Download Application Form
               </Button>
@@ -307,19 +349,22 @@ export default function NocRequestPage() {
                 <Button
                   onClick={() => router.push("/")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Home
                 </Button>
                 <Button
                   onClick={() => router.push("/status")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Track Status
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Submit Another
                 </Button>
               </div>
@@ -340,7 +385,8 @@ export default function NocRequestPage() {
             NOC Request & Flat Transfer
           </h1>
           <p className="text-lg text-slate-600">
-            Submit your No Objection Certificate request for flat ownership transfer
+            Submit your No Objection Certificate request for flat ownership
+            transfer
           </p>
         </div>
 
@@ -353,76 +399,76 @@ export default function NocRequestPage() {
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Full Name"
-                  name="sellerName"
-                  value={formData.sellerName}
-                  onChange={handleInputChange}
+              <Input
+                label="Full Name"
+                name="sellerName"
+                value={formData.sellerName}
+                onChange={handleInputChange}
                 error={errors.sellerName}
                 placeholder="Enter full name"
-                  required
-                />
-                <Input
-                  label="Email Address"
-                  name="sellerEmail"
-                  type="email"
-                  value={formData.sellerEmail}
-                  onChange={handleInputChange}
-                  error={errors.sellerEmail}
-                  placeholder="Enter email address"
-                  required
-                />
-                <Input
-                  label="Mobile Number (WhatsApp)"
-                  name="sellerMobileNumber"
-                  value={formData.sellerMobileNumber}
-                  onChange={handleInputChange}
-                  error={errors.sellerMobileNumber}
-                  placeholder="9876543210"
-                  required
-                />
-                <Input
-                  label="Alternate Mobile Number (Optional)"
-                  name="sellerAlternateMobile"
-                  value={formData.sellerAlternateMobile}
-                  onChange={handleInputChange}
-                  error={errors.sellerAlternateMobile}
-                  placeholder="9876543210"
-                />
-                <Select
-                  label="Wing"
-                  name="wing"
-                  value={formData.wing}
-                  onChange={handleInputChange}
-                  onBlur={checkPendingRequest}
-                  error={errors.wing}
-                  helperText={
-                    checkingPending ? (
-                      <span className="flex items-center gap-2 text-blue-600">
-                        <InlineLoader className="h-4 w-4" />
-                        Checking for pending NOC requests...
-                      </span>
-                    ) : undefined
-                  }
-                  options={[
-                    { value: "C", label: "C" },
-                    { value: "D", label: "D" },
-                  ]}
-                  required
-                />
-                <Input
-                  label="Flat Number"
-                  name="flatNumber"
-                  type="text"
-                  inputMode="numeric"
-                  value={formData.flatNumber}
-                  onChange={handleInputChange}
-                  onBlur={checkPendingRequest}
-                  error={errors.flatNumber}
-                  placeholder="e.g., 302"
-                  required
-                />
-              </div>
+                required
+              />
+              <Input
+                label="Email Address"
+                name="sellerEmail"
+                type="email"
+                value={formData.sellerEmail}
+                onChange={handleInputChange}
+                error={errors.sellerEmail}
+                placeholder="Enter email address"
+                required
+              />
+              <Input
+                label="Mobile Number (WhatsApp)"
+                name="sellerMobileNumber"
+                value={formData.sellerMobileNumber}
+                onChange={handleInputChange}
+                error={errors.sellerMobileNumber}
+                placeholder="9876543210"
+                required
+              />
+              <Input
+                label="Alternate Mobile Number (Optional)"
+                name="sellerAlternateMobile"
+                value={formData.sellerAlternateMobile}
+                onChange={handleInputChange}
+                error={errors.sellerAlternateMobile}
+                placeholder="9876543210"
+              />
+              <Select
+                label="Wing"
+                name="wing"
+                value={formData.wing}
+                onChange={handleInputChange}
+                onBlur={checkPendingRequest}
+                error={errors.wing}
+                helperText={
+                  checkingPending ? (
+                    <span className="flex items-center gap-2 text-blue-600">
+                      <InlineLoader className="h-4 w-4" />
+                      Checking for pending NOC requests...
+                    </span>
+                  ) : undefined
+                }
+                options={[
+                  { value: "C", label: "C" },
+                  { value: "D", label: "D" },
+                ]}
+                required
+              />
+              <Input
+                label="Flat Number"
+                name="flatNumber"
+                type="text"
+                inputMode="numeric"
+                value={formData.flatNumber}
+                onChange={handleInputChange}
+                onBlur={checkPendingRequest}
+                error={errors.flatNumber}
+                placeholder="e.g., 302"
+                required
+              />
+            </div>
           </Card>
 
           {/* Buyer Information Section */}
@@ -433,35 +479,35 @@ export default function NocRequestPage() {
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Buyer Full Name"
-                  name="buyerName"
-                  value={formData.buyerName}
-                  onChange={handleInputChange}
-                  error={errors.buyerName}
-                  placeholder="Enter buyer full name"
-                  required
-                />
-                <Input
-                  label="Buyer Mobile Number"
-                  name="buyerMobileNumber"
-                  value={formData.buyerMobileNumber}
-                  onChange={handleInputChange}
-                  error={errors.buyerMobileNumber}
-                  placeholder="9876543210"
-                  required
-                />
-                <Input
-                  label="Buyer Email Address"
-                  name="buyerEmail"
-                  type="email"
-                  value={formData.buyerEmail}
-                  onChange={handleInputChange}
+              <Input
+                label="Buyer Full Name"
+                name="buyerName"
+                value={formData.buyerName}
+                onChange={handleInputChange}
+                error={errors.buyerName}
+                placeholder="Enter buyer full name"
+                required
+              />
+              <Input
+                label="Buyer Mobile Number"
+                name="buyerMobileNumber"
+                value={formData.buyerMobileNumber}
+                onChange={handleInputChange}
+                error={errors.buyerMobileNumber}
+                placeholder="9876543210"
+                required
+              />
+              <Input
+                label="Buyer Email Address"
+                name="buyerEmail"
+                type="email"
+                value={formData.buyerEmail}
+                onChange={handleInputChange}
                 error={errors.buyerEmail}
                 placeholder="Enter buyer email address"
-                  required
-                />
-              </div>
+                required
+              />
+            </div>
           </Card>
 
           {/* NOC Details Section */}
@@ -472,28 +518,25 @@ export default function NocRequestPage() {
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Select
-                  label="Reason for NOC"
-                  name="reason"
-                  value={formData.reason}
-                  onChange={handleInputChange}
-                  error={errors.reason}
-                  options={[
-                    { value: "", label: "Select Reason" },
-                    ...nocReasons,
-                  ]}
-                  required
-                />
-                <Input
-                  label="Expected Transfer Date"
-                  name="expectedTransferDate"
-                  type="date"
-                  value={formData.expectedTransferDate}
-                  onChange={handleInputChange}
-                  error={errors.expectedTransferDate}
-                  required
-                />
-              </div>
+              <Select
+                label="Reason for NOC"
+                name="reason"
+                value={formData.reason}
+                onChange={handleInputChange}
+                error={errors.reason}
+                options={[{ value: "", label: "Select Reason" }, ...nocReasons]}
+                required
+              />
+              <Input
+                label="Expected Transfer Date"
+                name="expectedTransferDate"
+                type="date"
+                value={formData.expectedTransferDate}
+                onChange={handleInputChange}
+                error={errors.expectedTransferDate}
+                required
+              />
+            </div>
           </Card>
 
           {/* Document Upload Section */}
@@ -585,24 +628,43 @@ export default function NocRequestPage() {
 
           {/* Payment Information */}
           <Card className="p-8">
-            <div className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-6`}>
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
+            <div
+              className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-6`}
+            >
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Payment Details
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700 font-medium">NOC Fees:</span>
-                  <span className="font-bold text-gray-900 text-lg">₹1,000</span>
+                  <span className="font-bold text-gray-900 text-lg">
+                    ₹1,000
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">Transfer Fees:</span>
-                  <span className="font-bold text-gray-900 text-lg">₹25,000</span>
+                  <span className="text-gray-700 font-medium">
+                    Transfer Fees:
+                  </span>
+                  <span className="font-bold text-gray-900 text-lg">
+                    ₹25,000
+                  </span>
                 </div>
-                <div className={`border-t-2 ${theme.status.pending.border} pt-3 flex justify-between items-center`}>
-                  <span className="font-bold text-gray-900 text-lg">Total Amount:</span>
-                  <span className={`font-bold ${theme.status.approved.text} text-2xl`}>₹26,000</span>
+                <div
+                  className={`border-t-2 ${theme.status.pending.border} pt-3 flex justify-between items-center`}
+                >
+                  <span className="font-bold text-gray-900 text-lg">
+                    Total Amount:
+                  </span>
+                  <span
+                    className={`font-bold ${theme.status.approved.text} text-2xl`}
+                  >
+                    ₹26,000
+                  </span>
                 </div>
               </div>
               <p className="text-sm text-gray-700 mt-4 bg-white/50 p-3 rounded-lg">
-                Payment instructions will be provided after document verification.
+                Payment instructions will be provided after document
+                verification.
               </p>
             </div>
           </Card>

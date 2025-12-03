@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/forms/FileUpload";
 import { nominationAPI } from "@/lib/api";
 import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
@@ -426,27 +424,35 @@ export default function NominationPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
-            <div className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}>
+            <div
+              className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
+            >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
-            <div className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}>
-              <p className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}>
+            <div
+              className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}
+            >
+              <p
+                className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
+              >
                 {acknowledgementNumber}
               </p>
             </div>
             <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-              Save this number for tracking. A confirmation email has been sent to your inbox.
+              Save this number for tracking. A confirmation email has been sent
+              to your inbox.
             </p>
             <div className="flex flex-col gap-3">
               <Button
                 onClick={handleDownloadPdf}
                 isLoading={downloadingPdf}
                 disabled={downloadingPdf}
-                className="w-full gap-2">
+                className="w-full gap-2"
+              >
                 <Download className="h-5 w-5" />
                 {downloadingPdf ? "Generating..." : "Download Application Form"}
               </Button>
@@ -454,19 +460,22 @@ export default function NominationPage() {
                 <Button
                   onClick={() => router.push("/")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Home
                 </Button>
                 <Button
                   onClick={() => router.push("/status")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Track Status
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Submit Another
                 </Button>
               </div>
@@ -640,7 +649,9 @@ export default function NominationPage() {
               </p>
             </div>
             <div className="px-8 py-6">
-              <div className={`mb-6 p-5 ${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl`}>
+              <div
+                className={`mb-6 p-5 ${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl`}
+              >
                 <p className="text-sm font-medium text-slate-700">
                   Total Share Percentage:{" "}
                   <span
@@ -648,11 +659,14 @@ export default function NominationPage() {
                       totalSharePercentage === 100
                         ? theme.status.approved.text
                         : "text-red-600"
-                    }`}>
+                    }`}
+                  >
                     {totalSharePercentage}%
                   </span>
                   {totalSharePercentage === 100 && (
-                    <span className={`ml-2 ${theme.status.approved.text}`}>✓</span>
+                    <span className={`ml-2 ${theme.status.approved.text}`}>
+                      ✓
+                    </span>
                   )}
                   {errors.totalPercentage && (
                     <span className="block text-red-600 mt-2 text-sm">
@@ -665,7 +679,8 @@ export default function NominationPage() {
               {nominees.map((nominee, index) => (
                 <div
                   key={index}
-                  className="mb-6 p-6 border-2 border-slate-200 rounded-xl bg-slate-50/50">
+                  className="mb-6 p-6 border-2 border-slate-200 rounded-xl bg-slate-50/50"
+                >
                   <div className="flex justify-between items-center mb-5">
                     <h4 className="text-lg font-bold text-slate-900">
                       Nominee {index + 1}
@@ -676,7 +691,8 @@ export default function NominationPage() {
                         variant="danger"
                         size="sm"
                         onClick={() => removeNominee(index)}
-                        className="gap-2">
+                        className="gap-2"
+                      >
                         <Trash2 className="h-4 w-4" />
                         Remove
                       </Button>
@@ -794,7 +810,8 @@ export default function NominationPage() {
                   type="button"
                   variant="outline"
                   onClick={addNominee}
-                  className="gap-2 w-full sm:w-auto">
+                  className="gap-2 w-full sm:w-auto"
+                >
                   <Plus className="h-4 w-4" />
                   Add Another Nominee
                 </Button>
@@ -952,14 +969,16 @@ export default function NominationPage() {
               type="button"
               variant="secondary"
               onClick={() => router.push("/")}
-              className="sm:w-auto">
+              className="sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               isLoading={submitting}
               disabled={!isFormValid() || submitting}
-              className="sm:w-auto">
+              className="sm:w-auto"
+            >
               {submitting ? "Submitting..." : "Submit Nomination"}
             </Button>
           </div>

@@ -151,7 +151,10 @@ export class NocRequestPdfService {
     y += 15;
 
     // Draw horizontal line
-    doc.moveTo(this.margin, y).lineTo(this.pageWidth - this.margin, y).stroke();
+    doc
+      .moveTo(this.margin, y)
+      .lineTo(this.pageWidth - this.margin, y)
+      .stroke();
     y += 10;
 
     return y;
@@ -205,7 +208,11 @@ export class NocRequestPdfService {
   /**
    * Add seller details section
    */
-  private addSellerDetailsSection(doc: PDFKit.PDFDocument, startY: number, request: NocRequest): number {
+  private addSellerDetailsSection(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    request: NocRequest,
+  ): number {
     let y = startY;
 
     // Section header
@@ -266,7 +273,11 @@ export class NocRequestPdfService {
   /**
    * Add buyer details section
    */
-  private addBuyerDetailsSection(doc: PDFKit.PDFDocument, startY: number, request: NocRequest): number {
+  private addBuyerDetailsSection(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    request: NocRequest,
+  ): number {
     let y = startY;
 
     // Section header
@@ -304,7 +315,11 @@ export class NocRequestPdfService {
   /**
    * Add NOC details section
    */
-  private addNocDetailsSection(doc: PDFKit.PDFDocument, startY: number, request: NocRequest): number {
+  private addNocDetailsSection(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    request: NocRequest,
+  ): number {
     let y = startY;
 
     // Section header
@@ -352,7 +367,11 @@ export class NocRequestPdfService {
   /**
    * Add payment details section
    */
-  private addPaymentDetailsSection(doc: PDFKit.PDFDocument, startY: number, request: NocRequest): number {
+  private addPaymentDetailsSection(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    request: NocRequest,
+  ): number {
     let y = startY;
 
     // Section header
@@ -429,15 +448,15 @@ export class NocRequestPdfService {
   /**
    * Add declaration section
    */
-  private addDeclarationSection(doc: PDFKit.PDFDocument, startY: number, request: NocRequest): number {
+  private addDeclarationSection(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    request: NocRequest,
+  ): number {
     let y = startY;
 
     // Section header
-    doc
-      .fontSize(9)
-      .font('Helvetica-Bold')
-      .fillColor('#000000')
-      .text('DECLARATION', this.margin, y);
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000').text('DECLARATION', this.margin, y);
     y += 12;
 
     // Declaration text
@@ -457,7 +476,10 @@ export class NocRequestPdfService {
     const sigBoxWidth = this.contentWidth * 0.4;
 
     doc.rect(this.margin, y, sigBoxWidth, sigBoxHeight).stroke();
-    doc.fontSize(7).font('Helvetica').text('Digital Signature', this.margin + 5, y + 5);
+    doc
+      .fontSize(7)
+      .font('Helvetica')
+      .text('Digital Signature', this.margin + 5, y + 5);
     doc
       .fontSize(9)
       .font('Helvetica-Bold')
@@ -472,7 +494,11 @@ export class NocRequestPdfService {
   /**
    * Add enclosures section
    */
-  private addEnclosuresSection(doc: PDFKit.PDFDocument, startY: number, request: NocRequest): number {
+  private addEnclosuresSection(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    request: NocRequest,
+  ): number {
     let y = startY;
 
     // Section header
@@ -521,7 +547,10 @@ export class NocRequestPdfService {
     const footerY = this.pageHeight - this.margin - 25;
 
     // Draw horizontal line
-    doc.moveTo(this.margin, footerY).lineTo(this.pageWidth - this.margin, footerY).stroke();
+    doc
+      .moveTo(this.margin, footerY)
+      .lineTo(this.pageWidth - this.margin, footerY)
+      .stroke();
 
     // Footer text
     doc

@@ -3,6 +3,7 @@
 ## Current Status Check
 
 Based on the latest checks:
+
 - ✅ Meta tags are correct with absolute URLs
 - ✅ OG image file exists and is accessible
 - ✅ Favicon files exist and are accessible
@@ -13,6 +14,7 @@ Based on the latest checks:
 ### Understanding the Issue
 
 WhatsApp is showing your link with:
+
 - Small thumbnail on the left ✅
 - Title and description ✅
 - Domain name ✅
@@ -22,6 +24,7 @@ But you want the large image preview (image on top, taking up more space).
 ### Important Clarification
 
 **The small thumbnail display is actually CORRECT behavior** for website links. WhatsApp shows large images ONLY for:
+
 - News articles (og:type="article")
 - Blog posts
 - Media content
@@ -40,6 +43,7 @@ WhatsApp sometimes respects Twitter's image specifications. Your current setup a
 ### Solution 3: Ensure Image Meets WhatsApp's Requirements
 
 WhatsApp prefers images that:
+
 - ✅ Are exactly 1200x630px (you have this)
 - ✅ Are under 8MB (your images are ~70-87KB - perfect)
 - ✅ Use HTTPS (you have this)
@@ -51,14 +55,17 @@ WhatsApp prefers images that:
 WhatsApp caches link previews aggressively. To force a refresh:
 
 **Method 1: Query Parameter**
+
 ```
 https://documents.citronsociety.in/?v=5
 https://documents.citronsociety.in/?v=6
 https://documents.citronsociety.in/?refresh=true
 ```
+
 Change the number/parameter each time.
 
 **Method 2: Facebook Debugger (Clears WhatsApp Cache)**
+
 1. Go to: https://developers.facebook.com/tools/debug/
 2. Enter: `https://documents.citronsociety.in/`
 3. Click "Scrape Again" button
@@ -74,12 +81,14 @@ WhatsApp cache expires after 7-30 days (varies).
 ### Quick Fixes
 
 **1. Hard Refresh Browser**
+
 ```
 Windows/Linux: Ctrl + Shift + R
 Mac: Cmd + Shift + R
 ```
 
 **2. Clear Browser Cache**
+
 ```
 Chrome: Settings → Privacy → Clear browsing data → Cached images
 Firefox: Settings → Privacy → Clear Data → Cached Web Content
@@ -87,18 +96,21 @@ Edge: Settings → Privacy → Clear browsing data → Cached images
 ```
 
 **3. Close Browser Completely**
+
 - Close ALL browser windows and tabs
 - Wait 10 seconds
 - Reopen browser
 - Visit site
 
 **4. Use Incognito/Private Mode**
+
 - Open incognito window
 - Visit your site
 - Favicon should show immediately
 
 **5. Force Favicon Reload**
 Visit these URLs directly:
+
 ```
 https://documents.citronsociety.in/favicon.ico
 https://documents.citronsociety.in/favicon-32x32.png
@@ -128,6 +140,7 @@ Should return `200 OK`, not `404`.
 ### Favicon Priority Order
 
 Browsers load favicons in this order:
+
 1. `/favicon.ico` (root)
 2. `<link rel="icon">` tags in HTML
 3. `/apple-icon.png` (iOS)
@@ -167,11 +180,13 @@ Make sure all these exist.
 ### Check Meta Tags in Production
 
 View your page source:
+
 ```
 Right-click → View Page Source
 ```
 
 Search for:
+
 1. `og:image` - Should be absolute URL with https://
 2. `favicon` - Should have multiple link tags
 3. `twitter:image` - Should be absolute URL
@@ -179,16 +194,19 @@ Search for:
 ### Test on Different Platforms
 
 **Twitter:**
+
 1. Go to: https://cards-dev.twitter.com/validator
 2. Enter your URL
 3. Should show "Card preview" with large image
 
 **LinkedIn:**
+
 1. Go to: https://www.linkedin.com/post-inspector/
 2. Enter your URL
 3. Should show preview with image
 
 **Facebook:**
+
 1. Go to: https://developers.facebook.com/tools/debug/
 2. Enter your URL
 3. Should show preview with warnings/errors if any
@@ -196,12 +214,14 @@ Search for:
 ### Check Image Format
 
 WhatsApp prefers:
+
 - PNG or JPG (you're using PNG ✅)
 - RGB color space (not CMYK)
 - No transparency issues
 - Standard encoding
 
 To verify your image:
+
 ```bash
 cd frontend/public
 file og-image.png
@@ -227,6 +247,7 @@ The small thumbnail is actually the standard and correct behavior for web applic
 ### For Favicon
 
 If favicon still doesn't show after:
+
 - Clearing cache
 - Hard refresh
 - Incognito mode
@@ -236,6 +257,7 @@ Then check:
 
 **1. Deployment Issue**
 Verify files are actually deployed:
+
 ```bash
 curl https://documents.citronsociety.in/favicon.ico --output test.ico
 file test.ico
@@ -244,6 +266,7 @@ file test.ico
 
 **2. CDN/Cache Issue**
 Your hosting might be caching old files. In Vercel:
+
 - Go to Deployments
 - Force redeploy
 - Or change file names and update references
@@ -265,16 +288,16 @@ If issues persist after trying all steps above, provide:
 
 After making changes:
 
-| Action | Time to Take Effect |
-|--------|---------------------|
-| Deploy to Vercel | 2-5 minutes |
-| DNS/CDN propagation | 5-15 minutes |
-| Browser cache clear | Immediate |
-| Facebook cache clear | 5-10 minutes |
-| WhatsApp cache (with Facebook clear) | 10-30 minutes |
-| WhatsApp cache (natural expiry) | 7-30 days |
-| Favicon in browser | Immediate after cache clear |
-| Favicon without cache clear | Varies, can be days |
+| Action                               | Time to Take Effect         |
+| ------------------------------------ | --------------------------- |
+| Deploy to Vercel                     | 2-5 minutes                 |
+| DNS/CDN propagation                  | 5-15 minutes                |
+| Browser cache clear                  | Immediate                   |
+| Facebook cache clear                 | 5-10 minutes                |
+| WhatsApp cache (with Facebook clear) | 10-30 minutes               |
+| WhatsApp cache (natural expiry)      | 7-30 days                   |
+| Favicon in browser                   | Immediate after cache clear |
+| Favicon without cache clear          | Varies, can be days         |
 
 ## Quick Command Reference
 
@@ -299,12 +322,14 @@ identify og-image.png  # requires ImageMagick
 ## Summary
 
 **WhatsApp Issue:**
+
 - The small thumbnail is actually correct behavior
 - To force larger image, would need to change to article type (not recommended)
 - Clear cache using Facebook Debugger
 - Use query parameters for immediate testing
 
 **Favicon Issue:**
+
 - Files exist and are accessible
 - Problem is likely browser cache
 - Hard refresh and clear cache should fix it

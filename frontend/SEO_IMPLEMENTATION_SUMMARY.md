@@ -7,6 +7,7 @@ Your Citron Documents application now has complete SEO optimization! Here's what
 ### 1. Metadata Configuration
 
 **Root Layout** (`app/layout.tsx`)
+
 - Complete SEO metadata with Open Graph and Twitter Cards
 - Dynamic title templates for all pages
 - Proper meta tags for search engines
@@ -14,6 +15,7 @@ Your Citron Documents application now has complete SEO optimization! Here's what
 - Favicon and icon configuration
 
 **Page-Specific Layouts**
+
 - `app/share-certificate/layout.tsx` - Share Certificate metadata
 - `app/nomination/layout.tsx` - Nomination Form metadata
 - `app/noc-request/layout.tsx` - NOC Request metadata
@@ -24,6 +26,7 @@ Each page has custom titles, descriptions, and Open Graph images optimized for s
 ### 2. Visual Assets (Auto-Generated)
 
 **Open Graph Images** (1200×630px)
+
 ```
 public/
 ├── og-image.png                 (87KB) - Homepage
@@ -34,6 +37,7 @@ public/
 ```
 
 **App Icons**
+
 ```
 public/
 ├── icon-192.png    (4.1KB) - PWA icon 192x192
@@ -42,6 +46,7 @@ public/
 ```
 
 All images feature:
+
 - Your brand colors (blue gradient)
 - Document icon representing your app
 - Clear, readable text
@@ -51,17 +56,20 @@ All images feature:
 ### 3. SEO Files
 
 **Sitemap** (`app/sitemap.ts`)
+
 - Dynamic XML sitemap for search engines
 - All major pages included with priorities
 - Change frequencies defined
 - Automatic URL generation
 
 **Robots.txt** (`public/robots.txt`)
+
 - Allows crawling of public pages
 - Blocks admin section from search results
 - Sitemap reference for search engines
 
 **PWA Manifest** (`public/manifest.json`)
+
 - App name and description
 - Icon references
 - Theme colors
@@ -70,6 +78,7 @@ All images feature:
 ### 4. Utility Functions
 
 **Metadata Helper** (`lib/metadata.ts`)
+
 - Reusable function for generating page metadata
 - Consistent Open Graph and Twitter Card setup
 - Easy to use for future pages
@@ -77,6 +86,7 @@ All images feature:
 ### 5. Image Generation Script
 
 **Script** (`scripts/generate-og-images.js`)
+
 - Automated image generation using Canvas
 - Customizable colors and content
 - Can regenerate anytime with `npm run generate:images`
@@ -84,7 +94,9 @@ All images feature:
 ## 🎯 What This Achieves
 
 ### Social Media Sharing
+
 When users share your pages on:
+
 - **Facebook** - Shows app icon, title, description, and preview image
 - **Twitter** - Shows Twitter Card with image and content
 - **LinkedIn** - Shows professional preview with branding
@@ -92,12 +104,14 @@ When users share your pages on:
 - **Slack/Discord** - Shows rich preview card
 
 ### Search Engine Optimization
+
 - **Google** - Proper title tags, meta descriptions, structured URLs
 - **Bing** - Full metadata support
 - **Search Results** - Enhanced snippets with descriptions
 - **Sitemap** - Easy discovery and indexing of all pages
 
 ### Mobile & PWA
+
 - **Add to Home Screen** - Users can install your app
 - **App Icon** - Shows your branding on home screen
 - **Offline Ready** - Progressive Web App capabilities
@@ -138,29 +152,34 @@ After deployment, test your implementation:
 
 **Facebook Sharing Debugger**
 https://developers.facebook.com/tools/debug/
+
 - Enter your URL
 - Click "Scrape Again" to refresh cache
 - Verify image, title, and description
 
 **Twitter Card Validator**
 https://cards-dev.twitter.com/validator
+
 - Enter your URL
 - Check preview appearance
 - Verify card type is "summary_large_image"
 
 **Google Rich Results Test**
 https://search.google.com/test/rich-results
+
 - Test your URL
 - Check for any errors or warnings
 
 ### 4. Submit to Search Engines
 
 **Google Search Console**
+
 1. Go to https://search.google.com/search-console
 2. Add your property
 3. Submit sitemap: `https://yourdomain.com/sitemap.xml`
 
 **Bing Webmaster Tools**
+
 1. Go to https://www.bing.com/webmasters
 2. Add your site
 3. Submit sitemap
@@ -179,6 +198,7 @@ npm run generate:images
 ### Customizing Images
 
 Edit `frontend/scripts/generate-og-images.js` to:
+
 - Change colors
 - Update text
 - Modify design elements
@@ -233,6 +253,7 @@ Just set your environment variables and deploy!
 **Need Help?**
 
 If you need to customize anything or have questions about the implementation, refer to:
+
 - `SEO_SETUP.md` for detailed instructions
 - `scripts/README.md` for image customization
 - Next.js documentation: https://nextjs.org/docs/app/building-your-application/optimizing/metadata

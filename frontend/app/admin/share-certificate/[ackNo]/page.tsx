@@ -113,12 +113,24 @@ export default function ShareCertificateDetailPage() {
     fileType: string
   ) => {
     // Show loading state
-    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+    setDocumentPopup({
+      isOpen: true,
+      url: "",
+      fileName,
+      fileType,
+      loading: true,
+    });
 
     try {
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
+      setDocumentPopup({
+        isOpen: true,
+        url: presignedUrl,
+        fileName,
+        fileType,
+        loading: false,
+      });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       setToast({
@@ -138,7 +150,9 @@ export default function ShareCertificateDetailPage() {
 
     setGeneratingPdf(true);
     try {
-      const response = await shareCertificateAPI.downloadPdf(certificate.acknowledgementNumber);
+      const response = await shareCertificateAPI.downloadPdf(
+        certificate.acknowledgementNumber
+      );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -172,7 +186,8 @@ export default function ShareCertificateDetailPage() {
       <span
         className={`px-4 py-2 rounded-lg text-sm font-bold ${
           colors[status] || "bg-gray-100 text-gray-800"
-        }`}>
+        }`}
+      >
         {status}
       </span>
     );
@@ -209,7 +224,8 @@ export default function ShareCertificateDetailPage() {
           <p className="text-slate-600">Certificate not found</p>
           <Button
             onClick={() => router.push("/admin/dashboard")}
-            className="mt-4">
+            className="mt-4"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -228,12 +244,15 @@ export default function ShareCertificateDetailPage() {
                 onClick={() => router.push("/admin/dashboard")}
                 variant="outline"
                 size="sm"
-                className="gap-2">
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg`}>
+                <div
+                  className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg`}
+                >
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -284,24 +303,32 @@ export default function ShareCertificateDetailPage() {
                       {certificate.flatNumber} - Wing {certificate.wing}
                     </p>
                   </div>
-                  {certificate.index2ApplicantNames && certificate.index2ApplicantNames.length > 0 && (
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        Index-2 Applicant Names
-                      </label>
-                      <div className="mt-2 space-y-2">
-                        {certificate.index2ApplicantNames.map((name:any, index:any) => (
-                          <div key={index} className="flex items-center gap-2 ${theme.status.pending.bg} border ${theme.status.pending.border} rounded-lg px-3 py-2">
-                            <span className="text-xs font-bold text-blue-700 bg-blue-200 rounded-full h-6 w-6 flex items-center justify-center">
-                              {index + 1}
-                            </span>
-                            <p className="text-base text-slate-900">{name}</p>
-                          </div>
-                        ))}
+                  {certificate.index2ApplicantNames &&
+                    certificate.index2ApplicantNames.length > 0 && (
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                          <User className="h-4 w-4" />
+                          Index-2 Applicant Names
+                        </label>
+                        <div className="mt-2 space-y-2">
+                          {certificate.index2ApplicantNames.map(
+                            (name: any, index: any) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-2 ${theme.status.pending.bg} border ${theme.status.pending.border} rounded-lg px-3 py-2"
+                              >
+                                <span className="text-xs font-bold text-blue-700 bg-blue-200 rounded-full h-6 w-6 flex items-center justify-center">
+                                  {index + 1}
+                                </span>
+                                <p className="text-base text-slate-900">
+                                  {name}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <Mail className="h-4 w-4" />
@@ -424,7 +451,8 @@ export default function ShareCertificateDetailPage() {
                       setSelectedStatus(e.target.value as Status)
                     }
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                    disabled={updatingStatus}>
+                    disabled={updatingStatus}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
@@ -456,7 +484,8 @@ export default function ShareCertificateDetailPage() {
                       adminRemarks === (certificate.adminRemarks || ""))
                   }
                   isLoading={updatingStatus}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Save className="h-4 w-4" />
                   {updatingStatus ? "Updating..." : "Update Status"}
                 </Button>
@@ -479,7 +508,8 @@ export default function ShareCertificateDetailPage() {
                         certificate.index2Document.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -503,7 +533,8 @@ export default function ShareCertificateDetailPage() {
                         certificate.possessionLetterDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -527,7 +558,8 @@ export default function ShareCertificateDetailPage() {
                         certificate.aadhaarCardDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
                     <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
@@ -575,15 +607,19 @@ export default function ShareCertificateDetailPage() {
               </div>
               <div className="px-6 py-4">
                 <p className="text-sm text-slate-600 mb-4">
-                  Download the official share certificate application form PDF with all submitted details.
+                  Download the official share certificate application form PDF
+                  with all submitted details.
                 </p>
                 <Button
                   onClick={handleGeneratePdf}
                   disabled={generatingPdf}
                   isLoading={generatingPdf}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Download className="h-4 w-4" />
-                  {generatingPdf ? "Generating..." : "Generate Application Form"}
+                  {generatingPdf
+                    ? "Generating..."
+                    : "Generate Application Form"}
                 </Button>
               </div>
             </div>
@@ -595,10 +631,12 @@ export default function ShareCertificateDetailPage() {
       {documentPopup && documentPopup.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={closeDocumentPopup}>
+          onClick={closeDocumentPopup}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
@@ -616,7 +654,8 @@ export default function ShareCertificateDetailPage() {
               </div>
               <button
                 onClick={closeDocumentPopup}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -656,7 +695,8 @@ export default function ShareCertificateDetailPage() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}>
+                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}
+                >
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>

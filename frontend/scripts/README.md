@@ -5,7 +5,9 @@ This directory contains the script to automatically generate Open Graph images a
 ## Generated Images
 
 ### Open Graph Images (1200×630px)
+
 These images appear when sharing links on social media:
+
 - `og-image.png` - Homepage
 - `og-share-certificate.png` - Share Certificate page
 - `og-nomination.png` - Nomination Form page
@@ -13,7 +15,9 @@ These images appear when sharing links on social media:
 - `og-status.png` - Track Status page
 
 ### App Icons
+
 For PWA and mobile devices:
+
 - `icon-192.png` (192×192px) - PWA icon
 - `icon-512.png` (512×512px) - PWA icon
 - `apple-icon.png` (180×180px) - Apple touch icon
@@ -33,26 +37,31 @@ All images will be saved to the `public` directory.
 To customize the images, edit `generate-og-images.js`:
 
 ### Change Colors
+
 ```javascript
 const colors = {
-  primary: '#2563eb',      // Main brand color
-  primaryDark: '#1e40af',  // Darker shade
+  primary: "#2563eb", // Main brand color
+  primaryDark: "#1e40af", // Darker shade
   // ... other colors
 };
 ```
 
 ### Modify Content
+
 Each image is generated with this function:
+
 ```javascript
 generateOGImage(
-  'Page Title',              // Main heading
-  'Page description text',   // Subtitle
-  'output-filename.png'      // Output file
+  "Page Title", // Main heading
+  "Page description text", // Subtitle
+  "output-filename.png" // Output file
 );
 ```
 
 ### Design Elements
+
 The script creates:
+
 - Gradient background with brand colors
 - White content card with rounded corners
 - Document icon with brand colors
@@ -74,15 +83,18 @@ npm install canvas --save-dev
 If you encounter issues installing `canvas`, you may need to install system dependencies:
 
 **Windows:**
+
 - No additional dependencies usually needed
 - If issues persist, install Windows Build Tools: `npm install --global windows-build-tools`
 
 **macOS:**
+
 ```bash
 brew install pkg-config cairo pango libpng jpeg giflib librsvg
 ```
 
 **Linux (Ubuntu/Debian):**
+
 ```bash
 sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 ```
@@ -94,6 +106,7 @@ To generate specific images, you can modify the script or run specific functions
 ## Preview Images
 
 After generation, you can preview the images:
+
 1. Open the `public` directory
 2. View the PNG files in any image viewer
 3. Verify dimensions and quality

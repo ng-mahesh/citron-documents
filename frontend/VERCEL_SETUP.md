@@ -29,6 +29,7 @@ Add the `NEXT_PUBLIC_APP_URL` environment variable to your Vercel deployment.
    - Click "Add New" button
 
 5. **Enter Variable Details**
+
    ```
    Name: NEXT_PUBLIC_APP_URL
    Value: https://documents.citronsociety.in
@@ -52,6 +53,7 @@ Add the `NEXT_PUBLIC_APP_URL` environment variable to your Vercel deployment.
 I've created a `vercel.json` file in your frontend directory. This will automatically set the environment variable on next deployment.
 
 **To apply:**
+
 ```bash
 cd frontend
 git add vercel.json
@@ -90,27 +92,37 @@ After redeployment, verify the fix:
 3. Search for `og:image`
 4. Should show:
    ```html
-   <meta property="og:image" content="https://documents.citronsociety.in/og-image.png">
+   <meta
+     property="og:image"
+     content="https://documents.citronsociety.in/og-image.png"
+   />
    ```
 
 **Before (Wrong):**
+
 ```html
-<meta property="og:image" content="http://localhost:3000/og-image.png">
+<meta property="og:image" content="http://localhost:3000/og-image.png" />
 ```
 
 **After (Correct):**
+
 ```html
-<meta property="og:image" content="https://documents.citronsociety.in/og-image.png">
+<meta
+  property="og:image"
+  content="https://documents.citronsociety.in/og-image.png"
+/>
 ```
 
 ### 2. Test Open Graph
 
 **Use OpenGraph.xyz:**
+
 1. Go to: https://www.opengraph.xyz/
 2. Enter: `https://documents.citronsociety.in/`
 3. Should now show the image preview correctly
 
 **Use Facebook Debugger:**
+
 1. Go to: https://developers.facebook.com/tools/debug/
 2. Enter: `https://documents.citronsociety.in/`
 3. Click "Scrape Again"
@@ -120,6 +132,7 @@ After redeployment, verify the fix:
 
 **Method 1: Query Parameter (Immediate)**
 Share in WhatsApp:
+
 ```
 https://documents.citronsociety.in/?v=1
 ```
@@ -132,11 +145,13 @@ Share normal URL and wait 5-10 minutes for WhatsApp to refresh its cache.
 ### Variable Not Working?
 
 **Check if variable is set:**
+
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Confirm `NEXT_PUBLIC_APP_URL` is listed
 3. Confirm it's enabled for "Production"
 
 **Check deployment:**
+
 1. Go to Deployments tab
 2. Check the latest deployment
 3. Look at the "Build Logs"
@@ -165,9 +180,11 @@ Share normal URL and wait 5-10 minutes for WhatsApp to refresh its cache.
 ### Image Still Not Loading?
 
 1. **Verify image exists:**
+
    ```
    https://documents.citronsociety.in/og-image.png
    ```
+
    Should load and show the blue gradient image.
 
 2. **Check image permissions:**
@@ -197,11 +214,13 @@ curl -s https://documents.citronsociety.in/ | grep -o 'og:image.*content="[^"]*"
 ```
 
 **Should output:**
+
 ```
 og:image" content="https://documents.citronsociety.in/og-image.png"
 ```
 
 **Should NOT output:**
+
 ```
 og:image" content="http://localhost:3000/og-image.png"
 ```

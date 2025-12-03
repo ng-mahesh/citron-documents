@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "generate:images": "node scripts/generate-og-images.js",
     "generate:favicon": "node scripts/generate-favicon.js",
     "generate:all": "npm run generate:images && npm run generate:favicon"
@@ -31,6 +33,7 @@
     "canvas": "^3.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.5",
+    "prettier": "^3.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

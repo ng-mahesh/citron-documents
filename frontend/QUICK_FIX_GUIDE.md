@@ -8,6 +8,7 @@
 https://developers.facebook.com/tools/debug/
 
 **Do this:**
+
 1. Paste: `https://documents.citronsociety.in/`
 2. Click **"Scrape Again"** button
 3. Wait 5 seconds
@@ -18,6 +19,7 @@ https://developers.facebook.com/tools/debug/
 ### Step 2: Test WhatsApp with Query Parameter
 
 Share THIS URL in WhatsApp (not your regular URL):
+
 ```
 https://documents.citronsociety.in/?test=1
 ```
@@ -27,10 +29,12 @@ This bypasses WhatsApp's cache immediately.
 ### Step 3: Fix Favicon in Browser
 
 **Option A: Hard Refresh**
+
 - Press `Ctrl + Shift + R` (Windows/Linux)
 - Or `Cmd + Shift + R` (Mac)
 
 **Option B: Clear Cache**
+
 1. Press `Ctrl + Shift + Delete`
 2. Select "Cached images and files"
 3. Click "Clear data"
@@ -38,6 +42,7 @@ This bypasses WhatsApp's cache immediately.
 5. Reopen and visit site
 
 **Option C: Incognito Mode (Fastest)**
+
 1. Open incognito/private window
 2. Visit: https://documents.citronsociety.in/
 3. Favicon should show immediately
@@ -45,6 +50,7 @@ This bypasses WhatsApp's cache immediately.
 ### Step 4: Verify Environment Variable
 
 **Check in Vercel Dashboard:**
+
 1. Go to: https://vercel.com/dashboard
 2. Select your project
 3. Settings → Environment Variables
@@ -55,22 +61,29 @@ This bypasses WhatsApp's cache immediately.
 ## 🔍 Quick Tests
 
 ### Test 1: Is OG Image Accessible?
+
 Open this URL in browser:
+
 ```
 https://documents.citronsociety.in/og-image.png
 ```
+
 ✅ Should show: Blue gradient image with "Citron Documents" text
 ❌ If 404: Image not deployed, need to push to production
 
 ### Test 2: Is Favicon Accessible?
+
 Open this URL in browser:
+
 ```
 https://documents.citronsociety.in/favicon.ico
 ```
+
 ✅ Should show: Small blue icon with white document
 ❌ If 404: Favicon not deployed, need to push to production
 
 ### Test 3: Are Meta Tags Correct?
+
 1. Visit: https://documents.citronsociety.in/
 2. Right-click → View Page Source
 3. Search for: `og:image`
@@ -82,14 +95,17 @@ https://documents.citronsociety.in/favicon.ico
 ### WhatsApp Image Display
 
 **What you're seeing now (Small thumbnail on left):**
+
 ```
 [📄] Citron Phase 2 Documents
      Comprehensive document management...
      documents.citronsociety.in
 ```
+
 ✅ **This is CORRECT** for website links!
 
 **What you want (Large image on top):**
+
 ```
 ┌──────────────────────────┐
 │   [LARGE IMAGE]          │
@@ -98,11 +114,13 @@ https://documents.citronsociety.in/favicon.ico
 Citron Phase 2 Documents
 documents.citronsociety.in
 ```
+
 ❌ This is only for news articles/blog posts
 
 ### The Truth
 
 WhatsApp shows **small thumbnails for ALL websites** including:
+
 - Google.com
 - Facebook.com
 - GitHub.com
@@ -128,6 +146,7 @@ Based on my checks of your live site:
 **Everything is working correctly!**
 
 The "issues" you're experiencing are:
+
 1. **WhatsApp showing small thumbnail** = Normal behavior ✅
 2. **Favicon not showing** = Browser cache issue (clear it)
 
@@ -136,12 +155,14 @@ The "issues" you're experiencing are:
 ### For WhatsApp
 
 **Accept that small thumbnail is correct:**
+
 - This is how WhatsApp works
 - Same as Google, Facebook, GitHub
 - Provides good user experience
 - Shows title + description + image
 
 **OR experimentally try article type** (not recommended):
+
 - Would need to change `og:type` to "article"
 - Semantically incorrect
 - May not work
@@ -150,6 +171,7 @@ The "issues" you're experiencing are:
 ### For Favicon
 
 **Just clear your browser cache:**
+
 1. Ctrl + Shift + Delete
 2. Clear cached images
 3. Hard refresh (Ctrl + Shift + R)
@@ -186,6 +208,7 @@ curl -I https://documents.citronsociety.in/favicon.ico
 Both should return `HTTP/2 200` (not 404).
 
 If 404, then:
+
 1. Check that files are in `frontend/public/` folder
 2. Commit and push to git
 3. Redeploy in Vercel
@@ -193,6 +216,7 @@ If 404, then:
 ### Check Environment Variable
 
 If meta tags still show `localhost`:
+
 1. Go to Vercel dashboard
 2. Settings → Environment Variables
 3. Add: `NEXT_PUBLIC_APP_URL` = `https://documents.citronsociety.in`

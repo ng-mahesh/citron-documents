@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import {
   adminAPI,
   shareCertificateAPI,
@@ -22,13 +20,10 @@ import {
   Users,
   CheckCircle,
   Clock,
-  XCircle,
   AlertCircle,
   Download,
   LogOut,
-  Edit,
   Trash2,
-  Eye,
   X,
   Search,
   ChevronLeft,
@@ -129,8 +124,8 @@ export default function AdminDashboard() {
         type === "certificates"
           ? await adminAPI.exportShareCertificates()
           : type === "nominations"
-          ? await adminAPI.exportNominations()
-          : await adminAPI.exportNocRequests();
+            ? await adminAPI.exportNominations()
+            : await adminAPI.exportNocRequests();
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -214,7 +209,8 @@ export default function AdminDashboard() {
     };
     return (
       <span
-        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${colors[status]}`}>
+        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${colors[status]}`}
+      >
         {status}
       </span>
     );
@@ -373,7 +369,8 @@ export default function AdminDashboard() {
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="gap-2 text-xs sm:text-sm">
+              className="gap-2 text-xs sm:text-sm"
+            >
               <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
               Logout
             </Button>
@@ -387,7 +384,8 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex flex-col items-center text-center">
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <FileText className="h-7 w-7 text-white" />
               </div>
               <p className="text-sm font-semibold text-slate-600 mb-1">
@@ -402,7 +400,8 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex flex-col items-center text-center">
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <Users className="h-7 w-7 text-white" />
               </div>
               <p className="text-sm font-semibold text-slate-600 mb-1">
@@ -417,7 +416,8 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex flex-col items-center text-center">
               <div
-                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
+                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <FileSignature className="h-7 w-7 text-white" />
               </div>
               <p className="text-sm font-semibold text-slate-600 mb-1">
@@ -432,7 +432,8 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex flex-col items-center text-center">
               <div
-                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
+                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <CheckCircle className="h-7 w-7 text-white" />
               </div>
               <p className="text-sm font-semibold text-slate-600 mb-1">
@@ -449,7 +450,8 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex flex-col items-center text-center">
               <div
-                className={`h-14 w-14 ${theme.iconBg.amber} rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mb-3`}>
+                className={`h-14 w-14 ${theme.iconBg.amber} rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mb-3`}
+              >
                 <Clock className="h-7 w-7 text-white" />
               </div>
               <p className="text-sm font-semibold text-slate-600 mb-1">
@@ -474,7 +476,8 @@ export default function AdminDashboard() {
                   activeTab === "certificates"
                     ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
+              >
                 Share Certificates ({shareCertificates.length})
               </button>
               <button
@@ -483,7 +486,8 @@ export default function AdminDashboard() {
                   activeTab === "nominations"
                     ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
+              >
                 Nominations ({nominations.length})
               </button>
               <button
@@ -492,7 +496,8 @@ export default function AdminDashboard() {
                   activeTab === "noc-requests"
                     ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
+              >
                 NOC Requests ({nocRequests.length})
               </button>
             </nav>
@@ -502,7 +507,8 @@ export default function AdminDashboard() {
               size="sm"
               isLoading={exporting}
               disabled={exporting}
-              className="gap-2 w-full sm:w-auto justify-center">
+              className="gap-2 w-full sm:w-auto justify-center"
+            >
               {!exporting && <Download className="h-4 w-4" />}
               {exporting ? "Exporting..." : "Export to Excel"}
             </Button>
@@ -555,7 +561,8 @@ export default function AdminDashboard() {
                     paginatedCertificates.map((cert) => (
                       <tr
                         key={cert._id}
-                        className="hover:bg-slate-50 transition-colors">
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                           {cert.acknowledgementNumber}
                         </td>
@@ -580,7 +587,8 @@ export default function AdminDashboard() {
                                   `/admin/share-certificate/${cert.acknowledgementNumber}`
                                 )
                               }
-                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}>
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}
+                            >
                               View Details
                             </button>
                             <button
@@ -593,7 +601,8 @@ export default function AdminDashboard() {
                                 )
                               }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete certificate">
+                              title="Delete certificate"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -604,7 +613,8 @@ export default function AdminDashboard() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-6 py-8 text-center text-slate-500">
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
                         No certificates found matching your search.
                       </td>
                     </tr>
@@ -633,7 +643,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setCertCurrentPage(certCurrentPage - 1)}
                     disabled={certCurrentPage === 1}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
@@ -648,7 +659,8 @@ export default function AdminDashboard() {
                           certCurrentPage === page
                             ? `${theme.button.primary.bg} text-white`
                             : "text-slate-600 hover:bg-slate-100"
-                        }`}>
+                        }`}
+                      >
                         {page}
                       </button>
                     ))}
@@ -656,7 +668,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setCertCurrentPage(certCurrentPage + 1)}
                     disabled={certCurrentPage === certTotalPages}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
                 </div>
@@ -714,7 +727,8 @@ export default function AdminDashboard() {
                     paginatedNominations.map((nom: any) => (
                       <tr
                         key={nom._id}
-                        className="hover:bg-slate-50 transition-colors">
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                           {nom.acknowledgementNumber}
                         </td>
@@ -736,7 +750,8 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                           <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-lg ${theme.status.pending.bg} ${theme.status.pending.text} font-semibold`}>
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg ${theme.status.pending.bg} ${theme.status.pending.text} font-semibold`}
+                          >
                             {nom.nominees?.length || 0}
                           </span>
                         </td>
@@ -751,7 +766,8 @@ export default function AdminDashboard() {
                                   `/admin/nomination/${nom.acknowledgementNumber}`
                                 )
                               }
-                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}>
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}
+                            >
                               View Details
                             </button>
                             <button
@@ -766,7 +782,8 @@ export default function AdminDashboard() {
                                 )
                               }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete nomination">
+                              title="Delete nomination"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -777,7 +794,8 @@ export default function AdminDashboard() {
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-6 py-8 text-center text-slate-500">
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
                         No nominations found matching your search.
                       </td>
                     </tr>
@@ -806,7 +824,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNomCurrentPage(nomCurrentPage - 1)}
                     disabled={nomCurrentPage === 1}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
@@ -819,7 +838,8 @@ export default function AdminDashboard() {
                             nomCurrentPage === page
                               ? `${theme.button.primary.bg} text-white`
                               : "text-slate-600 hover:bg-slate-100"
-                          }`}>
+                          }`}
+                        >
                           {page}
                         </button>
                       )
@@ -828,7 +848,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNomCurrentPage(nomCurrentPage + 1)}
                     disabled={nomCurrentPage === nomTotalPages}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
                 </div>
@@ -889,7 +910,8 @@ export default function AdminDashboard() {
                     paginatedNocRequests.map((noc: any) => (
                       <tr
                         key={noc._id}
-                        className="hover:bg-slate-50 transition-colors">
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                           {noc.acknowledgementNumber}
                         </td>
@@ -913,7 +935,8 @@ export default function AdminDashboard() {
                               noc.reason === "Sale"
                                 ? `${theme.status.pending.bg} ${theme.status.pending.text}`
                                 : `${theme.status.documentRequired.bg} ${theme.status.documentRequired.text}`
-                            }`}>
+                            }`}
+                          >
                             {noc.reason}
                           </span>
                         </td>
@@ -923,9 +946,10 @@ export default function AdminDashboard() {
                               noc.paymentStatus === "Paid"
                                 ? `${theme.status.approved.bg} ${theme.status.approved.text}`
                                 : noc.paymentStatus === "Pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : `${theme.status.rejected.bg} ${theme.status.rejected.text}`
-                            }`}>
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : `${theme.status.rejected.bg} ${theme.status.rejected.text}`
+                            }`}
+                          >
                             {noc.paymentStatus}
                           </span>
                         </td>
@@ -940,7 +964,8 @@ export default function AdminDashboard() {
                                   `/admin/noc-request/${noc.acknowledgementNumber}`
                                 )
                               }
-                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}>
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}
+                            >
                               View Details
                             </button>
                             <button
@@ -953,7 +978,8 @@ export default function AdminDashboard() {
                                 )
                               }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete NOC request">
+                              title="Delete NOC request"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -964,7 +990,8 @@ export default function AdminDashboard() {
                     <tr>
                       <td
                         colSpan={8}
-                        className="px-6 py-8 text-center text-slate-500">
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
                         No NOC requests found matching your search.
                       </td>
                     </tr>
@@ -993,7 +1020,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNocCurrentPage(nocCurrentPage - 1)}
                     disabled={nocCurrentPage === 1}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
@@ -1006,7 +1034,8 @@ export default function AdminDashboard() {
                             nocCurrentPage === page
                               ? `${theme.button.primary.bg} text-white`
                               : "text-slate-600 hover:bg-slate-100"
-                          }`}>
+                          }`}
+                        >
                           {page}
                         </button>
                       )
@@ -1015,7 +1044,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNocCurrentPage(nocCurrentPage + 1)}
                     disabled={nocCurrentPage === nocTotalPages}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
                 </div>
@@ -1029,16 +1059,19 @@ export default function AdminDashboard() {
       {documentPopup && documentPopup.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={closeDocumentPopup}>
+          onClick={closeDocumentPopup}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col"
             style={{ maxHeight: "90vh" }}
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div
-                  className={`h-10 w-10 ${theme.iconBg.primary} rounded-lg flex items-center justify-center`}>
+                  className={`h-10 w-10 ${theme.iconBg.primary} rounded-lg flex items-center justify-center`}
+                >
                   <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1052,7 +1085,8 @@ export default function AdminDashboard() {
               </div>
               <button
                 onClick={closeDocumentPopup}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -1092,7 +1126,8 @@ export default function AdminDashboard() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}>
+                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}
+                >
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>
@@ -1109,10 +1144,12 @@ export default function AdminDashboard() {
       {deleteModal && deleteModal.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setDeleteModal(null)}>
+          onClick={() => setDeleteModal(null)}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center gap-3 p-6 border-b border-slate-200">
               <div className="h-12 w-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -1136,8 +1173,8 @@ export default function AdminDashboard() {
                   {deleteModal.type === "certificate"
                     ? "share certificate"
                     : deleteModal.type === "nomination"
-                    ? "nomination"
-                    : "NOC request"}
+                      ? "nomination"
+                      : "NOC request"}
                 </span>{" "}
                 application?
               </p>
@@ -1165,7 +1202,8 @@ export default function AdminDashboard() {
                 onClick={() => setDeleteModal(null)}
                 variant="outline"
                 size="sm"
-                disabled={deleting}>
+                disabled={deleting}
+              >
                 Cancel
               </Button>
               <Button
@@ -1173,7 +1211,8 @@ export default function AdminDashboard() {
                 size="sm"
                 isLoading={deleting}
                 disabled={deleting}
-                className="bg-red-600 hover:bg-red-700 text-white">
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
                 {deleting ? "Deleting..." : "Delete"}
               </Button>
             </div>

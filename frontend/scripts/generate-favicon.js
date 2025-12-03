@@ -1,18 +1,18 @@
-const { createCanvas } = require('canvas');
-const fs = require('fs');
-const path = require('path');
+const { createCanvas } = require("canvas");
+const fs = require("fs");
+const path = require("path");
 
 // Create output directory if it doesn't exist
-const outputDir = path.join(__dirname, '..', 'public');
+const outputDir = path.join(__dirname, "..", "public");
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
 // Color scheme
 const colors = {
-  primary: '#2563eb',
-  primaryDark: '#1e40af',
-  white: '#ffffff',
+  primary: "#2563eb",
+  primaryDark: "#1e40af",
+  white: "#ffffff",
 };
 
 // Helper function to draw rounded rectangle
@@ -29,7 +29,7 @@ function roundRect(ctx, x, y, width, height, radius) {
 // Generate favicon in PNG format
 function generateFaviconPNG(size, filename) {
   const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
   // Background gradient
   const gradient = ctx.createLinearGradient(0, 0, size, size);
@@ -62,7 +62,7 @@ function generateFaviconPNG(size, filename) {
   }
 
   // Save image
-  const buffer = canvas.toBuffer('image/png');
+  const buffer = canvas.toBuffer("image/png");
   fs.writeFileSync(path.join(outputDir, filename), buffer);
   console.log(`✓ Generated ${filename} (${size}x${size})`);
 }
@@ -73,7 +73,7 @@ function generateFaviconICO() {
   // Modern browsers support PNG favicons, but ICO is still preferred for older browsers
   const size = 32;
   const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
   // Background gradient
   const gradient = ctx.createLinearGradient(0, 0, size, size);
@@ -105,22 +105,24 @@ function generateFaviconICO() {
   }
 
   // Save as ICO (browsers will accept PNG in .ico extension)
-  const buffer = canvas.toBuffer('image/png');
-  fs.writeFileSync(path.join(outputDir, 'favicon.ico'), buffer);
-  console.log('✓ Generated favicon.ico (32x32)');
+  const buffer = canvas.toBuffer("image/png");
+  fs.writeFileSync(path.join(outputDir, "favicon.ico"), buffer);
+  console.log("✓ Generated favicon.ico (32x32)");
 }
 
 // Main execution
-console.log('🎨 Generating favicon files...\n');
+console.log("🎨 Generating favicon files...\n");
 
 // Generate favicon.ico (most important for browsers)
 generateFaviconICO();
 
 // Generate various PNG sizes for different use cases
-generateFaviconPNG(16, 'favicon-16x16.png');
-generateFaviconPNG(32, 'favicon-32x32.png');
-generateFaviconPNG(48, 'favicon-48x48.png');
+generateFaviconPNG(16, "favicon-16x16.png");
+generateFaviconPNG(32, "favicon-32x32.png");
+generateFaviconPNG(48, "favicon-48x48.png");
 
-console.log('\n✅ All favicon files generated successfully!');
-console.log('📁 Files saved to:', outputDir);
-console.log('\n📝 Note: Clear your browser cache and hard refresh (Ctrl+Shift+R) to see the new favicon.');
+console.log("\n✅ All favicon files generated successfully!");
+console.log("📁 Files saved to:", outputDir);
+console.log(
+  "\n📝 Note: Clear your browser cache and hard refresh (Ctrl+Shift+R) to see the new favicon."
+);

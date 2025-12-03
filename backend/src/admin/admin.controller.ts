@@ -98,7 +98,6 @@ export class AdminController {
     };
   }
 
-
   /**
    * Send notification email to resident
    * POST /api/admin/send-notification
@@ -166,9 +165,10 @@ export class AdminController {
     // Add rows - all data in single row with co-applicants separated by line breaks
     certificates.forEach((cert) => {
       // Join co-applicant names with line breaks
-      const coApplicantNames = cert.index2ApplicantNames && cert.index2ApplicantNames.length > 0
-        ? cert.index2ApplicantNames.join('\n')
-        : '';
+      const coApplicantNames =
+        cert.index2ApplicantNames && cert.index2ApplicantNames.length > 0
+          ? cert.index2ApplicantNames.join('\n')
+          : '';
 
       worksheet.addRow({
         acknowledgementNumber: cert.acknowledgementNumber,
@@ -190,7 +190,7 @@ export class AdminController {
     // Enable text wrapping for Co-Applicant Name column
     worksheet.getColumn('coApplicantName').alignment = {
       vertical: 'top',
-      wrapText: true
+      wrapText: true,
     };
 
     // Style header row
@@ -249,16 +249,18 @@ export class AdminController {
     // Add rows
     nominations.forEach((nom) => {
       // Format nominee names (just names)
-      const nomineeNames = nom.nominees && nom.nominees.length > 0
-        ? nom.nominees.map(n => n.name).join('\n')
-        : 'N/A';
+      const nomineeNames =
+        nom.nominees && nom.nominees.length > 0
+          ? nom.nominees.map((n) => n.name).join('\n')
+          : 'N/A';
 
       // Format nominee details (name, relationship, share percentage)
-      const nomineeDetails = nom.nominees && nom.nominees.length > 0
-        ? nom.nominees.map(n =>
-            `${n.name} (${n.relationship}) - ${n.sharePercentage}%`
-          ).join('\n')
-        : 'N/A';
+      const nomineeDetails =
+        nom.nominees && nom.nominees.length > 0
+          ? nom.nominees
+              .map((n) => `${n.name} (${n.relationship}) - ${n.sharePercentage}%`)
+              .join('\n')
+          : 'N/A';
 
       worksheet.addRow({
         acknowledgementNumber: nom.acknowledgementNumber,
@@ -280,11 +282,11 @@ export class AdminController {
     // Enable text wrapping for nominee columns
     worksheet.getColumn('nomineeNames').alignment = {
       vertical: 'top',
-      wrapText: true
+      wrapText: true,
     };
     worksheet.getColumn('nomineeDetails').alignment = {
       vertical: 'top',
-      wrapText: true
+      wrapText: true,
     };
 
     // Style header row

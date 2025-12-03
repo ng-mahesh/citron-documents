@@ -31,7 +31,9 @@ export const metadata: Metadata = {
     title: "NOC Request | Citron Documents",
     description:
       "Request No Objection Certificate for flat transfer or sale online.",
-    images: [`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-noc.png`],
+    images: [
+      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-noc.png`,
+    ],
   },
 };
 

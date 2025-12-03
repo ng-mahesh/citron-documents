@@ -17,12 +17,21 @@ export const metadata: Metadata = {
     default: "Citron Phase 2 Documents",
     template: "%s | Citron Phase 2 Documents",
   },
-  description: "Comprehensive document management system for share certificates, nominations, and NOC requests. Streamline your document workflows with ease.",
-  keywords: ["document management", "share certificates", "nominations", "NOC requests", "citron documents"],
+  description:
+    "Comprehensive document management system for share certificates, nominations, and NOC requests. Streamline your document workflows with ease.",
+  keywords: [
+    "document management",
+    "share certificates",
+    "nominations",
+    "NOC requests",
+    "citron documents",
+  ],
   authors: [{ name: "Citron Phase 2 Documents" }],
   creator: "Citron Phase 2 Documents",
   publisher: "Citron Phase 2 Documents",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   alternates: {
     canonical: "/",
   },
@@ -31,7 +40,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     title: "Citron Phase 2 Documents",
-    description: "Comprehensive document management system for share certificates, nominations, and NOC requests. Streamline your document workflows with ease.",
+    description:
+      "Comprehensive document management system for share certificates, nominations, and NOC requests. Streamline your document workflows with ease.",
     siteName: "Citron Phase 2 Documents",
     images: [
       {
@@ -47,8 +57,11 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Citron Phase 2 Documents",
-    description: "Comprehensive document management system for share certificates, nominations, and NOC requests.",
-    images: [`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-image.png`],
+    description:
+      "Comprehensive document management system for share certificates, nominations, and NOC requests.",
+    images: [
+      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-image.png`,
+    ],
     creator: "@citrondocs",
   },
   robots: {
@@ -69,9 +82,7 @@ export const metadata: Metadata = {
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: [{ url: "/favicon.ico" }],
   },
   manifest: "/manifest.json",
@@ -85,7 +96,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         {children}
       </body>
     </html>

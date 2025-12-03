@@ -87,7 +87,9 @@ export default function ShareCertificatePage() {
   const handleRemoveApplicantName = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      index2ApplicantNames: prev.index2ApplicantNames.filter((_, i) => i !== index),
+      index2ApplicantNames: prev.index2ApplicantNames.filter(
+        (_, i) => i !== index
+      ),
     }));
   };
 
@@ -210,7 +212,9 @@ export default function ShareCertificatePage() {
 
     setDownloadingPdf(true);
     try {
-      const response = await shareCertificateAPI.downloadPdf(acknowledgementNumber);
+      const response = await shareCertificateAPI.downloadPdf(
+        acknowledgementNumber
+      );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -249,7 +253,9 @@ export default function ShareCertificatePage() {
         builtUpArea: formData.builtUpArea
           ? Number(formData.builtUpArea)
           : undefined,
-        index2ApplicantNames: formData.index2ApplicantNames.filter(name => name.trim() !== ""),
+        index2ApplicantNames: formData.index2ApplicantNames.filter(
+          (name) => name.trim() !== ""
+        ),
         index2Document: documents.index2Document,
         possessionLetterDocument: documents.possessionLetterDocument,
         aadhaarCardDocument: documents.aadhaarCardDocument,
@@ -288,27 +294,35 @@ export default function ShareCertificatePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
-            <div className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}>
+            <div
+              className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
+            >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
-            <div className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}>
-              <p className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}>
+            <div
+              className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}
+            >
+              <p
+                className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
+              >
                 {acknowledgementNumber}
               </p>
             </div>
             <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-              Save this number for tracking. A confirmation email has been sent to your inbox.
+              Save this number for tracking. A confirmation email has been sent
+              to your inbox.
             </p>
             <div className="flex flex-col gap-3">
               <Button
                 onClick={handleDownloadReceipt}
                 isLoading={downloadingPdf}
                 disabled={downloadingPdf}
-                className="w-full gap-2">
+                className="w-full gap-2"
+              >
                 <Download className="h-5 w-5" />
                 {downloadingPdf ? "Generating..." : "Download Application Form"}
               </Button>
@@ -316,19 +330,22 @@ export default function ShareCertificatePage() {
                 <Button
                   onClick={() => router.push("/")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Home
                 </Button>
                 <Button
                   onClick={() => router.push("/status")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Track Status
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Submit Another
                 </Button>
               </div>
@@ -396,7 +413,8 @@ export default function ShareCertificatePage() {
                     onClick={handleAddApplicantName}
                     variant="outline"
                     size="sm"
-                    className="text-xs">
+                    className="text-xs"
+                  >
                     + Add Name
                   </Button>
                 </div>
@@ -420,12 +438,14 @@ export default function ShareCertificatePage() {
                           type="button"
                           onClick={() => handleRemoveApplicantName(index)}
                           className="mt-8 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remove applicant name">
+                          title="Remove applicant name"
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-5 w-5"
                             viewBox="0 0 20 20"
-                            fill="currentColor">
+                            fill="currentColor"
+                          >
                             <path
                               fillRule="evenodd"
                               d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -441,7 +461,8 @@ export default function ShareCertificatePage() {
                 {formData.index2ApplicantNames.length === 0 && (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
                     <p className="text-sm text-slate-600">
-                      No additional applicant names added. Click &quot;Add Name&quot; to add multiple applicants from Index-2 if any.
+                      No additional applicant names added. Click &quot;Add
+                      Name&quot; to add multiple applicants from Index-2 if any.
                     </p>
                   </div>
                 )}
@@ -673,14 +694,16 @@ export default function ShareCertificatePage() {
               type="button"
               variant="secondary"
               onClick={() => router.push("/")}
-              className="sm:w-auto">
+              className="sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               isLoading={submitting}
               disabled={!isFormValid() || submitting}
-              className="sm:w-auto">
+              className="sm:w-auto"
+            >
               {submitting ? "Submitting..." : "Submit Application"}
             </Button>
           </div>
