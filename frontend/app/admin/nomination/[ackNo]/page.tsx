@@ -464,11 +464,7 @@ export default function NominationDetailPage() {
                       setSelectedStatus(e.target.value as Status)
                     }
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                    disabled={
-                      updatingStatus ||
-                      (selectedStatus === nomination.status &&
-                        adminRemarks === (nomination.adminRemarks || ""))
-                    }>
+                    disabled={updatingStatus}>
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
@@ -494,7 +490,11 @@ export default function NominationDetailPage() {
                 </div>
                 <Button
                   onClick={handleStatusUpdate}
-                  disabled={updatingStatus}
+                  disabled={
+                    updatingStatus ||
+                    (selectedStatus === nomination.status &&
+                      adminRemarks === (nomination.adminRemarks || ""))
+                  }
                   isLoading={updatingStatus}
                   className="w-full gap-2">
                   <Save className="h-4 w-4" />
