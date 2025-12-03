@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Clock,
   Award,
+  FileCheck,
 } from "lucide-react";
 
 export default function Home() {
@@ -56,7 +57,7 @@ export default function Home() {
             </span>
           </h2>
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Apply for share certificates, register nominations, and track
+            Apply for share certificates, register nominations, request NOC for flat transfers, and track
             applications—all from the comfort of your home
           </p>
         </div>
@@ -64,7 +65,7 @@ export default function Home() {
 
       {/* Main Cards */}
       <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link href="/share-certificate" className="group h-full">
             <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
               <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -98,6 +99,26 @@ export default function Home() {
               </p>
               <div className="flex items-center text-purple-600 font-medium text-sm group-hover:gap-2 transition-all">
                 Submit Form
+                <span className="inline-block group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/noc-request" className="group h-full">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-green-300 hover:shadow-xl hover:shadow-green-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
+              <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <FileCheck className="h-7 w-7 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
+                NOC Request
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+                Request No Objection Certificate for flat transfer or sale
+              </p>
+              <div className="flex items-center text-green-600 font-medium text-sm group-hover:gap-2 transition-all">
+                Request NOC
                 <span className="inline-block group-hover:translate-x-1 transition-transform">
                   →
                 </span>

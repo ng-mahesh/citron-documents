@@ -47,6 +47,23 @@ export const nominationAPI = {
   downloadPdf: (ackNo: string) => api.get(`/nomination/download-pdf/${ackNo}`, { responseType: 'blob' }),
 };
 
+export const nocRequestAPI = {
+  create: (data: any) => api.post('/noc-request', data),
+  getStatus: (ackNo: string) => api.get(`/noc-request/status/${ackNo}`),
+  checkPending: (flatNumber: string, wing: string) =>
+    api.get(`/noc-request/check-pending?flatNumber=${flatNumber}&wing=${wing}`),
+  getAll: () => api.get('/noc-request'),
+  getById: (id: string) => api.get(`/noc-request/${id}`),
+  getByAckNumber: (ackNo: string) => api.get(`/noc-request/details/${ackNo}`),
+  update: (id: string, data: any) => api.put(`/noc-request/${id}`, data),
+  updatePayment: (ackNo: string, data: any) => api.put(`/noc-request/payment/${ackNo}`, data),
+  verifyDues: (flatNumber: string, wing: string) =>
+    api.get(`/noc-request/verify-dues/${flatNumber}/${wing}`),
+  delete: (id: string) => api.delete(`/noc-request/${id}`),
+  downloadPdf: (ackNo: string) => api.get(`/noc-request/download-pdf/${ackNo}`, { responseType: 'blob' }),
+  getStatistics: () => api.get('/noc-request/statistics'),
+};
+
 export const uploadAPI = {
   upload: (formData: FormData) =>
     api.post('/upload', formData, {
@@ -67,6 +84,8 @@ export const adminAPI = {
     api.get('/admin/export/share-certificates', { responseType: 'blob' }),
   exportNominations: () =>
     api.get('/admin/export/nominations', { responseType: 'blob' }),
+  exportNocRequests: () =>
+    api.get('/admin/export/noc-requests', { responseType: 'blob' }),
   getDocumentPresignedUrl: (s3Key: string) =>
     api.get(`/admin/document/presigned-url?s3Key=${encodeURIComponent(s3Key)}`),
 };

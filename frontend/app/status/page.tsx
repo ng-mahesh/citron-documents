@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { shareCertificateAPI, nominationAPI } from '@/lib/api';
+import { shareCertificateAPI, nominationAPI, nocRequestAPI } from '@/lib/api';
 import { Search, CheckCircle, Clock, XCircle, AlertCircle, FileText } from 'lucide-react';
 
 export default function StatusPage() {
@@ -80,8 +80,10 @@ export default function StatusPage() {
         response = await shareCertificateAPI.getStatus(acknowledgementNumber);
       } else if (acknowledgementNumber.startsWith('NOM-')) {
         response = await nominationAPI.getStatus(acknowledgementNumber);
+      } else if (acknowledgementNumber.startsWith('NOC-')) {
+        response = await nocRequestAPI.getStatus(acknowledgementNumber);
       } else {
-        setError('Invalid acknowledgement number format. Must start with SC- or NOM-');
+        setError('Invalid acknowledgement number format. Must start with SC-, NOM-, or NOC-');
         setLoading(false);
         return;
       }
@@ -130,13 +132,13 @@ export default function StatusPage() {
             <div className="space-y-5">
               <Input
                 label="Acknowledgement Number"
-                placeholder="e.g., SC-20240101-00001 or NOM-20240101-00001"
+                placeholder="e.g., SC-20240101-00001, NOM-20240101-00001, or NOC-20240101-00001"
                 value={acknowledgementNumber}
                 onChange={(e) => {
                   setAcknowledgementNumber(e.target.value.toUpperCase());
                   setError("");
                 }}
-                helperText="Format: SC-YYYYMMDD-XXXXX for Share Certificate or NOM-YYYYMMDD-XXXXX for Nomination"
+                helperText="Format: SC-YYYYMMDD-XXXXX for Share Certificate, NOM-YYYYMMDD-XXXXX for Nomination, or NOC-YYYYMMDD-XXXXX for NOC Request"
               />
               <Button
                 onClick={handleSearch}
@@ -170,6 +172,8 @@ export default function StatusPage() {
               <h2 className="text-2xl font-bold text-slate-900 mt-6 mb-4">
                 {result.type === "share-certificate"
                   ? "Share Certificate Application"
+                  : result.type === "noc-request"
+                  ? "NOC Request Application"
                   : "Nomination Application"}
               </h2>
               <div
@@ -195,10 +199,10 @@ export default function StatusPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <dt className="text-sm font-semibold text-slate-600 mb-2">
-                      Full Name
+                      {result.type === "noc-request" ? "Seller Name" : "Full Name"}
                     </dt>
                     <dd className="text-base text-slate-900">
-                      {result.fullName || result.memberFullName}
+                      {result.fullName || result.memberFullName || result.sellerName}
                     </dd>
                   </div>
                   <div>
@@ -227,6 +231,46 @@ export default function StatusPage() {
                     <dd className="text-base text-slate-900">{result.email}</dd>
                   </div>
                 </div>
+
+                {/* NOC Specific Fields */}
+                {result.type === "noc-request" && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <dt className="text-sm font-semibold text-slate-600 mb-2">
+                          Buyer Name
+                        </dt>
+                        <dd className="text-base text-slate-900">
+                          {result.buyerName}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-semibold text-slate-600 mb-2">
+                          Payment Status
+                        </dt>
+                        <dd className="text-base">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-lg font-semibold ${
+                            result.paymentStatus === 'Paid'
+                              ? 'bg-green-100 text-green-800'
+                              : result.paymentStatus === 'Pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {result.paymentStatus}
+                          </span>
+                        </dd>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <dt className="text-sm font-semibold text-slate-600 mb-2">
+                        Payment Amount
+                      </dt>
+                      <dd className="text-2xl font-bold text-blue-600">
+                        ₹{result.paymentAmount || '26,000'}
+                      </dd>
+                    </div>
+                  </>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>

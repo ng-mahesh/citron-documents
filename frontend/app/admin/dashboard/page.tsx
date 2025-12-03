@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
-import { adminAPI, shareCertificateAPI, nominationAPI } from "@/lib/api";
+import { adminAPI, shareCertificateAPI, nominationAPI, nocRequestAPI } from "@/lib/api";
 import {
   DashboardStats,
   ShareCertificate,
@@ -37,8 +37,9 @@ export default function AdminDashboard() {
     ShareCertificate[]
   >([]);
   const [nominations, setNominations] = useState<Nomination[]>([]);
+  const [nocRequests, setNocRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"certificates" | "nominations">(
+  const [activeTab, setActiveTab] = useState<"certificates" | "nominations" | "noc-requests">(
     "certificates"
   );
   const [documentPopup, setDocumentPopup] = useState<{
@@ -52,7 +53,7 @@ export default function AdminDashboard() {
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     id: string;
-    type: "certificate" | "nomination";
+    type: "certificate" | "nomination" | "noc-request";
     name: string;
     flatNumber: string;
   } | null>(null);
@@ -67,6 +68,11 @@ export default function AdminDashboard() {
   const [nomCurrentPage, setNomCurrentPage] = useState(1);
   const nomItemsPerPage = 10;
 
+  // Pagination and search states for NOC requests
+  const [nocSearchQuery, setNocSearchQuery] = useState("");
+  const [nocCurrentPage, setNocCurrentPage] = useState(1);
+  const nocItemsPerPage = 10;
+
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -78,15 +84,17 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, certificatesRes, nominationsRes] = await Promise.all([
+      const [statsRes, certificatesRes, nominationsRes, nocRequestsRes] = await Promise.all([
         adminAPI.getDashboardStats(),
         shareCertificateAPI.getAll(),
         nominationAPI.getAll(),
+        nocRequestAPI.getAll(),
       ]);
 
       setStats(statsRes.data.data);
       setShareCertificates(certificatesRes.data.data);
       setNominations(nominationsRes.data.data);
+      setNocRequests(nocRequestsRes.data.data);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
       router.push("/admin/login");
@@ -100,12 +108,14 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   };
 
-  const handleExport = async (type: "certificates" | "nominations") => {
+  const handleExport = async (type: "certificates" | "nominations" | "noc-requests") => {
     try {
       const response =
         type === "certificates"
           ? await adminAPI.exportShareCertificates()
-          : await adminAPI.exportNominations();
+          : type === "nominations"
+          ? await adminAPI.exportNominations()
+          : await adminAPI.exportNocRequests();
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -122,13 +132,15 @@ export default function AdminDashboard() {
   const handleUpdateStatus = async (
     id: string,
     status: Status,
-    type: "certificate" | "nomination"
+    type: "certificate" | "nomination" | "noc-request"
   ) => {
     try {
       if (type === "certificate") {
         await shareCertificateAPI.update(id, { status });
-      } else {
+      } else if (type === "nomination") {
         await nominationAPI.update(id, { status });
+      } else {
+        await nocRequestAPI.update(id, { status });
       }
       fetchDashboardData();
     } catch (error) {
@@ -138,7 +150,7 @@ export default function AdminDashboard() {
 
   const handleDelete = async (
     id: string,
-    type: "certificate" | "nomination",
+    type: "certificate" | "nomination" | "noc-request",
     name: string,
     flatNumber: string
   ) => {
@@ -152,8 +164,10 @@ export default function AdminDashboard() {
     try {
       if (deleteModal.type === "certificate") {
         await shareCertificateAPI.delete(deleteModal.id);
-      } else {
+      } else if (deleteModal.type === "nomination") {
         await nominationAPI.delete(deleteModal.id);
+      } else {
+        await nocRequestAPI.delete(deleteModal.id);
       }
       fetchDashboardData();
       setDeleteModal(null);
@@ -260,6 +274,29 @@ export default function AdminDashboard() {
 
   const nomTotalPages = Math.ceil(filteredNominations.length / nomItemsPerPage);
 
+  // Filter and paginate NOC requests
+  const filteredNocRequests = useMemo(() => {
+    return nocRequests.filter((noc: any) => {
+      const searchLower = nocSearchQuery.toLowerCase();
+      return (
+        noc.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
+        noc.sellerName?.toLowerCase().includes(searchLower) ||
+        noc.buyerName?.toLowerCase().includes(searchLower) ||
+        noc.flatNumber?.toLowerCase().includes(searchLower) ||
+        noc.sellerEmail?.toLowerCase().includes(searchLower) ||
+        noc.wing?.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [nocRequests, nocSearchQuery]);
+
+  const paginatedNocRequests = useMemo(() => {
+    const startIndex = (nocCurrentPage - 1) * nocItemsPerPage;
+    const endIndex = startIndex + nocItemsPerPage;
+    return filteredNocRequests.slice(startIndex, endIndex);
+  }, [filteredNocRequests, nocCurrentPage, nocItemsPerPage]);
+
+  const nocTotalPages = Math.ceil(filteredNocRequests.length / nocItemsPerPage);
+
   // Reset to page 1 when search query changes
   useEffect(() => {
     setCertCurrentPage(1);
@@ -268,6 +305,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     setNomCurrentPage(1);
   }, [nomSearchQuery]);
+
+  useEffect(() => {
+    setNocCurrentPage(1);
+  }, [nocSearchQuery]);
 
   if (loading) {
     return (
@@ -396,6 +437,15 @@ export default function AdminDashboard() {
                     : "text-slate-600 hover:bg-slate-100"
                 } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
                 Nominations ({nominations.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("noc-requests")}
+                className={`${
+                  activeTab === "noc-requests"
+                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md"
+                    : "text-slate-600 hover:bg-slate-100"
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                NOC Requests ({nocRequests.length})
               </button>
             </nav>
             <Button
@@ -727,6 +777,191 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNomCurrentPage(nomCurrentPage + 1)}
                     disabled={nomCurrentPage === nomTotalPages}
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <ChevronRight className="h-5 w-5 text-slate-600" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* NOC Requests Table */}
+        {activeTab === "noc-requests" && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Search Bar */}
+            <div className="p-4 border-b border-slate-200">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, ack no, flat, email, wing..."
+                  value={nocSearchQuery}
+                  onChange={(e) => setNocSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Ack No
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Seller Name
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Buyer Name
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Flat
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Reason
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Payment
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                  {paginatedNocRequests.length > 0 ? (
+                    paginatedNocRequests.map((noc: any) => (
+                      <tr
+                        key={noc._id}
+                        className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-900">
+                          {noc.acknowledgementNumber}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
+                          <div className="truncate">
+                            {noc.sellerName || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
+                          <div className="truncate">
+                            {noc.buyerName || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                          {noc.wing && `${noc.wing} - `}
+                          {noc.flatNumber}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
+                            noc.reason === 'Sale'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {noc.reason}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
+                            noc.paymentStatus === 'Paid'
+                              ? 'bg-green-100 text-green-800'
+                              : noc.paymentStatus === 'Pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {noc.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(noc.status!)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/admin/noc-request/${noc.acknowledgementNumber}`
+                                )
+                              }
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                              View Details
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDelete(
+                                  noc._id!,
+                                  "noc-request",
+                                  noc.sellerName || "N/A",
+                                  `${noc.wing} - ${noc.flatNumber}`
+                                )
+                              }
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete NOC request">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-6 py-8 text-center text-slate-500">
+                        No NOC requests found matching your search.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {nocTotalPages > 1 && (
+              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                <div className="text-sm text-slate-600">
+                  Showing{" "}
+                  {Math.min(
+                    (nocCurrentPage - 1) * nocItemsPerPage + 1,
+                    filteredNocRequests.length
+                  )}{" "}
+                  to{" "}
+                  {Math.min(
+                    nocCurrentPage * nocItemsPerPage,
+                    filteredNocRequests.length
+                  )}{" "}
+                  of {filteredNocRequests.length} results
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setNocCurrentPage(nocCurrentPage - 1)}
+                    disabled={nocCurrentPage === 1}
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <ChevronLeft className="h-5 w-5 text-slate-600" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: nocTotalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => setNocCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            nocCurrentPage === page
+                              ? "bg-green-600 text-white"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}>
+                          {page}
+                        </button>
+                      )
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setNocCurrentPage(nocCurrentPage + 1)}
+                    disabled={nocCurrentPage === nocTotalPages}
                     className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
