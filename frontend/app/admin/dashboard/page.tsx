@@ -14,6 +14,7 @@ import {
   ShareCertificate,
   Nomination,
   Status,
+  NocRequest,
 } from "@/lib/types";
 import {
   FileText,
@@ -30,8 +31,8 @@ import {
   ChevronRight,
   FileSignature,
 } from "lucide-react";
-import { Loader, InlineLoader } from "@/components/ui/Loader";
 import { theme } from "@/lib/theme";
+import { Loader } from "@/components/ui/Loader";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
     ShareCertificate[]
   >([]);
   const [nominations, setNominations] = useState<Nomination[]>([]);
-  const [nocRequests, setNocRequests] = useState<any[]>([]);
+  const [nocRequests, setNocRequests] = useState<NocRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -86,6 +87,7 @@ export default function AdminDashboard() {
       return;
     }
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {
@@ -134,13 +136,15 @@ export default function AdminDashboard() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+    } catch {
       alert("Failed to export data");
     } finally {
       setExporting(false);
     }
   };
 
+  // Reserved for future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleUpdateStatus = async (
     id: string,
     status: Status,
@@ -155,7 +159,7 @@ export default function AdminDashboard() {
         await nocRequestAPI.update(id, { status });
       }
       fetchDashboardData();
-    } catch (error) {
+    } catch {
       alert("Failed to update status");
     }
   };
@@ -184,20 +188,12 @@ export default function AdminDashboard() {
       }
       fetchDashboardData();
       setDeleteModal(null);
-    } catch (error) {
+    } catch {
       alert("Failed to delete entry");
     } finally {
       setDeleting(false);
     }
   };
-
-  const statuses: { value: Status; label: string }[] = [
-    { value: "Pending", label: "Pending" },
-    { value: "Under Review", label: "Under Review" },
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
-    { value: "Document Required", label: "Document Required" },
-  ];
 
   const getStatusBadge = (status: Status) => {
     const colors: Record<Status, string> = {
@@ -216,6 +212,8 @@ export default function AdminDashboard() {
     );
   };
 
+  // Reserved for future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openDocumentPopup = async (
     s3Key: string,
     fileName: string,
@@ -242,8 +240,7 @@ export default function AdminDashboard() {
         fileType,
         loading: false,
       });
-    } catch (error) {
-      console.error("Failed to fetch document URL:", error);
+    } catch {
       alert("Failed to load document. Please try again.");
       setDocumentPopup(null);
     }
@@ -279,14 +276,12 @@ export default function AdminDashboard() {
 
   // Filter and paginate nominations
   const filteredNominations = useMemo(() => {
-    return nominations.filter((nom: any) => {
+    return nominations.filter((nom) => {
       const searchLower = nomSearchQuery.toLowerCase();
       return (
         nom.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
-        nom.primaryMemberName?.toLowerCase().includes(searchLower) ||
         nom.memberFullName?.toLowerCase().includes(searchLower) ||
         nom.flatNumber?.toLowerCase().includes(searchLower) ||
-        nom.primaryMemberEmail?.toLowerCase().includes(searchLower) ||
         nom.email?.toLowerCase().includes(searchLower) ||
         nom.wing?.toLowerCase().includes(searchLower)
       );
@@ -303,14 +298,13 @@ export default function AdminDashboard() {
 
   // Filter and paginate NOC requests
   const filteredNocRequests = useMemo(() => {
-    return nocRequests.filter((noc: any) => {
+    return nocRequests.filter((noc) => {
       const searchLower = nocSearchQuery.toLowerCase();
       return (
         noc.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
-        noc.sellerName?.toLowerCase().includes(searchLower) ||
-        noc.buyerName?.toLowerCase().includes(searchLower) ||
+        noc.fullName?.toLowerCase().includes(searchLower) ||
         noc.flatNumber?.toLowerCase().includes(searchLower) ||
-        noc.sellerEmail?.toLowerCase().includes(searchLower) ||
+        noc.email?.toLowerCase().includes(searchLower) ||
         noc.wing?.toLowerCase().includes(searchLower)
       );
     });
@@ -724,7 +718,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {paginatedNominations.length > 0 ? (
-                    paginatedNominations.map((nom: any) => (
+                    paginatedNominations.map((nom) => (
                       <tr
                         key={nom._id}
                         className="hover:bg-slate-50 transition-colors"
@@ -734,9 +728,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
                           <div className="truncate">
-                            {nom.memberFullName ||
-                              nom.primaryMemberName ||
-                              "N/A"}
+                            {nom.memberFullName || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
@@ -744,9 +736,7 @@ export default function AdminDashboard() {
                           {nom.flatNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
-                          <div className="truncate">
-                            {nom.email || nom.primaryMemberEmail || "N/A"}
-                          </div>
+                          <div className="truncate">{nom.email || "N/A"}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                           <span
@@ -775,9 +765,7 @@ export default function AdminDashboard() {
                                 handleDelete(
                                   nom._id!,
                                   "nomination",
-                                  nom.memberFullName ||
-                                    nom.primaryMemberName ||
-                                    "N/A",
+                                  nom.memberFullName || "N/A",
                                   `${nom.wing} - ${nom.flatNumber}`
                                 )
                               }
@@ -907,7 +895,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {paginatedNocRequests.length > 0 ? (
-                    paginatedNocRequests.map((noc: any) => (
+                    paginatedNocRequests.map((noc) => (
                       <tr
                         key={noc._id}
                         className="hover:bg-slate-50 transition-colors"
@@ -917,41 +905,15 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
                           <div className="truncate">
-                            {noc.sellerName || "N/A"}
+                            {noc.fullName || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
-                          <div className="truncate">
-                            {noc.buyerName || "N/A"}
-                          </div>
+                          <div className="truncate">{noc.purpose || "N/A"}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                           {noc.wing && `${noc.wing} - `}
                           {noc.flatNumber}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
-                              noc.reason === "Sale"
-                                ? `${theme.status.pending.bg} ${theme.status.pending.text}`
-                                : `${theme.status.documentRequired.bg} ${theme.status.documentRequired.text}`
-                            }`}
-                          >
-                            {noc.reason}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
-                              noc.paymentStatus === "Paid"
-                                ? `${theme.status.approved.bg} ${theme.status.approved.text}`
-                                : noc.paymentStatus === "Pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : `${theme.status.rejected.bg} ${theme.status.rejected.text}`
-                            }`}
-                          >
-                            {noc.paymentStatus}
-                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(noc.status!)}
@@ -973,7 +935,7 @@ export default function AdminDashboard() {
                                 handleDelete(
                                   noc._id!,
                                   "noc-request",
-                                  noc.sellerName || "N/A",
+                                  noc.fullName || "N/A",
                                   `${noc.wing} - ${noc.flatNumber}`
                                 )
                               }
@@ -1105,6 +1067,7 @@ export default function AdminDashboard() {
                 />
               ) : (
                 <div className="flex items-center justify-center bg-slate-50 rounded-lg p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={documentPopup.url}
                     alt={documentPopup.fileName}
@@ -1145,6 +1108,8 @@ export default function AdminDashboard() {
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setDeleteModal(null)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full"

@@ -18,7 +18,23 @@ import { theme } from "@/lib/theme";
 export default function StatusPage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    type: string;
+    status: string;
+    acknowledgementNumber: string;
+    fullName?: string;
+    memberFullName?: string;
+    sellerName?: string;
+    buyerName?: string;
+    flatNumber: string;
+    wing: string;
+    email: string;
+    paymentStatus?: string;
+    paymentAmount?: number;
+    submittedAt: string;
+    updatedAt: string;
+    adminNotes?: string;
+  } | null>(null);
   const [error, setError] = useState("");
 
   const getStatusIcon = (status: string) => {
@@ -110,9 +126,10 @@ export default function StatusPage() {
       // Backend returns { success, data: { ... } }, we need the nested data
       const resultData = response.data.data || response.data;
       setResult(resultData);
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       setError(
-        err.response?.data?.message ||
+        error.response?.data?.message ||
           "Application not found. Please check the acknowledgement number."
       );
     } finally {
@@ -488,7 +505,7 @@ export default function StatusPage() {
         )}
         <div className="text-center">
           <p className="text-sm text-slate-600 mb-2">
-            Need help? We're here for you
+            Need help? We&apos;re here for you
           </p>
           <p className="text-sm font-medium text-slate-900">
             office@citronsociety.in • +91 9673639643

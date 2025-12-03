@@ -112,3 +112,20 @@ export interface AdminUser {
   email: string;
   fullName: string;
 }
+
+export interface NocRequest {
+  _id?: string;
+  acknowledgementNumber?: string;
+  fullName: string;
+  flatNumber: string;
+  wing: string;
+  email: string;
+  mobileNumber: string;
+  purpose: string;
+  requestDetails: string;
+  status?: Status;
+  submittedAt?: Date;
+  updatedAt?: Date;
+  adminNotes?: string;
+  documents?: DocumentMetadata[];
+}

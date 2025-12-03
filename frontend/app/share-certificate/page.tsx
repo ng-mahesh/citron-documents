@@ -1,17 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/forms/FileUpload";
 import { shareCertificateAPI } from "@/lib/api";
 import { DocumentMetadata, MembershipType } from "@/lib/types";
 import { CheckCircle, Download } from "lucide-react";
-import { generateShareCertificateReceipt } from "@/lib/pdfGenerator";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
@@ -42,7 +39,6 @@ export default function ShareCertificatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
-  const [submittedFormData, setSubmittedFormData] = useState<any>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
@@ -134,7 +130,7 @@ export default function ShareCertificatePage() {
           return newErrors;
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error checking duplicate:", error);
     } finally {
       setCheckingDuplicate(false);
@@ -224,9 +220,10 @@ export default function ShareCertificatePage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       alert(
-        error.response?.data?.message ||
+        err.response?.data?.message ||
           "Failed to download PDF. Please try again."
       );
     } finally {
@@ -267,21 +264,12 @@ export default function ShareCertificatePage() {
         response.data.data?.acknowledgementNumber ||
         response.data.acknowledgementNumber;
       setAcknowledgementNumber(ackNumber);
-      setSubmittedFormData({
-        ...formData,
-        submittedDate: new Date().toLocaleString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      });
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       alert(
-        error.response?.data?.message ||
+        err.response?.data?.message ||
           "Failed to submit application. Please try again."
       );
     } finally {

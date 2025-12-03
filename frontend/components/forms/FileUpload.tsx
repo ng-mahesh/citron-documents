@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Upload, File, X, AlertCircle } from "lucide-react";
 import { uploadAPI } from "@/lib/api";
 import { DocumentMetadata } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
 
 interface FileUploadProps {
   label: string;
@@ -61,9 +60,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       // Backend returns { success, message, data }, we need the nested data object
       const uploadedFile = response.data.data || response.data;
       onUploadSuccess(uploadedFile);
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       setUploadError(
-        err.response?.data?.message || "Upload failed. Please try again."
+        error.response?.data?.message || "Upload failed. Please try again."
       );
     } finally {
       setUploading(false);

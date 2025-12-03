@@ -29,7 +29,6 @@ export const generateShareCertificateReceipt = (
 ): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
   let yPosition = 20;
 
   // Helper function to add centered text
@@ -43,31 +42,6 @@ export const generateShareCertificateReceipt = (
     doc.setFont("helvetica", fontStyle);
     const textWidth = doc.getTextWidth(text);
     doc.text(text, (pageWidth - textWidth) / 2, y);
-  };
-
-  // Helper function to add left-aligned text
-  const addText = (
-    text: string,
-    y: number,
-    fontSize: number = 11,
-    fontStyle: "normal" | "bold" = "normal"
-  ) => {
-    doc.setFontSize(fontSize);
-    doc.setFont("helvetica", fontStyle);
-    doc.text(text, 15, y);
-  };
-
-  // Helper function to split long text
-  const addWrappedText = (
-    text: string,
-    y: number,
-    maxWidth: number = 180
-  ): number => {
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const lines = doc.splitTextToSize(text, maxWidth);
-    doc.text(lines, 15, y);
-    return y + lines.length * 5;
   };
 
   // Border removed for cleaner look

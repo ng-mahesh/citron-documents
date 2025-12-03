@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       try {
         await adminAPI.getProfile();
         router.push("/admin/dashboard");
-      } catch (error) {
+      } catch {
         localStorage.removeItem("adminToken");
         setChecking(false);
       }
@@ -62,8 +62,9 @@ export default function AdminLoginPage() {
 
       localStorage.setItem("adminToken", accessToken);
       router.push("/admin/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid username or password");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Invalid username or password");
     } finally {
       setLoading(false);
     }

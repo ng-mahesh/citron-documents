@@ -137,12 +137,15 @@ export const theme = {
 // Helper function to get color value
 export const getColor = (path: string): string => {
   const keys = path.split(".");
-  let value: any = theme.colors;
+  let value: Record<string, unknown> = theme.colors as unknown as Record<
+    string,
+    unknown
+  >;
 
   for (const key of keys) {
-    value = value[key];
+    value = value[key] as Record<string, unknown>;
     if (value === undefined) return "";
   }
 
-  return value;
+  return value as unknown as string;
 };

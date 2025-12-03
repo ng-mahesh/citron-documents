@@ -1,4 +1,5 @@
-const { createCanvas, registerFont } = require("canvas");
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { createCanvas } = require("canvas");
 const fs = require("fs");
 const path = require("path");
 

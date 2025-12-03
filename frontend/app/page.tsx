@@ -10,7 +10,6 @@ import {
   Search,
   CheckCircle,
   Clock,
-  Award,
   FileCheck,
   Shield,
 } from "lucide-react";
@@ -278,7 +277,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
           <div className="text-center">
             <p className="text-sm text-slate-600 mb-2">
-              Need help? We're here for you
+              Need help? We&apos;re here for you
             </p>
             <p className="text-sm font-medium text-slate-900">
               office@citronsociety.in • +91 9673639643

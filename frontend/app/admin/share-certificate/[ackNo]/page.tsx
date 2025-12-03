@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { shareCertificateAPI, adminAPI } from "@/lib/api";
-import { ShareCertificate, Status } from "@/lib/types";
+import { Status } from "@/lib/types";
 import { ToastContainer, ToastType } from "@/components/ui/Toast";
 import {
   FileText,
@@ -32,7 +30,36 @@ export default function ShareCertificateDetailPage() {
   const params = useParams();
   const ackNo = params.ackNo as string;
 
-  const [certificate, setCertificate] = useState<any>(null);
+  const [certificate, setCertificate] = useState<{
+    _id: string;
+    acknowledgementNumber: string;
+    fullName: string;
+    index2ApplicantNames?: string[];
+    flatNumber: string;
+    wing: string;
+    email: string;
+    mobileNumber: string;
+    carpetArea?: number;
+    builtUpArea?: number;
+    membershipType: string;
+    status: Status;
+    submittedAt: string;
+    updatedAt: string;
+    createdAt: string;
+    adminRemarks?: string;
+    digitalSignature?: string;
+    index2Document?: { s3Key: string; fileName: string; fileType: string };
+    possessionLetterDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    aadhaarCardDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
   const [adminRemarks, setAdminRemarks] = useState<string>("");
@@ -57,6 +84,7 @@ export default function ShareCertificateDetailPage() {
       return;
     }
     fetchCertificateDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ackNo]);
 
   const fetchCertificateDetails = async () => {
@@ -163,7 +191,7 @@ export default function ShareCertificateDetailPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       setToast({ message: "PDF generated successfully", type: "success" });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to generate PDF:", error);
       setToast({
         message: "Failed to generate PDF. Please try again.",
@@ -312,7 +340,7 @@ export default function ShareCertificateDetailPage() {
                         </label>
                         <div className="mt-2 space-y-2">
                           {certificate.index2ApplicantNames.map(
-                            (name: any, index: any) => (
+                            (name: string, index: number) => (
                               <div
                                 key={index}
                                 className="flex items-center gap-2 ${theme.status.pending.bg} border ${theme.status.pending.border} rounded-lg px-3 py-2"
@@ -497,9 +525,9 @@ export default function ShareCertificateDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        certificate.index2Document.s3Key,
-                        certificate.index2Document.fileName,
-                        certificate.index2Document.fileType
+                        certificate.index2Document!.s3Key,
+                        certificate.index2Document!.fileName,
+                        certificate.index2Document!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -510,7 +538,7 @@ export default function ShareCertificateDetailPage() {
                         Index-2 Document
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {certificate.index2Document.fileName}
+                        {certificate.index2Document!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -522,9 +550,9 @@ export default function ShareCertificateDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        certificate.possessionLetterDocument.s3Key,
-                        certificate.possessionLetterDocument.fileName,
-                        certificate.possessionLetterDocument.fileType
+                        certificate.possessionLetterDocument!.s3Key,
+                        certificate.possessionLetterDocument!.fileName,
+                        certificate.possessionLetterDocument!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -535,7 +563,7 @@ export default function ShareCertificateDetailPage() {
                         Possession Letter
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {certificate.possessionLetterDocument.fileName}
+                        {certificate.possessionLetterDocument!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -547,9 +575,9 @@ export default function ShareCertificateDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        certificate.aadhaarCardDocument.s3Key,
-                        certificate.aadhaarCardDocument.fileName,
-                        certificate.aadhaarCardDocument.fileType
+                        certificate.aadhaarCardDocument!.s3Key,
+                        certificate.aadhaarCardDocument!.fileName,
+                        certificate.aadhaarCardDocument!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -560,7 +588,7 @@ export default function ShareCertificateDetailPage() {
                         Aadhaar Card
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {certificate.aadhaarCardDocument.fileName}
+                        {certificate.aadhaarCardDocument!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -668,6 +696,7 @@ export default function ShareCertificateDetailPage() {
                 />
               ) : (
                 <div className="flex items-center justify-center bg-slate-50 rounded-lg p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={documentPopup.url}
                     alt={documentPopup.fileName}

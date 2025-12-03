@@ -126,7 +126,7 @@ export default function NominationPage() {
           return newErrors;
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error checking duplicate:", error);
     } finally {
       setCheckingDuplicate(false);
@@ -155,7 +155,7 @@ export default function NominationPage() {
   const handleNomineeChange = (
     index: number,
     field: keyof Nominee,
-    value: any
+    value: string | number
   ) => {
     setNominees((prev) => {
       const updated = [...prev];
@@ -384,9 +384,10 @@ export default function NominationPage() {
       setAcknowledgementNumber(ackNumber);
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       alert(
-        error.response?.data?.message ||
+        err.response?.data?.message ||
           "Failed to submit nomination. Please try again."
       );
     } finally {
@@ -409,9 +410,10 @@ export default function NominationPage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       alert(
-        error.response?.data?.message ||
+        err.response?.data?.message ||
           "Failed to download PDF. Please try again."
       );
     } finally {

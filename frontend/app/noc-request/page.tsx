@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -52,7 +51,11 @@ export default function NocRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
-  const [paymentDetails, setPaymentDetails] = useState<any>(null);
+  const [paymentDetails, setPaymentDetails] = useState<{
+    nocFees: number;
+    transferFees: number;
+    totalAmount: number;
+  } | null>(null);
   const [checkingPending, setCheckingPending] = useState(false);
 
   const nocReasons = [
@@ -110,7 +113,7 @@ export default function NocRequestPage() {
           return newErrors;
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error checking pending request:", error);
     } finally {
       setCheckingPending(false);
@@ -241,10 +244,11 @@ export default function NocRequestPage() {
         setPaymentDetails(response.data.data.paymentDetails);
         setSuccess(true);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting NOC request:", error);
+      const err = error as { response?: { data?: { message?: string } } };
       alert(
-        error.response?.data?.message ||
+        err.response?.data?.message ||
           "Failed to submit NOC request. Please try again."
       );
     } finally {

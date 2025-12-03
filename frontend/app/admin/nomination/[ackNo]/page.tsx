@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { nominationAPI, adminAPI } from "@/lib/api";
-import { Nomination, Status } from "@/lib/types";
+import { Status, Nominee, Witness } from "@/lib/types";
 import { ToastContainer, ToastType } from "@/components/ui/Toast";
 import {
   FileText,
@@ -31,7 +29,40 @@ export default function NominationDetailPage() {
   const params = useParams();
   const ackNo = params.ackNo as string;
 
-  const [nomination, setNomination] = useState<any>(null);
+  const [nomination, setNomination] = useState<{
+    _id: string;
+    acknowledgementNumber: string;
+    primaryMemberName: string;
+    flatNumber: string;
+    wing: string;
+    primaryMemberEmail: string;
+    primaryMemberMobile: string;
+    status: Status;
+    submittedAt: string;
+    updatedAt: string;
+    createdAt: string;
+    memberSignature?: string;
+    adminRemarks?: string;
+    nominees?: Nominee[];
+    witnesses?: Witness[];
+    index2Document?: { s3Key: string; fileName: string; fileType: string };
+    possessionLetterDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    primaryMemberAadhaar?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    jointMemberAadhaar?: { s3Key: string; fileName: string; fileType: string };
+    nomineeAadhaars?: Array<{
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    }>;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
   const [adminRemarks, setAdminRemarks] = useState<string>("");
@@ -56,6 +87,7 @@ export default function NominationDetailPage() {
       return;
     }
     fetchNominationDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ackNo]);
 
   const fetchNominationDetails = async () => {
@@ -158,7 +190,7 @@ export default function NominationDetailPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       setToast({ message: "PDF generated successfully", type: "success" });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to generate PDF:", error);
       setToast({
         message: "Failed to generate PDF. Please try again.",
@@ -326,7 +358,7 @@ export default function NominationDetailPage() {
                       Digital Signature
                     </label>
                     <p className="text-base italic text-slate-900 mt-1">
-                      {nomination.memberSignature}
+                      {nomination.memberSignature || "Not provided"}
                     </p>
                   </div>
                 </div>
@@ -342,7 +374,7 @@ export default function NominationDetailPage() {
                 </h3>
               </div>
               <div className="px-8 py-6 space-y-6">
-                {nomination.nominees?.map((nominee: any, index: number) => (
+                {nomination.nominees?.map((nominee: Nominee, index: number) => (
                   <div
                     key={index}
                     className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200"
@@ -415,42 +447,44 @@ export default function NominationDetailPage() {
                 <h3 className="text-xl font-bold text-slate-900">Witnesses</h3>
               </div>
               <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {nomination.witnesses?.map((witness: any, index: number) => (
-                  <div
-                    key={index}
-                    className="p-5 bg-slate-50 rounded-xl border border-slate-200"
-                  >
-                    <h4 className="text-base font-bold text-slate-900 mb-3">
-                      Witness {index + 1}
-                    </h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-slate-600">
-                          Name
-                        </label>
-                        <p className="text-base text-slate-900 mt-1">
-                          {witness.name}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-slate-600">
-                          Address
-                        </label>
-                        <p className="text-base text-slate-900 mt-1">
-                          {witness.address}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-slate-600">
-                          Signature
-                        </label>
-                        <p className="text-base italic text-slate-900 mt-1">
-                          {witness.signature}
-                        </p>
+                {nomination.witnesses?.map(
+                  (witness: Witness, index: number) => (
+                    <div
+                      key={index}
+                      className="p-5 bg-slate-50 rounded-xl border border-slate-200"
+                    >
+                      <h4 className="text-base font-bold text-slate-900 mb-3">
+                        Witness {index + 1}
+                      </h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium text-slate-600">
+                            Name
+                          </label>
+                          <p className="text-base text-slate-900 mt-1">
+                            {witness.name}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-slate-600">
+                            Address
+                          </label>
+                          <p className="text-base text-slate-900 mt-1">
+                            {witness.address}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-slate-600">
+                            Signature
+                          </label>
+                          <p className="text-base italic text-slate-900 mt-1">
+                            {witness.signature}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -527,9 +561,9 @@ export default function NominationDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nomination.index2Document.s3Key,
-                        nomination.index2Document.fileName,
-                        nomination.index2Document.fileType
+                        nomination.index2Document!.s3Key,
+                        nomination.index2Document!.fileName,
+                        nomination.index2Document!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -540,7 +574,7 @@ export default function NominationDetailPage() {
                         Index-2 Document
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nomination.index2Document.fileName}
+                        {nomination.index2Document!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -552,9 +586,9 @@ export default function NominationDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nomination.possessionLetterDocument.s3Key,
-                        nomination.possessionLetterDocument.fileName,
-                        nomination.possessionLetterDocument.fileType
+                        nomination.possessionLetterDocument!.s3Key,
+                        nomination.possessionLetterDocument!.fileName,
+                        nomination.possessionLetterDocument!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -565,7 +599,7 @@ export default function NominationDetailPage() {
                         Possession Letter
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nomination.possessionLetterDocument.fileName}
+                        {nomination.possessionLetterDocument!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -577,9 +611,9 @@ export default function NominationDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nomination.primaryMemberAadhaar.s3Key,
-                        nomination.primaryMemberAadhaar.fileName,
-                        nomination.primaryMemberAadhaar.fileType
+                        nomination.primaryMemberAadhaar!.s3Key,
+                        nomination.primaryMemberAadhaar!.fileName,
+                        nomination.primaryMemberAadhaar!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -590,7 +624,7 @@ export default function NominationDetailPage() {
                         Primary Member Aadhaar
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nomination.primaryMemberAadhaar.fileName}
+                        {nomination.primaryMemberAadhaar!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -602,9 +636,9 @@ export default function NominationDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nomination.jointMemberAadhaar.s3Key,
-                        nomination.jointMemberAadhaar.fileName,
-                        nomination.jointMemberAadhaar.fileType
+                        nomination.jointMemberAadhaar!.s3Key,
+                        nomination.jointMemberAadhaar!.fileName,
+                        nomination.jointMemberAadhaar!.fileType
                       )
                     }
                     className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
@@ -615,7 +649,7 @@ export default function NominationDetailPage() {
                         Joint Member Aadhaar
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nomination.jointMemberAadhaar.fileName}
+                        {nomination.jointMemberAadhaar!.fileName}
                       </p>
                     </div>
                     <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
@@ -623,26 +657,31 @@ export default function NominationDetailPage() {
                 )}
 
                 {/* Nominee Aadhaars */}
-                {nomination.nomineeAadhaars?.map((doc: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() =>
-                      openDocumentPopup(doc.s3Key, doc.fileName, doc.fileType)
-                    }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-                  >
-                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">
-                        Nominee {idx + 1} Aadhaar
-                      </p>
-                      <p className="text-xs text-slate-600 truncate">
-                        {doc.fileName}
-                      </p>
-                    </div>
-                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
-                  </button>
-                ))}
+                {nomination.nomineeAadhaars?.map(
+                  (
+                    doc: { s3Key: string; fileName: string; fileType: string },
+                    idx: number
+                  ) => (
+                    <button
+                      key={idx}
+                      onClick={() =>
+                        openDocumentPopup(doc.s3Key, doc.fileName, doc.fileType)
+                      }
+                      className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                    >
+                      <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">
+                          Nominee {idx + 1} Aadhaar
+                        </p>
+                        <p className="text-xs text-slate-600 truncate">
+                          {doc.fileName}
+                        </p>
+                      </div>
+                      <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -743,6 +782,7 @@ export default function NominationDetailPage() {
                 />
               ) : (
                 <div className="flex items-center justify-center bg-slate-50 rounded-lg p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={documentPopup.url}
                     alt={documentPopup.fileName}
