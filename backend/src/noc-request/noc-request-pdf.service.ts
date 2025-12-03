@@ -393,7 +393,7 @@ export class NocRequestPdfService {
       col1Width,
       boxHeight,
       'NOC Fees',
-      `₹${request.nocFees || 1000}`,
+      `Rs. ${request.nocFees || 1000}`,
     );
     this.drawBox(
       doc,
@@ -402,7 +402,7 @@ export class NocRequestPdfService {
       col1Width,
       boxHeight,
       'Transfer Fees',
-      `₹${request.transferFees || 25000}`,
+      `Rs. ${request.transferFees || 25000}`,
     );
     this.drawBox(
       doc,
@@ -411,7 +411,7 @@ export class NocRequestPdfService {
       col1Width,
       boxHeight,
       'Total Amount',
-      `₹${request.totalAmount || 26000}`,
+      `Rs. ${request.totalAmount || 26000}`,
     );
     y += boxHeight;
 
