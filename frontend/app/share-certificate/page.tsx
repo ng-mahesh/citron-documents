@@ -58,6 +58,13 @@ export default function ShareCertificatePage() {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
+    // For flat number, only allow integer numbers
+    if (name === "flatNumber") {
+      if (value !== "" && !/^\d+$/.test(value)) {
+        return; // Don't update if not a valid integer
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -467,6 +474,7 @@ export default function ShareCertificatePage() {
                   error={errors.flatNumber}
                   placeholder="e.g., 101"
                   type="text"
+                  inputMode="numeric"
                   required
                 />
               </div>

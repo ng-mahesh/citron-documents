@@ -68,6 +68,14 @@ export default function NominationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+
+    // For flat number, only allow integer numbers
+    if (name === "flatNumber") {
+      if (value !== "" && !/^\d+$/.test(value)) {
+        return; // Don't update if not a valid integer
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -510,6 +518,8 @@ export default function NominationPage() {
                 <Input
                   label="Flat Number"
                   name="flatNumber"
+                  type="text"
+                  inputMode="numeric"
                   value={formData.flatNumber}
                   onChange={handleInputChange}
                   error={errors.flatNumber}

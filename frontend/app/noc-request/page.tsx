@@ -64,6 +64,13 @@ export default function NocRequestPage() {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
+    // For flat number, only allow integer numbers
+    if (name === "flatNumber") {
+      if (value !== "" && !/^\d+$/.test(value)) {
+        return; // Don't update if not a valid integer
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -417,6 +424,8 @@ export default function NocRequestPage() {
                 <Input
                   label="Flat Number"
                   name="flatNumber"
+                  type="text"
+                  inputMode="numeric"
                   value={formData.flatNumber}
                   onChange={handleInputChange}
                   onBlur={checkPendingRequest}
