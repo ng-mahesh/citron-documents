@@ -414,9 +414,8 @@ export default function NocRequestPage() {
                     ) : undefined
                   }
                   options={[
-                    { value: "", label: "Select Wing" },
-                    { value: "C", label: "Wing C" },
-                    { value: "D", label: "Wing D" },
+                    { value: "C", label: "C" },
+                    { value: "D", label: "D" },
                   ]}
                   required
                 />
