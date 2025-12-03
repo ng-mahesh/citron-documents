@@ -73,13 +73,15 @@ export class AdminController {
   async getDashboardStats() {
     const shareCertStats = await this.shareCertificateService.getStatistics();
     const nominationStats = await this.nominationService.getStatistics();
+    const nocRequestStats = await this.nocRequestService.getStatistics();
 
     return {
       success: true,
       data: {
         shareCertificates: shareCertStats,
         nominations: nominationStats,
-        totalSubmissions: shareCertStats.total + nominationStats.total,
+        nocRequests: nocRequestStats,
+        totalSubmissions: shareCertStats.total + nominationStats.total + nocRequestStats.total,
       },
     };
   }

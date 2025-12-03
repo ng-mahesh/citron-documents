@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsDateString, IsObject, IsNumber } from 'class-validator';
 import { SubmissionStatus } from '../../common/enums/status.enum';
-import { PaymentStatus, NocReason } from '../schemas/noc-request.schema';
+import { PaymentStatus } from '../schemas/noc-request.schema';
 import { UploadedDocument } from '../../common/interfaces/document.interface';
 
 /**

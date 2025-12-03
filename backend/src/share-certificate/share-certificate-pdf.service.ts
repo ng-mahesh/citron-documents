@@ -53,7 +53,7 @@ export class ShareCertificatePdfService {
         yPos = this.addDeclarationSection(doc, yPos, certificate);
 
         // Enclosures Section
-        yPos = this.addEnclosuresSection(doc, yPos, certificate);
+        this.addEnclosuresSection(doc, yPos, certificate);
 
         // Footer
         this.addFooter(doc);
@@ -422,7 +422,7 @@ export class ShareCertificatePdfService {
   private addDeclarationSection(
     doc: PDFKit.PDFDocument,
     startY: number,
-    certificate: ShareCertificate,
+    _certificate: ShareCertificate,
   ): number {
     let y = startY;
 
@@ -490,7 +490,7 @@ export class ShareCertificatePdfService {
   private addEnclosuresSection(
     doc: PDFKit.PDFDocument,
     startY: number,
-    certificate: ShareCertificate,
+    _certificate: ShareCertificate,
   ): number {
     let y = startY;
 

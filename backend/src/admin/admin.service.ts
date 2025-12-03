@@ -67,7 +67,8 @@ export class AdminService {
   /**
    * Login admin and generate JWT token
    */
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; admin: any }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async login(loginDto: LoginDto): Promise<{ accessToken: string; admin: Record<string, any> }> {
     const admin = await this.validateAdmin(loginDto.username, loginDto.password);
 
     // Update last login

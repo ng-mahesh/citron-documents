@@ -437,12 +437,6 @@ export default function ShareCertificateDetailPage() {
               <div className="px-6 py-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Current Status
-                  </label>
-                  {getStatusBadge(certificate.status)}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Change Status
                   </label>
                   <select

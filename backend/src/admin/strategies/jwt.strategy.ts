@@ -19,7 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /**
    * Validate JWT payload and return user data
    */
-  async validate(payload: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async validate(payload: Record<string, any>) {
     return {
       userId: payload.sub,
       username: payload.username,

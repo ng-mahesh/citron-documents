@@ -49,7 +49,7 @@ export class NocRequestPdfService {
         yPos = this.addDeclarationSection(doc, yPos, request);
 
         // Enclosures Section
-        yPos = this.addEnclosuresSection(doc, yPos, request);
+        this.addEnclosuresSection(doc, yPos, request);
 
         // Footer
         this.addFooter(doc);

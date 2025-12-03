@@ -46,7 +46,7 @@ export class NominationPdfService {
         yPos = this.addDeclarationSection(doc, yPos, nomination);
 
         // Enclosures Section
-        yPos = this.addEnclosuresSection(doc, yPos, nomination);
+        this.addEnclosuresSection(doc, yPos, nomination);
 
         // Footer
         this.addFooter(doc);
@@ -450,7 +450,7 @@ export class NominationPdfService {
   private addDeclarationSection(
     doc: PDFKit.PDFDocument,
     startY: number,
-    nomination: Nomination,
+    _nomination: Nomination,
   ): number {
     let y = startY;
 

@@ -42,7 +42,8 @@ export class NominationService {
   /**
    * Validate nominee share percentages (must total 100%)
    */
-  private validateSharePercentages(nominees: any[]): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private validateSharePercentages(nominees: Record<string, any>[]): void {
     const total = nominees.reduce((sum, nominee) => sum + nominee.sharePercentage, 0);
     if (total !== 100) {
       throw new BadRequestException('Total share percentage of all nominees must equal 100%');
@@ -191,7 +192,8 @@ export class NominationService {
   /**
    * Get statistics for dashboard
    */
-  async getStatistics(): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getStatistics(): Promise<Record<string, any>> {
     const total = await this.nominationModel.countDocuments().exec();
     const pending = await this.nominationModel.countDocuments({ status: 'Pending' }).exec();
     const underReview = await this.nominationModel
