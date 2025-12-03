@@ -120,6 +120,8 @@ export default function NocRequestPage() {
       newErrors.sellerMobileNumber = "Mobile number is required";
     else if (!/^[6-9]\d{9}$/.test(formData.sellerMobileNumber))
       newErrors.sellerMobileNumber = "Please enter a valid 10-digit mobile number";
+    if (formData.sellerAlternateMobile.trim() && !/^[6-9]\d{9}$/.test(formData.sellerAlternateMobile))
+      newErrors.sellerAlternateMobile = "Please enter a valid 10-digit mobile number";
     if (!formData.flatNumber.trim())
       newErrors.flatNumber = "Flat number is required";
     else if (!/^\d+$/.test(formData.flatNumber))
@@ -360,7 +362,8 @@ export default function NocRequestPage() {
                   name="sellerName"
                   value={formData.sellerName}
                   onChange={handleInputChange}
-                  error={errors.sellerName}
+                error={errors.sellerName}
+                placeholder="Enter full name"
                   required
                 />
                 <Input
@@ -370,6 +373,7 @@ export default function NocRequestPage() {
                   value={formData.sellerEmail}
                   onChange={handleInputChange}
                   error={errors.sellerEmail}
+                  placeholder="Enter email address"
                   required
                 />
                 <Input
@@ -378,25 +382,16 @@ export default function NocRequestPage() {
                   value={formData.sellerMobileNumber}
                   onChange={handleInputChange}
                   error={errors.sellerMobileNumber}
-                  placeholder="10-digit number"
+                  placeholder="9876543210"
                   required
                 />
                 <Input
-                  label="Alternate Mobile Number"
+                  label="Alternate Mobile Number (Optional)"
                   name="sellerAlternateMobile"
                   value={formData.sellerAlternateMobile}
                   onChange={handleInputChange}
-                  placeholder="Optional"
-                />
-                <Input
-                  label="Flat Number"
-                  name="flatNumber"
-                  value={formData.flatNumber}
-                  onChange={handleInputChange}
-                  onBlur={checkPendingRequest}
-                  error={errors.flatNumber}
-                  placeholder="e.g., 302"
-                  required
+                  error={errors.sellerAlternateMobile}
+                  placeholder="9876543210"
                 />
                 <Select
                   label="Wing"
@@ -419,6 +414,16 @@ export default function NocRequestPage() {
                   ]}
                   required
                 />
+                <Input
+                  label="Flat Number"
+                  name="flatNumber"
+                  value={formData.flatNumber}
+                  onChange={handleInputChange}
+                  onBlur={checkPendingRequest}
+                  error={errors.flatNumber}
+                  placeholder="e.g., 302"
+                  required
+                />
               </div>
           </Card>
 
@@ -436,6 +441,7 @@ export default function NocRequestPage() {
                   value={formData.buyerName}
                   onChange={handleInputChange}
                   error={errors.buyerName}
+                  placeholder="Enter buyer full name"
                   required
                 />
                 <Input
@@ -444,7 +450,7 @@ export default function NocRequestPage() {
                   value={formData.buyerMobileNumber}
                   onChange={handleInputChange}
                   error={errors.buyerMobileNumber}
-                  placeholder="10-digit number"
+                  placeholder="9876543210"
                   required
                 />
                 <Input
@@ -453,7 +459,8 @@ export default function NocRequestPage() {
                   type="email"
                   value={formData.buyerEmail}
                   onChange={handleInputChange}
-                  error={errors.buyerEmail}
+                error={errors.buyerEmail}
+                placeholder="Enter buyer email address"
                   required
                 />
               </div>
@@ -597,7 +604,7 @@ export default function NocRequestPage() {
                 </div>
               </div>
               <p className="text-sm text-gray-700 mt-4 bg-white/50 p-3 rounded-lg">
-                💡 Payment instructions will be provided after document verification.
+                Payment instructions will be provided after document verification.
               </p>
             </div>
           </Card>
@@ -606,7 +613,7 @@ export default function NocRequestPage() {
           <Card className="p-8">
             <div className="mb-6">
               <Input
-                label="Digital Signature"
+                label="Applicant Digital Signature"
                 name="digitalSignature"
                 value={formData.digitalSignature}
                 onChange={handleInputChange}

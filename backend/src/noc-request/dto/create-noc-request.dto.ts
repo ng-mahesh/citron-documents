@@ -10,6 +10,7 @@ import {
   IsIn,
   IsDateString,
   IsEnum,
+  ValidateIf,
 } from 'class-validator';
 import { UploadedDocument } from '../../common/interfaces/document.interface';
 import { NocReason } from '../schemas/noc-request.schema';
@@ -38,6 +39,7 @@ export class CreateNocRequestDto {
 
   @IsString()
   @IsOptional()
+  @ValidateIf((o) => o.sellerAlternateMobile && o.sellerAlternateMobile.trim() !== '')
   @Matches(/^[6-9]\d{9}$/, {
     message: 'Alternate mobile number must be a valid 10-digit Indian phone number',
   })

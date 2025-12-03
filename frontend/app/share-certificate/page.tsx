@@ -618,7 +618,7 @@ export default function ShareCertificatePage() {
             <div className="px-8 py-6">
               <div className="space-y-5">
                 <Input
-                  label="Digital Signature"
+                  label="Applicant Digital Signature"
                   name="digitalSignature"
                   value={formData.digitalSignature}
                   onChange={handleInputChange}

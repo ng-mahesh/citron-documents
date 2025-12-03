@@ -804,16 +804,17 @@ export default function NominationPage() {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
-                      label="Name"
+                      label="Full Name"
                       value={witness1.name}
                       onChange={(e) =>
                         handleWitnessChange(1, "name", e.target.value)
                       }
                       error={errors.witness1_name}
+                      placeholder="Enter witness 1 full name"
                       required
                     />
                     <Input
-                      label="Signature"
+                      label="Digital Signature"
                       value={witness1.signature}
                       onChange={(e) =>
                         handleWitnessChange(1, "signature", e.target.value)
@@ -844,16 +845,17 @@ export default function NominationPage() {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
-                      label="Name"
+                      label="Full Name"
                       value={witness2.name}
                       onChange={(e) =>
                         handleWitnessChange(2, "name", e.target.value)
                       }
                       error={errors.witness2_name}
+                      placeholder="Enter witness 2 full name"
                       required
                     />
                     <Input
-                      label="Signature"
+                      label="Digital Signature"
                       value={witness2.signature}
                       onChange={(e) =>
                         handleWitnessChange(2, "signature", e.target.value)
@@ -892,7 +894,7 @@ export default function NominationPage() {
             <div className="px-8 py-6">
               <div className="space-y-5">
                 <Input
-                  label="Member Signature"
+                  label="Applicant Digital Signature"
                   name="memberSignature"
                   value={memberSignature}
                   onChange={(e) => setMemberSignature(e.target.value)}
