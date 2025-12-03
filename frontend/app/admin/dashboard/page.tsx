@@ -1,35 +1,41 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
-import { adminAPI, shareCertificateAPI, nominationAPI, nocRequestAPI } from "@/lib/api";
+import {
+  adminAPI,
+  shareCertificateAPI,
+  nominationAPI,
+  nocRequestAPI,
+} from "@/lib/api";
 import {
   DashboardStats,
   ShareCertificate,
   Nomination,
   Status,
+  NocRequest,
 } from "@/lib/types";
 import {
   FileText,
   Users,
   CheckCircle,
   Clock,
-  XCircle,
   AlertCircle,
   Download,
   LogOut,
-  Edit,
   Trash2,
-  Eye,
   X,
   Search,
   ChevronLeft,
   ChevronRight,
+  FileSignature,
+  Home,
 } from "lucide-react";
-import { Loader, InlineLoader } from "@/components/ui/Loader";
+import { theme } from "@/lib/theme";
+import { Loader } from "@/components/ui/Loader";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { ToastType } from "@/components/ui/Toast";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -38,13 +44,13 @@ export default function AdminDashboard() {
     ShareCertificate[]
   >([]);
   const [nominations, setNominations] = useState<Nomination[]>([]);
-  const [nocRequests, setNocRequests] = useState<any[]>([]);
+  const [nocRequests, setNocRequests] = useState<NocRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"certificates" | "nominations" | "noc-requests">(
-    "certificates"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "certificates" | "nominations" | "noc-requests"
+  >("certificates");
   const [documentPopup, setDocumentPopup] = useState<{
     isOpen: boolean;
     url: string;
@@ -77,6 +83,12 @@ export default function AdminDashboard() {
   const [nocCurrentPage, setNocCurrentPage] = useState(1);
   const nocItemsPerPage = 10;
 
+  // Toast state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
+
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -84,16 +96,18 @@ export default function AdminDashboard() {
       return;
     }
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, certificatesRes, nominationsRes, nocRequestsRes] = await Promise.all([
-        adminAPI.getDashboardStats(),
-        shareCertificateAPI.getAll(),
-        nominationAPI.getAll(),
-        nocRequestAPI.getAll(),
-      ]);
+      const [statsRes, certificatesRes, nominationsRes, nocRequestsRes] =
+        await Promise.all([
+          adminAPI.getDashboardStats(),
+          shareCertificateAPI.getAll(),
+          nominationAPI.getAll(),
+          nocRequestAPI.getAll(),
+        ]);
 
       setStats(statsRes.data.data);
       setShareCertificates(certificatesRes.data.data);
@@ -112,15 +126,17 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   };
 
-  const handleExport = async (type: "certificates" | "nominations" | "noc-requests") => {
+  const handleExport = async (
+    type: "certificates" | "nominations" | "noc-requests"
+  ) => {
     setExporting(true);
     try {
       const response =
         type === "certificates"
           ? await adminAPI.exportShareCertificates()
           : type === "nominations"
-          ? await adminAPI.exportNominations()
-          : await adminAPI.exportNocRequests();
+            ? await adminAPI.exportNominations()
+            : await adminAPI.exportNocRequests();
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -129,13 +145,15 @@ export default function AdminDashboard() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
-      alert("Failed to export data");
+    } catch {
+      setToast({ message: "Failed to export data", type: "error" });
     } finally {
       setExporting(false);
     }
   };
 
+  // Reserved for future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleUpdateStatus = async (
     id: string,
     status: Status,
@@ -150,8 +168,8 @@ export default function AdminDashboard() {
         await nocRequestAPI.update(id, { status });
       }
       fetchDashboardData();
-    } catch (error) {
-      alert("Failed to update status");
+    } catch {
+      setToast({ message: "Failed to update status", type: "error" });
     }
   };
 
@@ -179,59 +197,64 @@ export default function AdminDashboard() {
       }
       fetchDashboardData();
       setDeleteModal(null);
-    } catch (error) {
-      alert("Failed to delete entry");
+      setToast({ message: "Entry deleted successfully", type: "success" });
+    } catch {
+      setToast({ message: "Failed to delete entry", type: "error" });
     } finally {
       setDeleting(false);
     }
   };
 
-  const statuses: { value: Status; label: string }[] = [
-    { value: "Pending", label: "Pending" },
-    { value: "Under Review", label: "Under Review" },
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
-    { value: "Document Required", label: "Document Required" },
-  ];
-
   const getStatusBadge = (status: Status) => {
     const colors: Record<Status, string> = {
-      Pending:
-        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300",
-      "Under Review":
-        "bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border border-amber-300",
-      Approved:
-        "bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 border border-emerald-300",
-      Rejected:
-        "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300",
-      "Document Required":
-        "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300",
+      Pending: `${theme.status.pending.bg} ${theme.status.pending.text} border ${theme.status.pending.border}`,
+      "Under Review": `${theme.status.underReview.bg} ${theme.status.underReview.text} border ${theme.status.underReview.border}`,
+      Approved: `${theme.status.approved.bg} ${theme.status.approved.text} border ${theme.status.approved.border}`,
+      Rejected: `${theme.status.rejected.bg} ${theme.status.rejected.text} border ${theme.status.rejected.border}`,
+      "Document Required": `${theme.status.documentRequired.bg} ${theme.status.documentRequired.text} border ${theme.status.documentRequired.border}`,
     };
     return (
       <span
-        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${colors[status]}`}>
+        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${colors[status]}`}
+      >
         {status}
       </span>
     );
   };
 
+  // Reserved for future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openDocumentPopup = async (
     s3Key: string,
     fileName: string,
     fileType: string
   ) => {
     // Show loading state
-    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+    setDocumentPopup({
+      isOpen: true,
+      url: "",
+      fileName,
+      fileType,
+      loading: true,
+    });
 
     try {
       // Fetch pre-signed URL from backend
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
 
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
-    } catch (error) {
-      console.error("Failed to fetch document URL:", error);
-      alert("Failed to load document. Please try again.");
+      setDocumentPopup({
+        isOpen: true,
+        url: presignedUrl,
+        fileName,
+        fileType,
+        loading: false,
+      });
+    } catch {
+      setToast({
+        message: "Failed to load document. Please try again.",
+        type: "error",
+      });
       setDocumentPopup(null);
     }
   };
@@ -266,15 +289,15 @@ export default function AdminDashboard() {
 
   // Filter and paginate nominations
   const filteredNominations = useMemo(() => {
-    return nominations.filter((nom: any) => {
+    return nominations.filter((nom) => {
       const searchLower = nomSearchQuery.toLowerCase();
+      const memberName = nom.primaryMemberName || nom.memberFullName || "";
+      const memberEmail = nom.primaryMemberEmail || nom.email || "";
       return (
         nom.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
-        nom.primaryMemberName?.toLowerCase().includes(searchLower) ||
-        nom.memberFullName?.toLowerCase().includes(searchLower) ||
+        memberName.toLowerCase().includes(searchLower) ||
         nom.flatNumber?.toLowerCase().includes(searchLower) ||
-        nom.primaryMemberEmail?.toLowerCase().includes(searchLower) ||
-        nom.email?.toLowerCase().includes(searchLower) ||
+        memberEmail.toLowerCase().includes(searchLower) ||
         nom.wing?.toLowerCase().includes(searchLower)
       );
     });
@@ -290,7 +313,7 @@ export default function AdminDashboard() {
 
   // Filter and paginate NOC requests
   const filteredNocRequests = useMemo(() => {
-    return nocRequests.filter((noc: any) => {
+    return nocRequests.filter((noc) => {
       const searchLower = nocSearchQuery.toLowerCase();
       return (
         noc.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
@@ -298,7 +321,8 @@ export default function AdminDashboard() {
         noc.buyerName?.toLowerCase().includes(searchLower) ||
         noc.flatNumber?.toLowerCase().includes(searchLower) ||
         noc.sellerEmail?.toLowerCase().includes(searchLower) ||
-        noc.wing?.toLowerCase().includes(searchLower)
+        noc.wing?.toLowerCase().includes(searchLower) ||
+        noc.reason?.toLowerCase().includes(searchLower)
       );
     });
   }, [nocRequests, nocSearchQuery]);
@@ -342,90 +366,124 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-[#175a00] to-[#185900] rounded-xl flex items-center justify-center shadow-lg shadow-green-200">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900">
+                <h1 className="text-lg sm:text-xl font-bold text-[#175a00]">
                   Admin Dashboard
                 </h1>
                 <p className="text-xs text-slate-500">Citron Documents App</p>
               </div>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="gap-2 text-xs sm:text-sm">
-              <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => router.push("/")}
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs sm:text-sm"
+              >
+                <Home className="h-3 w-3 sm:h-4 sm:w-4" />
+                Home
+              </Button>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs sm:text-sm"
+              >
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <FileText className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">
-                  Total Certificates
-                </p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {stats?.shareCertificates.total || 0}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Total Certificates
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {stats?.shareCertificates.total || 0}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <Users className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">
-                  Total Nominations
-                </p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {stats?.nominations.total || 0}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Total Nominations
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {stats?.nominations.total || 0}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
+                <FileSignature className="h-7 w-7 text-white" />
+              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Total NOC Requests
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {stats?.nocRequests?.total || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+              >
                 <CheckCircle className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">Approved</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {(stats?.shareCertificates.approved || 0) +
-                    (stats?.nominations.approved || 0)}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Approved
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {(stats?.shareCertificates.approved || 0) +
+                  (stats?.nominations.approved || 0) +
+                  (stats?.nocRequests?.approved || 0)}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.amber} rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mb-3`}
+              >
                 <Clock className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">Pending</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {(stats?.shareCertificates.pending || 0) +
-                    (stats?.nominations.pending || 0)}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Pending
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {(stats?.shareCertificates.pending || 0) +
+                  (stats?.nominations.pending || 0) +
+                  (stats?.nocRequests?.pending || 0)}
+              </p>
             </div>
           </div>
         </div>
@@ -438,27 +496,30 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab("certificates")}
                 className={`${
                   activeTab === "certificates"
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
+                    ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
+              >
                 Share Certificates ({shareCertificates.length})
               </button>
               <button
                 onClick={() => setActiveTab("nominations")}
                 className={`${
                   activeTab === "nominations"
-                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md"
+                    ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
+              >
                 Nominations ({nominations.length})
               </button>
               <button
                 onClick={() => setActiveTab("noc-requests")}
                 className={`${
                   activeTab === "noc-requests"
-                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md"
+                    ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
+                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
+              >
                 NOC Requests ({nocRequests.length})
               </button>
             </nav>
@@ -468,7 +529,8 @@ export default function AdminDashboard() {
               size="sm"
               isLoading={exporting}
               disabled={exporting}
-              className="gap-2 w-full sm:w-auto justify-center">
+              className="gap-2 w-full sm:w-auto justify-center"
+            >
               {!exporting && <Download className="h-4 w-4" />}
               {exporting ? "Exporting..." : "Export to Excel"}
             </Button>
@@ -487,7 +549,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={certSearchQuery}
                   onChange={(e) => setCertSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -521,7 +583,8 @@ export default function AdminDashboard() {
                     paginatedCertificates.map((cert) => (
                       <tr
                         key={cert._id}
-                        className="hover:bg-slate-50 transition-colors">
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                           {cert.acknowledgementNumber}
                         </td>
@@ -546,7 +609,8 @@ export default function AdminDashboard() {
                                   `/admin/share-certificate/${cert.acknowledgementNumber}`
                                 )
                               }
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}
+                            >
                               View Details
                             </button>
                             <button
@@ -559,7 +623,8 @@ export default function AdminDashboard() {
                                 )
                               }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete certificate">
+                              title="Delete certificate"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -570,7 +635,8 @@ export default function AdminDashboard() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-6 py-8 text-center text-slate-500">
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
                         No certificates found matching your search.
                       </td>
                     </tr>
@@ -599,7 +665,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setCertCurrentPage(certCurrentPage - 1)}
                     disabled={certCurrentPage === 1}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
@@ -612,9 +679,10 @@ export default function AdminDashboard() {
                         onClick={() => setCertCurrentPage(page)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                           certCurrentPage === page
-                            ? "bg-blue-600 text-white"
+                            ? `${theme.button.primary.bg} text-white`
                             : "text-slate-600 hover:bg-slate-100"
-                        }`}>
+                        }`}
+                      >
                         {page}
                       </button>
                     ))}
@@ -622,7 +690,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setCertCurrentPage(certCurrentPage + 1)}
                     disabled={certCurrentPage === certTotalPages}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
                 </div>
@@ -643,7 +712,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={nomSearchQuery}
                   onChange={(e) => setNomSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -677,17 +746,18 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {paginatedNominations.length > 0 ? (
-                    paginatedNominations.map((nom: any) => (
+                    paginatedNominations.map((nom) => (
                       <tr
                         key={nom._id}
-                        className="hover:bg-slate-50 transition-colors">
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                           {nom.acknowledgementNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
                           <div className="truncate">
-                            {nom.memberFullName ||
-                              nom.primaryMemberName ||
+                            {nom.primaryMemberName ||
+                              nom.memberFullName ||
                               "N/A"}
                           </div>
                         </td>
@@ -697,11 +767,13 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
                           <div className="truncate">
-                            {nom.email || nom.primaryMemberEmail || "N/A"}
+                            {nom.primaryMemberEmail || nom.email || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-semibold">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg ${theme.status.pending.bg} ${theme.status.pending.text} font-semibold`}
+                          >
                             {nom.nominees?.length || 0}
                           </span>
                         </td>
@@ -716,7 +788,8 @@ export default function AdminDashboard() {
                                   `/admin/nomination/${nom.acknowledgementNumber}`
                                 )
                               }
-                              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}
+                            >
                               View Details
                             </button>
                             <button
@@ -724,14 +797,15 @@ export default function AdminDashboard() {
                                 handleDelete(
                                   nom._id!,
                                   "nomination",
-                                  nom.memberFullName ||
-                                    nom.primaryMemberName ||
+                                  nom.primaryMemberName ||
+                                    nom.memberFullName ||
                                     "N/A",
                                   `${nom.wing} - ${nom.flatNumber}`
                                 )
                               }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete nomination">
+                              title="Delete nomination"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -742,7 +816,8 @@ export default function AdminDashboard() {
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-6 py-8 text-center text-slate-500">
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
                         No nominations found matching your search.
                       </td>
                     </tr>
@@ -771,7 +846,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNomCurrentPage(nomCurrentPage - 1)}
                     disabled={nomCurrentPage === 1}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
@@ -782,9 +858,10 @@ export default function AdminDashboard() {
                           onClick={() => setNomCurrentPage(page)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             nomCurrentPage === page
-                              ? "bg-purple-600 text-white"
+                              ? `${theme.button.primary.bg} text-white`
                               : "text-slate-600 hover:bg-slate-100"
-                          }`}>
+                          }`}
+                        >
                           {page}
                         </button>
                       )
@@ -793,7 +870,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNomCurrentPage(nomCurrentPage + 1)}
                     disabled={nomCurrentPage === nomTotalPages}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
                 </div>
@@ -814,7 +892,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={nocSearchQuery}
                   onChange={(e) => setNocSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -851,10 +929,11 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {paginatedNocRequests.length > 0 ? (
-                    paginatedNocRequests.map((noc: any) => (
+                    paginatedNocRequests.map((noc) => (
                       <tr
                         key={noc._id}
-                        className="hover:bg-slate-50 transition-colors">
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                           {noc.acknowledgementNumber}
                         </td>
@@ -872,25 +951,11 @@ export default function AdminDashboard() {
                           {noc.wing && `${noc.wing} - `}
                           {noc.flatNumber}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
-                            noc.reason === 'Sale'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-orange-100 text-orange-800'
-                          }`}>
-                            {noc.reason}
-                          </span>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {noc.reason || "N/A"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
-                            noc.paymentStatus === 'Paid'
-                              ? 'bg-green-100 text-green-800'
-                              : noc.paymentStatus === 'Pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {noc.paymentStatus}
-                          </span>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          ₹26,000
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(noc.status!)}
@@ -903,7 +968,8 @@ export default function AdminDashboard() {
                                   `/admin/noc-request/${noc.acknowledgementNumber}`
                                 )
                               }
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}
+                            >
                               View Details
                             </button>
                             <button
@@ -916,7 +982,8 @@ export default function AdminDashboard() {
                                 )
                               }
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete NOC request">
+                              title="Delete NOC request"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -927,7 +994,8 @@ export default function AdminDashboard() {
                     <tr>
                       <td
                         colSpan={8}
-                        className="px-6 py-8 text-center text-slate-500">
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
                         No NOC requests found matching your search.
                       </td>
                     </tr>
@@ -956,7 +1024,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNocCurrentPage(nocCurrentPage - 1)}
                     disabled={nocCurrentPage === 1}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                   </button>
                   <div className="flex items-center gap-1">
@@ -967,9 +1036,10 @@ export default function AdminDashboard() {
                           onClick={() => setNocCurrentPage(page)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             nocCurrentPage === page
-                              ? "bg-green-600 text-white"
+                              ? `${theme.button.primary.bg} text-white`
                               : "text-slate-600 hover:bg-slate-100"
-                          }`}>
+                          }`}
+                        >
                           {page}
                         </button>
                       )
@@ -978,7 +1048,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setNocCurrentPage(nocCurrentPage + 1)}
                     disabled={nocCurrentPage === nocTotalPages}
-                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                   </button>
                 </div>
@@ -992,15 +1063,19 @@ export default function AdminDashboard() {
       {documentPopup && documentPopup.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={closeDocumentPopup}>
+          onClick={closeDocumentPopup}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col"
             style={{ maxHeight: "90vh" }}
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <div
+                  className={`h-10 w-10 ${theme.iconBg.primary} rounded-lg flex items-center justify-center`}
+                >
                   <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1014,7 +1089,8 @@ export default function AdminDashboard() {
               </div>
               <button
                 onClick={closeDocumentPopup}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -1033,6 +1109,7 @@ export default function AdminDashboard() {
                 />
               ) : (
                 <div className="flex items-center justify-center bg-slate-50 rounded-lg p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={documentPopup.url}
                     alt={documentPopup.fileName}
@@ -1054,7 +1131,8 @@ export default function AdminDashboard() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}
+                >
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>
@@ -1071,10 +1149,14 @@ export default function AdminDashboard() {
       {deleteModal && deleteModal.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setDeleteModal(null)}>
+          onClick={() => setDeleteModal(null)}
+          role="dialog"
+          aria-modal="true"
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center gap-3 p-6 border-b border-slate-200">
               <div className="h-12 w-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -1097,7 +1179,9 @@ export default function AdminDashboard() {
                 <span className="font-semibold">
                   {deleteModal.type === "certificate"
                     ? "share certificate"
-                    : "nomination"}
+                    : deleteModal.type === "nomination"
+                      ? "nomination"
+                      : "NOC request"}
                 </span>{" "}
                 application?
               </p>
@@ -1125,7 +1209,8 @@ export default function AdminDashboard() {
                 onClick={() => setDeleteModal(null)}
                 variant="outline"
                 size="sm"
-                disabled={deleting}>
+                disabled={deleting}
+              >
                 Cancel
               </Button>
               <Button
@@ -1133,13 +1218,17 @@ export default function AdminDashboard() {
                 size="sm"
                 isLoading={deleting}
                 disabled={deleting}
-                className="bg-red-600 hover:bg-red-700 text-white">
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
                 {deleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

@@ -7,22 +7,26 @@
 **CRITICAL:** This must be set for WhatsApp and social sharing to work!
 
 Create `.env.local` file:
+
 ```env
 NEXT_PUBLIC_APP_URL=https://documents.citronsociety.in
 ```
 
 Also set in your deployment platform (Vercel, etc.):
+
 - Variable name: `NEXT_PUBLIC_APP_URL`
 - Value: `https://documents.citronsociety.in`
 
 ### ✅ 2. Verify All Assets Exist
 
 Run this command to check:
+
 ```bash
 ls public/favicon* public/icon* public/apple* public/og-*
 ```
 
 Should show 12 files:
+
 - ✅ favicon.ico
 - ✅ favicon-16x16.png
 - ✅ favicon-32x32.png
@@ -44,6 +48,7 @@ npm start
 ```
 
 Then test:
+
 - Open http://localhost:3000
 - Check favicon appears in browser tab
 - View page source and verify meta tags have absolute URLs
@@ -55,8 +60,12 @@ Then test:
 Visit your deployed site and check the page source (Right-click → View Page Source):
 
 Look for:
+
 ```html
-<meta property="og:image" content="https://documents.citronsociety.in/og-image.png" />
+<meta
+  property="og:image"
+  content="https://documents.citronsociety.in/og-image.png"
+/>
 ```
 
 **Should be:** Absolute URL starting with `https://`
@@ -65,6 +74,7 @@ Look for:
 ### ✅ 2. Test Image Accessibility
 
 Open these URLs directly in browser:
+
 - `https://documents.citronsociety.in/og-image.png`
 - `https://documents.citronsociety.in/favicon.ico`
 - `https://documents.citronsociety.in/apple-icon.png`
@@ -74,6 +84,7 @@ All should load and display the images.
 ### ✅ 3. Clear Browser Cache
 
 **For Favicon:**
+
 - Press Ctrl+Shift+Delete (Clear browsing data)
 - Select "Cached images and files"
 - Click Clear
@@ -84,6 +95,7 @@ All should load and display the images.
 ### ✅ 4. Test Social Sharing
 
 #### Facebook/WhatsApp Debugger
+
 1. Go to: https://developers.facebook.com/tools/debug/
 2. Enter: `https://documents.citronsociety.in/`
 3. Click "Scrape Again"
@@ -93,6 +105,7 @@ All should load and display the images.
    - ✅ Image preview (blue gradient with document icon)
 
 #### Twitter Card Validator
+
 1. Go to: https://cards-dev.twitter.com/validator
 2. Enter your URL
 3. Should show:
@@ -100,6 +113,7 @@ All should load and display the images.
    - ✅ Image preview
 
 #### LinkedIn Post Inspector
+
 1. Go to: https://www.linkedin.com/post-inspector/
 2. Enter your URL
 3. Click "Inspect"
@@ -110,31 +124,37 @@ All should load and display the images.
 **Important:** WhatsApp caches previews aggressively!
 
 **Method 1: Query Parameter Trick**
+
 - Share: `https://documents.citronsociety.in/?v=1`
 - Change the number (`?v=2`, `?v=3`) for each test
 - This forces WhatsApp to fetch a fresh preview
 
 **Method 2: Clear Cache via Facebook**
+
 1. Use Facebook Debugger (step 4 above)
 2. Click "Scrape Again" multiple times
 3. Wait 5-10 minutes
 4. Try sharing in WhatsApp again
 
 **Method 3: Wait**
+
 - WhatsApp cache can take 24-48 hours to expire
 - Use Method 1 in the meantime
 
 ### ✅ 6. Test on Mobile
 
 **iOS:**
+
 - Safari → Share → Add to Home Screen
 - Should show custom icon (document icon)
 
 **Android:**
+
 - Chrome → Menu → Add to Home Screen
 - Should show custom icon
 
 **WhatsApp:**
+
 - Share your URL in a chat
 - Should show image preview
 - Tap to expand - should show full preview
@@ -144,10 +164,12 @@ All should load and display the images.
 ### Issue: WhatsApp Shows No Image
 
 **Solution 1: Check Environment Variable**
+
 ```bash
 # In deployment, verify:
 echo $NEXT_PUBLIC_APP_URL
 ```
+
 Must output: `https://documents.citronsociety.in`
 
 **Solution 2: Use Query Parameter**
@@ -162,24 +184,29 @@ WhatsApp cache expires after 1-2 days
 ### Issue: Favicon Still Shows Next.js Default
 
 **Solution 1: Hard Refresh**
+
 - Ctrl+Shift+R (Windows/Linux)
 - Cmd+Shift+R (Mac)
 
 **Solution 2: Clear Cache**
+
 - Ctrl+Shift+Delete → Clear cached images
 
 **Solution 3: Close Browser**
+
 - Close ALL browser windows
 - Reopen browser
 - Visit site again
 
 **Solution 4: Incognito Mode**
+
 - Open site in private/incognito window
 - Favicon should show immediately
 
 ### Issue: Facebook Debugger Shows Old Image
 
 **Solution:**
+
 1. Click "Scrape Again" button
 2. Wait 10 seconds
 3. Click "Scrape Again" again
@@ -188,26 +215,31 @@ WhatsApp cache expires after 1-2 days
 ## Test Page by Page
 
 ### Homepage
+
 - URL: `https://documents.citronsociety.in/`
 - Image: `og-image.png`
 - Title: "Citron Phase 2 Documents"
 
 ### Share Certificate
+
 - URL: `https://documents.citronsociety.in/share-certificate`
 - Image: `og-share-certificate.png`
 - Title: "Share Certificate Application | Citron Phase 2 Documents"
 
 ### Nomination
+
 - URL: `https://documents.citronsociety.in/nomination`
 - Image: `og-nomination.png`
 - Title: "Nomination Form | Citron Phase 2 Documents"
 
 ### NOC Request
+
 - URL: `https://documents.citronsociety.in/noc-request`
 - Image: `og-noc.png`
 - Title: "NOC Request | Citron Phase 2 Documents"
 
 ### Status
+
 - URL: `https://documents.citronsociety.in/status`
 - Image: `og-status.png`
 - Title: "Track Application Status | Citron Phase 2 Documents"
@@ -241,6 +273,7 @@ When everything is working correctly:
 ## Need Help?
 
 See these files for detailed troubleshooting:
+
 - `WHATSAPP_OG_FIX.md` - WhatsApp-specific issues
 - `SEO_SETUP.md` - Complete SEO documentation
 - `SEO_IMPLEMENTATION_SUMMARY.md` - Implementation overview

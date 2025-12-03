@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       try {
         await adminAPI.getProfile();
         router.push("/admin/dashboard");
-      } catch (error) {
+      } catch {
         localStorage.removeItem("adminToken");
         setChecking(false);
       }
@@ -62,8 +62,9 @@ export default function AdminLoginPage() {
 
       localStorage.setItem("adminToken", accessToken);
       router.push("/admin/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid username or password");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Invalid username or password");
     } finally {
       setLoading(false);
     }
@@ -71,24 +72,28 @@ export default function AdminLoginPage() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Checking authentication...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-green-700 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">
+            Checking authentication...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-[#175a00] to-[#185900] rounded-full flex items-center justify-center mb-4 shadow-lg shadow-green-200">
             <Shield className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Login</h1>
-          <p className="text-gray-600">Citron Documents App</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Admin Login
+          </h1>
+          <p className="text-slate-600">Citron Documents App</p>
         </div>
 
         <Card>
@@ -123,7 +128,7 @@ export default function AdminLoginPage() {
           </form>
         </Card>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
+        <div className="mt-6 text-center text-sm text-slate-600">
           <p>Contact Mahesh Bodhgire, Chairman for password reset</p>
         </div>
       </div>

@@ -178,7 +178,8 @@ export class ShareCertificateService {
   /**
    * Get statistics for dashboard
    */
-  async getStatistics(): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getStatistics(): Promise<Record<string, any>> {
     const total = await this.shareCertificateModel.countDocuments().exec();
     const pending = await this.shareCertificateModel.countDocuments({ status: 'Pending' }).exec();
     const underReview = await this.shareCertificateModel

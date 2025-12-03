@@ -31,7 +31,9 @@ export const metadata: Metadata = {
     title: "Share Certificate Application | Citron Documents",
     description:
       "Apply for your share certificate online. Quick and simple application process.",
-    images: [`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-share-certificate.png`],
+    images: [
+      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-share-certificate.png`,
+    ],
   },
 };
 

@@ -1,30 +1,30 @@
-import React from 'react';
+import React from "react";
 
 interface LoaderProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   message?: string;
   fullScreen?: boolean;
   overlay?: boolean;
 }
 
 export const Loader: React.FC<LoaderProps> = ({
-  size = 'md',
+  size = "md",
   message,
   fullScreen = false,
   overlay = false,
 }) => {
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16',
-    xl: 'w-24 h-24',
+    sm: "w-8 h-8",
+    md: "w-12 h-12",
+    lg: "w-16 h-16",
+    xl: "w-24 h-24",
   };
 
   const messageSizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
-    xl: 'text-xl',
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-lg",
+    xl: "text-xl",
   };
 
   const loaderContent = (
@@ -56,19 +56,74 @@ export const Loader: React.FC<LoaderProps> = ({
             />
 
             {/* Windows - Row 1 */}
-            <rect x="38" y="48" width="6" height="7" fill="#FFF" className="animate-window-1" opacity="0.9" />
-            <rect x="56" y="48" width="6" height="7" fill="#FFF" className="animate-window-2" opacity="0.9" />
+            <rect
+              x="38"
+              y="48"
+              width="6"
+              height="7"
+              fill="#FFF"
+              className="animate-window-1"
+              opacity="0.9"
+            />
+            <rect
+              x="56"
+              y="48"
+              width="6"
+              height="7"
+              fill="#FFF"
+              className="animate-window-2"
+              opacity="0.9"
+            />
 
             {/* Windows - Row 2 */}
-            <rect x="38" y="60" width="6" height="7" fill="#FFF" className="animate-window-3" opacity="0.9" />
-            <rect x="56" y="60" width="6" height="7" fill="#FFF" className="animate-window-4" opacity="0.9" />
+            <rect
+              x="38"
+              y="60"
+              width="6"
+              height="7"
+              fill="#FFF"
+              className="animate-window-3"
+              opacity="0.9"
+            />
+            <rect
+              x="56"
+              y="60"
+              width="6"
+              height="7"
+              fill="#FFF"
+              className="animate-window-4"
+              opacity="0.9"
+            />
 
             {/* Windows - Row 3 */}
-            <rect x="38" y="72" width="6" height="7" fill="#FFF" className="animate-window-1" opacity="0.9" />
-            <rect x="56" y="72" width="6" height="7" fill="#FFF" className="animate-window-2" opacity="0.9" />
+            <rect
+              x="38"
+              y="72"
+              width="6"
+              height="7"
+              fill="#FFF"
+              className="animate-window-1"
+              opacity="0.9"
+            />
+            <rect
+              x="56"
+              y="72"
+              width="6"
+              height="7"
+              fill="#FFF"
+              className="animate-window-2"
+              opacity="0.9"
+            />
 
             {/* Door */}
-            <rect x="44" y="82" width="12" height="13" fill="#1E40AF" className="animate-building-grow" />
+            <rect
+              x="44"
+              y="82"
+              width="12"
+              height="13"
+              fill="#1E40AF"
+              className="animate-building-grow"
+            />
             <circle cx="47" cy="88" r="0.8" fill="#FFF" />
           </g>
         </svg>
@@ -76,16 +131,27 @@ export const Loader: React.FC<LoaderProps> = ({
 
       {/* Loading message */}
       {message && (
-        <p className={`${messageSizeClasses[size]} text-slate-700 font-medium animate-pulse`}>
+        <p
+          className={`${messageSizeClasses[size]} text-slate-700 font-medium animate-pulse`}
+        >
           {message}
         </p>
       )}
 
       {/* Loading dots */}
       <div className="flex gap-2">
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        <div
+          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+          style={{ animationDelay: "0ms" }}
+        ></div>
+        <div
+          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+          style={{ animationDelay: "150ms" }}
+        ></div>
+        <div
+          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+          style={{ animationDelay: "300ms" }}
+        ></div>
       </div>
     </div>
   );
@@ -112,7 +178,9 @@ export const Loader: React.FC<LoaderProps> = ({
 };
 
 // Inline loader for buttons and small spaces
-export const InlineLoader: React.FC<{ className?: string }> = ({ className = '' }) => {
+export const InlineLoader: React.FC<{ className?: string }> = ({
+  className = "",
+}) => {
   return (
     <svg
       className={`animate-spin ${className}`}
@@ -140,8 +208,8 @@ export const InlineLoader: React.FC<{ className?: string }> = ({ className = '' 
 // Building loader specifically for property/society context
 export const BuildingLoader: React.FC<{
   message?: string;
-  size?: 'sm' | 'md' | 'lg';
-}> = ({ message = 'Processing...', size = 'md' }) => {
+  size?: "sm" | "md" | "lg";
+}> = ({ message = "Processing...", size = "md" }) => {
   return (
     <div className="flex flex-col items-center justify-center p-6">
       <Loader size={size} message={message} />

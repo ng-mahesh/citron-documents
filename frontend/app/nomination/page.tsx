@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/forms/FileUpload";
 import { nominationAPI } from "@/lib/api";
 import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
 import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
+import { Header } from "@/components/layout/Header";
+import { theme } from "@/lib/theme";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { ToastType } from "@/components/ui/Toast";
 
 export default function NominationPage() {
   const router = useRouter();
@@ -65,9 +67,21 @@ export default function NominationPage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+
+    // For flat number, only allow integer numbers
+    if (name === "flatNumber") {
+      if (value !== "" && !/^\d+$/.test(value)) {
+        return; // Don't update if not a valid integer
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -118,7 +132,7 @@ export default function NominationPage() {
           return newErrors;
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error checking duplicate:", error);
     } finally {
       setCheckingDuplicate(false);
@@ -147,7 +161,7 @@ export default function NominationPage() {
   const handleNomineeChange = (
     index: number,
     field: keyof Nominee,
-    value: any
+    value: string | number
   ) => {
     setNominees((prev) => {
       const updated = [...prev];
@@ -376,11 +390,14 @@ export default function NominationPage() {
       setAcknowledgementNumber(ackNumber);
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (error: any) {
-      alert(
-        error.response?.data?.message ||
-          "Failed to submit nomination. Please try again."
-      );
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to submit nomination. Please try again.",
+        type: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -401,11 +418,14 @@ export default function NominationPage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error: any) {
-      alert(
-        error.response?.data?.message ||
-          "Failed to download PDF. Please try again."
-      );
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to download PDF. Please try again.",
+        type: "error",
+      });
     } finally {
       setDownloadingPdf(false);
     }
@@ -416,15 +436,21 @@ export default function NominationPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
-            <div className="h-20 w-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
+            <div
+              className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
+            >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
-              Nomination Submitted!
+              Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-purple-500 rounded-xl p-5 mb-8">
-              <p className="text-3xl font-bold text-purple-700 tracking-wide">
+            <div
+              className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}
+            >
+              <p
+                className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
+              >
                 {acknowledgementNumber}
               </p>
             </div>
@@ -437,21 +463,31 @@ export default function NominationPage() {
                 onClick={handleDownloadPdf}
                 isLoading={downloadingPdf}
                 disabled={downloadingPdf}
-                className="w-full gap-2">
+                className="w-full gap-2"
+              >
                 <Download className="h-5 w-5" />
-                {downloadingPdf ? "Downloading..." : "Download PDF Form"}
+                {downloadingPdf ? "Generating..." : "Download Application Form"}
               </Button>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
+                  onClick={() => router.push("/")}
+                  variant="outline"
+                  className="flex-1 sm:flex-initial"
+                >
+                  Home
+                </Button>
+                <Button
                   onClick={() => router.push("/status")}
                   variant="outline"
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Track Status
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
-                  className="flex-1 sm:flex-initial">
+                  className="flex-1 sm:flex-initial"
+                >
                   Submit Another
                 </Button>
               </div>
@@ -468,15 +504,12 @@ export default function NominationPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <Header />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
         <div className="text-center mb-10">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 mb-4">
-            <span className="mr-2">←</span> Back to Home
-          </Link>
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             Nomination Form
           </h1>
@@ -510,6 +543,8 @@ export default function NominationPage() {
                 <Input
                   label="Flat Number"
                   name="flatNumber"
+                  type="text"
+                  inputMode="numeric"
                   value={formData.flatNumber}
                   onChange={handleInputChange}
                   error={errors.flatNumber}
@@ -626,19 +661,24 @@ export default function NominationPage() {
               </p>
             </div>
             <div className="px-8 py-6">
-              <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-300 rounded-xl">
+              <div
+                className={`mb-6 p-5 ${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl`}
+              >
                 <p className="text-sm font-medium text-slate-700">
                   Total Share Percentage:{" "}
                   <span
                     className={`text-lg font-bold ${
                       totalSharePercentage === 100
-                        ? "text-emerald-600"
+                        ? theme.status.approved.text
                         : "text-red-600"
-                    }`}>
+                    }`}
+                  >
                     {totalSharePercentage}%
                   </span>
                   {totalSharePercentage === 100 && (
-                    <span className="ml-2 text-emerald-600">✓</span>
+                    <span className={`ml-2 ${theme.status.approved.text}`}>
+                      ✓
+                    </span>
                   )}
                   {errors.totalPercentage && (
                     <span className="block text-red-600 mt-2 text-sm">
@@ -651,7 +691,8 @@ export default function NominationPage() {
               {nominees.map((nominee, index) => (
                 <div
                   key={index}
-                  className="mb-6 p-6 border-2 border-slate-200 rounded-xl bg-slate-50/50">
+                  className="mb-6 p-6 border-2 border-slate-200 rounded-xl bg-slate-50/50"
+                >
                   <div className="flex justify-between items-center mb-5">
                     <h4 className="text-lg font-bold text-slate-900">
                       Nominee {index + 1}
@@ -662,7 +703,8 @@ export default function NominationPage() {
                         variant="danger"
                         size="sm"
                         onClick={() => removeNominee(index)}
-                        className="gap-2">
+                        className="gap-2"
+                      >
                         <Trash2 className="h-4 w-4" />
                         Remove
                       </Button>
@@ -780,7 +822,8 @@ export default function NominationPage() {
                   type="button"
                   variant="outline"
                   onClick={addNominee}
-                  className="gap-2 w-full sm:w-auto">
+                  className="gap-2 w-full sm:w-auto"
+                >
                   <Plus className="h-4 w-4" />
                   Add Another Nominee
                 </Button>
@@ -804,16 +847,17 @@ export default function NominationPage() {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
-                      label="Name"
+                      label="Full Name"
                       value={witness1.name}
                       onChange={(e) =>
                         handleWitnessChange(1, "name", e.target.value)
                       }
                       error={errors.witness1_name}
+                      placeholder="Enter witness 1 full name"
                       required
                     />
                     <Input
-                      label="Signature"
+                      label="Digital Signature"
                       value={witness1.signature}
                       onChange={(e) =>
                         handleWitnessChange(1, "signature", e.target.value)
@@ -844,16 +888,17 @@ export default function NominationPage() {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
-                      label="Name"
+                      label="Full Name"
                       value={witness2.name}
                       onChange={(e) =>
                         handleWitnessChange(2, "name", e.target.value)
                       }
                       error={errors.witness2_name}
+                      placeholder="Enter witness 2 full name"
                       required
                     />
                     <Input
-                      label="Signature"
+                      label="Digital Signature"
                       value={witness2.signature}
                       onChange={(e) =>
                         handleWitnessChange(2, "signature", e.target.value)
@@ -892,7 +937,7 @@ export default function NominationPage() {
             <div className="px-8 py-6">
               <div className="space-y-5">
                 <Input
-                  label="Member Signature"
+                  label="Applicant Digital Signature"
                   name="memberSignature"
                   value={memberSignature}
                   onChange={(e) => setMemberSignature(e.target.value)}
@@ -936,19 +981,24 @@ export default function NominationPage() {
               type="button"
               variant="secondary"
               onClick={() => router.push("/")}
-              className="sm:w-auto">
+              className="sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               isLoading={submitting}
               disabled={!isFormValid() || submitting}
-              className="sm:w-auto">
+              className="sm:w-auto"
+            >
               {submitting ? "Submitting..." : "Submit Nomination"}
             </Button>
           </div>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

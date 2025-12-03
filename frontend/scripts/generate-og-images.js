@@ -1,22 +1,23 @@
-const { createCanvas, registerFont } = require('canvas');
-const fs = require('fs');
-const path = require('path');
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { createCanvas } = require("canvas");
+const fs = require("fs");
+const path = require("path");
 
 // Create output directory if it doesn't exist
-const outputDir = path.join(__dirname, '..', 'public');
+const outputDir = path.join(__dirname, "..", "public");
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
 // Color scheme
 const colors = {
-  primary: '#2563eb', // blue-600
-  primaryDark: '#1e40af', // blue-700
-  accent: '#3b82f6', // blue-500
-  text: '#0f172a', // slate-900
-  textLight: '#475569', // slate-600
-  white: '#ffffff',
-  background: '#f8fafc', // slate-50
+  primary: "#2563eb", // blue-600
+  primaryDark: "#1e40af", // blue-700
+  accent: "#3b82f6", // blue-500
+  text: "#0f172a", // slate-900
+  textLight: "#475569", // slate-600
+  white: "#ffffff",
+  background: "#f8fafc", // slate-50
 };
 
 // Helper function to create gradient background
@@ -41,18 +42,18 @@ function roundRect(ctx, x, y, width, height, radius) {
 
 // Helper function to wrap text
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ');
-  let line = '';
+  const words = text.split(" ");
+  let line = "";
   let yPos = y;
 
   for (let i = 0; i < words.length; i++) {
-    const testLine = line + words[i] + ' ';
+    const testLine = line + words[i] + " ";
     const metrics = ctx.measureText(testLine);
     const testWidth = metrics.width;
 
     if (testWidth > maxWidth && i > 0) {
       ctx.fillText(line, x, yPos);
-      line = words[i] + ' ';
+      line = words[i] + " ";
       yPos += lineHeight;
     } else {
       line = testLine;
@@ -65,13 +66,13 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 // Generate Open Graph image (1200x630)
 function generateOGImage(title, subtitle, filename) {
   const canvas = createCanvas(1200, 630);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
   // Background gradient
   createGradientBackground(ctx, 1200, 630);
 
   // Add decorative elements
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
   ctx.beginPath();
   ctx.arc(1000, 100, 200, 0, Math.PI * 2);
   ctx.fill();
@@ -111,23 +112,23 @@ function generateOGImage(title, subtitle, filename) {
 
   // Title
   ctx.fillStyle = colors.text;
-  ctx.font = 'bold 64px Arial, sans-serif';
-  ctx.textAlign = 'left';
+  ctx.font = "bold 64px Arial, sans-serif";
+  ctx.textAlign = "left";
   wrapText(ctx, title, 220, 220, 880, 80);
 
   // Subtitle
   ctx.fillStyle = colors.textLight;
-  ctx.font = '32px Arial, sans-serif';
+  ctx.font = "32px Arial, sans-serif";
   wrapText(ctx, subtitle, 220, 340, 880, 45);
 
   // Footer text
   ctx.fillStyle = colors.white;
-  ctx.font = 'bold 24px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Citron Phase 2 C & D Co-operative Housing Society', 600, 580);
+  ctx.font = "bold 24px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Citron Phase 2 C & D Co-operative Housing Society", 600, 580);
 
   // Save image
-  const buffer = canvas.toBuffer('image/png');
+  const buffer = canvas.toBuffer("image/png");
   fs.writeFileSync(path.join(outputDir, filename), buffer);
   console.log(`✓ Generated ${filename}`);
 }
@@ -135,7 +136,7 @@ function generateOGImage(title, subtitle, filename) {
 // Generate app icons (square)
 function generateAppIcon(size, filename) {
   const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
   // Background gradient
   const gradient = ctx.createLinearGradient(0, 0, size, size);
@@ -168,7 +169,7 @@ function generateAppIcon(size, filename) {
   }
 
   // Save image
-  const buffer = canvas.toBuffer('image/png');
+  const buffer = canvas.toBuffer("image/png");
   fs.writeFileSync(path.join(outputDir, filename), buffer);
   console.log(`✓ Generated ${filename}`);
 }
@@ -177,7 +178,7 @@ function generateAppIcon(size, filename) {
 function generateAppleIcon() {
   const size = 180;
   const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
   // Solid background (Apple adds rounded corners automatically)
   const gradient = ctx.createLinearGradient(0, 0, size, size);
@@ -209,51 +210,51 @@ function generateAppleIcon() {
   }
 
   // Save image
-  const buffer = canvas.toBuffer('image/png');
-  fs.writeFileSync(path.join(outputDir, 'apple-icon.png'), buffer);
-  console.log('✓ Generated apple-icon.png');
+  const buffer = canvas.toBuffer("image/png");
+  fs.writeFileSync(path.join(outputDir, "apple-icon.png"), buffer);
+  console.log("✓ Generated apple-icon.png");
 }
 
 // Main execution
-console.log('🎨 Generating Open Graph images...\n');
+console.log("🎨 Generating Open Graph images...\n");
 
 // Generate OG images
 generateOGImage(
-  'Citron Documents',
-  'Manage your society documents online - Share certificates, nominations & NOC requests',
-  'og-image.png'
+  "Citron Documents",
+  "Manage your society documents online - Share certificates, nominations & NOC requests",
+  "og-image.png"
 );
 
 generateOGImage(
-  'Share Certificate',
-  'Apply for your share certificate with online document submission',
-  'og-share-certificate.png'
+  "Share Certificate",
+  "Apply for your share certificate with online document submission",
+  "og-share-certificate.png"
 );
 
 generateOGImage(
-  'Nomination Form',
-  'Register your nominees for share certificate inheritance',
-  'og-nomination.png'
+  "Nomination Form",
+  "Register your nominees for share certificate inheritance",
+  "og-nomination.png"
 );
 
 generateOGImage(
-  'NOC Request',
-  'Request No Objection Certificate for flat transfer or sale',
-  'og-noc.png'
+  "NOC Request",
+  "Request No Objection Certificate for flat transfer or sale",
+  "og-noc.png"
 );
 
 generateOGImage(
-  'Track Status',
-  'Check real-time status of your applications',
-  'og-status.png'
+  "Track Status",
+  "Check real-time status of your applications",
+  "og-status.png"
 );
 
-console.log('\n🎨 Generating app icons...\n');
+console.log("\n🎨 Generating app icons...\n");
 
 // Generate app icons
-generateAppIcon(192, 'icon-192.png');
-generateAppIcon(512, 'icon-512.png');
+generateAppIcon(192, "icon-192.png");
+generateAppIcon(512, "icon-512.png");
 generateAppleIcon();
 
-console.log('\n✅ All images generated successfully!');
-console.log('📁 Images saved to:', outputDir);
+console.log("\n✅ All images generated successfully!");
+console.log("📁 Images saved to:", outputDir);

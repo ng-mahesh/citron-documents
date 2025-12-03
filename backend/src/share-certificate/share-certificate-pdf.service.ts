@@ -53,7 +53,7 @@ export class ShareCertificatePdfService {
         yPos = this.addDeclarationSection(doc, yPos, certificate);
 
         // Enclosures Section
-        yPos = this.addEnclosuresSection(doc, yPos, certificate);
+        this.addEnclosuresSection(doc, yPos, certificate);
 
         // Footer
         this.addFooter(doc);
@@ -160,7 +160,11 @@ export class ShareCertificatePdfService {
   /**
    * Add title box
    */
-  private addTitleBox(doc: PDFKit.PDFDocument, startY: number, certificate: ShareCertificate): number {
+  private addTitleBox(
+    doc: PDFKit.PDFDocument,
+    startY: number,
+    certificate: ShareCertificate,
+  ): number {
     let y = startY;
 
     // Right column - Two boxes side by side
@@ -238,27 +242,11 @@ export class ShareCertificatePdfService {
       'Flat Number',
       certificate.flatNumber,
     );
-    this.drawBox(
-      doc,
-      this.margin + 2 * colWidth,
-      y,
-      colWidth,
-      boxHeight,
-      'Wing',
-      certificate.wing,
-    );
+    this.drawBox(doc, this.margin + 2 * colWidth, y, colWidth, boxHeight, 'Wing', certificate.wing);
     y += boxHeight;
 
     // Row 2: Email, Mobile, Alternate Mobile
-    this.drawBox(
-      doc,
-      this.margin,
-      y,
-      colWidth,
-      boxHeight,
-      'Email Address',
-      certificate.email,
-    );
+    this.drawBox(doc, this.margin, y, colWidth, boxHeight, 'Email Address', certificate.email);
     this.drawBox(
       doc,
       this.margin + colWidth,
@@ -404,15 +392,7 @@ export class ShareCertificatePdfService {
     y += 20;
 
     // Row: Name, Email, Mobile
-    this.drawBox(
-      doc,
-      this.margin,
-      y,
-      colWidth,
-      boxHeight,
-      'Name',
-      certificate.jointMemberName,
-    );
+    this.drawBox(doc, this.margin, y, colWidth, boxHeight, 'Name', certificate.jointMemberName);
     this.drawBox(
       doc,
       this.margin + colWidth,
@@ -442,7 +422,7 @@ export class ShareCertificatePdfService {
   private addDeclarationSection(
     doc: PDFKit.PDFDocument,
     startY: number,
-    certificate: ShareCertificate,
+    _certificate: ShareCertificate,
   ): number {
     let y = startY;
 
@@ -510,7 +490,7 @@ export class ShareCertificatePdfService {
   private addEnclosuresSection(
     doc: PDFKit.PDFDocument,
     startY: number,
-    certificate: ShareCertificate,
+    _certificate: ShareCertificate,
   ): number {
     let y = startY;
 

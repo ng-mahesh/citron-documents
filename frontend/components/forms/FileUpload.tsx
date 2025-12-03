@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Upload, File, X, AlertCircle } from 'lucide-react';
-import { uploadAPI } from '@/lib/api';
-import { DocumentMetadata } from '@/lib/types';
-import { Button } from '@/components/ui/Button';
+import React, { useState } from "react";
+import { Upload, File, X, AlertCircle } from "lucide-react";
+import { uploadAPI } from "@/lib/api";
+import { DocumentMetadata } from "@/lib/types";
 
 interface FileUploadProps {
   label: string;
@@ -28,7 +27,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   error,
 }) => {
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>('');
+  const [uploadError, setUploadError] = useState<string>("");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,33 +35,36 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      setUploadError('File size must be less than 2MB');
+      setUploadError("File size must be less than 2MB");
       return;
     }
 
     // Validate file type
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg'];
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg"];
     if (!allowedTypes.includes(file.type)) {
-      setUploadError('Only PDF and JPEG files are allowed');
+      setUploadError("Only PDF and JPEG files are allowed");
       return;
     }
 
-    setUploadError('');
+    setUploadError("");
     setUploading(true);
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('flatNumber', flatNumber);
-      formData.append('documentType', documentType);
-      formData.append('fullName', fullName);
+      formData.append("file", file);
+      formData.append("flatNumber", flatNumber);
+      formData.append("documentType", documentType);
+      formData.append("fullName", fullName);
 
       const response = await uploadAPI.upload(formData);
       // Backend returns { success, message, data }, we need the nested data object
       const uploadedFile = response.data.data || response.data;
       onUploadSuccess(uploadedFile);
-    } catch (err: any) {
-      setUploadError(err.response?.data?.message || 'Upload failed. Please try again.');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setUploadError(
+        error.response?.data?.message || "Upload failed. Please try again."
+      );
     } finally {
       setUploading(false);
     }
@@ -75,7 +77,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       await uploadAPI.delete(value.s3Key);
       onUploadSuccess({} as DocumentMetadata);
     } catch (err) {
-      console.error('Failed to delete file:', err);
+      console.error("Failed to delete file:", err);
     }
   };
 
@@ -98,11 +100,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           />
           <label
             htmlFor={`file-upload-${documentType}`}
-            className={`cursor-pointer ${uploading || !flatNumber || !fullName ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`cursor-pointer ${uploading || !flatNumber || !fullName ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <Upload className="mx-auto h-12 w-12 text-gray-400" />
             <p className="mt-2 text-sm text-gray-600">
-              {uploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+              {uploading ? "Uploading..." : "Click to upload or drag and drop"}
             </p>
             <p className="mt-1 text-xs text-gray-500">PDF or JPEG (max 2MB)</p>
           </label>
@@ -112,7 +114,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             <File className="h-8 w-8 text-blue-600 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate" title={value.fileName}>
+              <p
+                className="text-sm font-medium text-gray-900 truncate"
+                title={value.fileName}
+              >
                 {value.fileName}
               </p>
               <p className="text-xs text-gray-500">

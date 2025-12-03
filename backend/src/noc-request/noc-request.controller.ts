@@ -187,7 +187,8 @@ export class NocRequestController {
   @Put('payment/:acknowledgementNumber')
   async updatePayment(
     @Param('acknowledgementNumber') acknowledgementNumber: string,
-    @Body() paymentData: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @Body() paymentData: Record<string, any>,
   ) {
     const request = await this.nocRequestService.updatePaymentStatus(
       acknowledgementNumber,

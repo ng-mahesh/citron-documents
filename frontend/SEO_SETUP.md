@@ -107,6 +107,7 @@ Each page now has:
 ## Questions?
 
 If you need help with:
+
 - Creating Open Graph images
 - Setting up analytics
 - Adding structured data

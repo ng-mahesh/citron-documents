@@ -30,7 +30,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Track Application Status | Citron Documents",
     description: "Check real-time status of your applications with ease.",
-    images: [`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-status.png`],
+    images: [
+      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-status.png`,
+    ],
   },
 };
 

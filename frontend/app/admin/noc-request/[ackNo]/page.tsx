@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { nocRequestAPI, adminAPI } from "@/lib/api";
 import { Status } from "@/lib/types";
 import { ToastContainer, ToastType } from "@/components/ui/Toast";
@@ -21,24 +19,70 @@ import {
   Download,
   X,
   Save,
-  Home,
   IndianRupee,
   CreditCard,
   AlertCircle,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
+import { theme } from "@/lib/theme";
 
 export default function NocRequestDetailPage() {
   const router = useRouter();
   const params = useParams();
   const ackNo = params.ackNo as string;
 
-  const [nocRequest, setNocRequest] = useState<any>(null);
+  const [nocRequest, setNocRequest] = useState<{
+    _id: string;
+    acknowledgementNumber: string;
+    sellerName: string;
+    sellerEmail: string;
+    sellerMobileNumber: string;
+    sellerAlternateMobile?: string;
+    flatNumber: string;
+    wing: string;
+    buyerName: string;
+    buyerMobileNumber: string;
+    buyerEmail: string;
+    reason: string;
+    expectedTransferDate: string;
+    status: Status;
+    paymentStatus?: string;
+    paymentAmount?: number;
+    submittedAt: string;
+    updatedAt: string;
+    createdAt?: string;
+    digitalSignature?: string;
+    nocFees?: number;
+    transferFees?: number;
+    totalAmount?: number;
+    paymentTransactionId?: string;
+    paymentDate?: string;
+    paymentMethod?: string;
+    adminRemarks?: string;
+    agreementDocument?: { s3Key: string; fileName: string; fileType: string };
+    shareCertificateDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    maintenanceReceiptDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    buyerAadhaarDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    buyerPanDocument?: { s3Key: string; fileName: string; fileType: string };
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
   const [adminRemarks, setAdminRemarks] = useState<string>("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("Pending");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] =
+    useState<string>("Pending");
   const [updatingPayment, setUpdatingPayment] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -60,6 +104,7 @@ export default function NocRequestDetailPage() {
       return;
     }
     fetchNocRequestDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ackNo]);
 
   const fetchNocRequestDetails = async () => {
@@ -125,14 +170,17 @@ export default function NocRequestDetailPage() {
         ...nocRequest,
         paymentStatus: selectedPaymentStatus,
       });
-      setToast({ message: "Payment status updated successfully", type: "success" });
+      setToast({
+        message: "Payment status updated successfully",
+        type: "success",
+      });
     } catch (error) {
       console.error("Failed to update payment status:", error);
       setToast({
         message: "Failed to update payment status. Please try again.",
         type: "error",
       });
-      setSelectedPaymentStatus(nocRequest.paymentStatus);
+      setSelectedPaymentStatus(nocRequest.paymentStatus || "");
     } finally {
       setUpdatingPayment(false);
     }
@@ -143,12 +191,24 @@ export default function NocRequestDetailPage() {
     fileName: string,
     fileType: string
   ) => {
-    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+    setDocumentPopup({
+      isOpen: true,
+      url: "",
+      fileName,
+      fileType,
+      loading: true,
+    });
 
     try {
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
+      setDocumentPopup({
+        isOpen: true,
+        url: presignedUrl,
+        fileName,
+        fileType,
+        loading: false,
+      });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       setToast({
@@ -168,7 +228,9 @@ export default function NocRequestDetailPage() {
 
     setGeneratingPdf(true);
     try {
-      const response = await nocRequestAPI.downloadPdf(nocRequest.acknowledgementNumber);
+      const response = await nocRequestAPI.downloadPdf(
+        nocRequest.acknowledgementNumber
+      );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -179,7 +241,7 @@ export default function NocRequestDetailPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       setToast({ message: "PDF generated successfully", type: "success" });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to generate PDF:", error);
       setToast({
         message: "Failed to generate PDF. Please try again.",
@@ -207,16 +269,19 @@ export default function NocRequestDetailPage() {
       <span
         className={`px-4 py-2 rounded-lg text-sm font-bold ${
           colors[status] || "bg-gray-100 text-gray-800"
-        }`}>
+        }`}
+      >
         {status}
       </span>
     );
   };
 
+  // Reserved for future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getPaymentStatusBadgeColor = (paymentStatus: string) => {
     const statusColors: { [key: string]: string } = {
       Pending: "bg-yellow-100 text-yellow-800",
-      Paid: "bg-green-100 text-green-800",
+      Paid: `${theme.status.approved.bg} ${theme.status.approved.text}`,
       Failed: "bg-red-100 text-red-800",
     };
     return statusColors[paymentStatus] || "bg-gray-100 text-gray-800";
@@ -252,12 +317,15 @@ export default function NocRequestDetailPage() {
                 onClick={() => router.push("/admin/dashboard")}
                 variant="outline"
                 size="sm"
-                className="gap-2">
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-lg">
+                <div
+                  className={`h-10 w-10 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg`}
+                >
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -281,7 +349,6 @@ export default function NocRequestDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
-
             {/* Seller Information */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-8 py-5 border-b border-slate-200">
@@ -344,14 +411,23 @@ export default function NocRequestDetailPage() {
                       Submitted On
                     </label>
                     <p className="text-base text-slate-900 mt-1">
-                      {new Date(nocRequest.createdAt).toLocaleDateString(
-                        "en-IN",
-                        {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        }
-                      )}
+                      {nocRequest.createdAt
+                        ? new Date(nocRequest.createdAt).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )
+                        : new Date(nocRequest.submittedAt).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}
                     </p>
                   </div>
                   <div>
@@ -431,14 +507,13 @@ export default function NocRequestDetailPage() {
                       Expected Transfer Date
                     </label>
                     <p className="text-base text-slate-900 mt-1">
-                      {new Date(nocRequest.expectedTransferDate).toLocaleDateString(
-                        "en-IN",
-                        {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        }
-                      )}
+                      {new Date(
+                        nocRequest.expectedTransferDate
+                      ).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
                     </p>
                   </div>
                 </div>
@@ -456,9 +531,9 @@ export default function NocRequestDetailPage() {
               <div className="px-8 py-6">
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl border-2 border-blue-200">
+                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-blue-600" />
+                        <IndianRupee className="h-5 w-5 text-slate-600" />
                         <label className="text-sm font-medium text-slate-600">
                           NOC Fees
                         </label>
@@ -467,9 +542,9 @@ export default function NocRequestDetailPage() {
                         ₹{nocRequest.nocFees || 1000}
                       </p>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl border-2 border-emerald-200">
+                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-emerald-600" />
+                        <IndianRupee className="h-5 w-5 text-slate-600" />
                         <label className="text-sm font-medium text-slate-600">
                           Transfer Fees
                         </label>
@@ -478,14 +553,22 @@ export default function NocRequestDetailPage() {
                         ₹{nocRequest.transferFees || 25000}
                       </p>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200">
+                    <div
+                      className={`p-6 ${theme.status.approved.bg} rounded-xl border-2 ${theme.status.approved.border}`}
+                    >
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-purple-600" />
-                        <label className="text-sm font-medium text-purple-600">
+                        <IndianRupee
+                          className={`h-5 w-5 ${theme.status.approved.text}`}
+                        />
+                        <label
+                          className={`text-sm font-medium ${theme.status.approved.text}`}
+                        >
                           Total Amount
                         </label>
                       </div>
-                      <p className="text-2xl font-bold text-purple-600">
+                      <p
+                        className={`text-2xl font-bold ${theme.status.approved.text}`}
+                      >
                         ₹{nocRequest.totalAmount || 26000}
                       </p>
                     </div>
@@ -508,14 +591,13 @@ export default function NocRequestDetailPage() {
                         </label>
                         <p className="text-base text-slate-900 mt-1">
                           {nocRequest.paymentDate
-                            ? new Date(nocRequest.paymentDate).toLocaleDateString(
-                                "en-IN",
-                                {
-                                  day: "numeric",
-                                  month: "long",
-                                  year: "numeric",
-                                }
-                              )
+                            ? new Date(
+                                nocRequest.paymentDate
+                              ).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })
                             : "Pending"}
                         </p>
                       </div>
@@ -535,7 +617,6 @@ export default function NocRequestDetailPage() {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Sidebar - 1 column */}
@@ -558,7 +639,8 @@ export default function NocRequestDetailPage() {
                       setSelectedStatus(e.target.value as Status)
                     }
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                    disabled={updatingStatus}>
+                    disabled={updatingStatus}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
@@ -590,7 +672,8 @@ export default function NocRequestDetailPage() {
                       adminRemarks === (nocRequest.adminRemarks || ""))
                   }
                   isLoading={updatingStatus}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Save className="h-4 w-4" />
                   {updatingStatus ? "Updating..." : "Update Status"}
                 </Button>
@@ -613,7 +696,8 @@ export default function NocRequestDetailPage() {
                     value={selectedPaymentStatus}
                     onChange={(e) => setSelectedPaymentStatus(e.target.value)}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                    disabled={updatingPayment}>
+                    disabled={updatingPayment}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
                     <option value="Failed">Failed</option>
@@ -626,7 +710,8 @@ export default function NocRequestDetailPage() {
                     selectedPaymentStatus === nocRequest.paymentStatus
                   }
                   isLoading={updatingPayment}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Save className="h-4 w-4" />
                   {updatingPayment ? "Updating..." : "Update Payment"}
                 </Button>
@@ -644,13 +729,14 @@ export default function NocRequestDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nocRequest.agreementDocument.s3Key,
-                        nocRequest.agreementDocument.fileName,
-                        nocRequest.agreementDocument.fileType
+                        nocRequest.agreementDocument!.s3Key,
+                        nocRequest.agreementDocument!.fileName,
+                        nocRequest.agreementDocument!.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
-                    <FileText className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Agreement Copy
@@ -659,7 +745,7 @@ export default function NocRequestDetailPage() {
                         {nocRequest.agreementDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -668,22 +754,23 @@ export default function NocRequestDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nocRequest.shareCertificateDocument.s3Key,
-                        nocRequest.shareCertificateDocument.fileName,
-                        nocRequest.shareCertificateDocument.fileType
+                        nocRequest.shareCertificateDocument!.s3Key,
+                        nocRequest.shareCertificateDocument!.fileName,
+                        nocRequest.shareCertificateDocument!.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
-                    <FileText className="h-8 w-8 text-green-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Share Certificate
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nocRequest.shareCertificateDocument.fileName}
+                        {nocRequest.shareCertificateDocument!.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -692,22 +779,23 @@ export default function NocRequestDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nocRequest.maintenanceReceiptDocument.s3Key,
-                        nocRequest.maintenanceReceiptDocument.fileName,
-                        nocRequest.maintenanceReceiptDocument.fileType
+                        nocRequest.maintenanceReceiptDocument!.s3Key,
+                        nocRequest.maintenanceReceiptDocument!.fileName,
+                        nocRequest.maintenanceReceiptDocument!.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
-                    <FileText className="h-8 w-8 text-purple-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Maintenance Receipt
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nocRequest.maintenanceReceiptDocument.fileName}
+                        {nocRequest.maintenanceReceiptDocument!.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -716,22 +804,23 @@ export default function NocRequestDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nocRequest.buyerAadhaarDocument.s3Key,
-                        nocRequest.buyerAadhaarDocument.fileName,
-                        nocRequest.buyerAadhaarDocument.fileType
+                        nocRequest.buyerAadhaarDocument!.s3Key,
+                        nocRequest.buyerAadhaarDocument!.fileName,
+                        nocRequest.buyerAadhaarDocument!.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200">
-                    <FileText className="h-8 w-8 text-orange-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Buyer Aadhaar Card
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nocRequest.buyerAadhaarDocument.fileName}
+                        {nocRequest.buyerAadhaarDocument!.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -740,22 +829,23 @@ export default function NocRequestDetailPage() {
                   <button
                     onClick={() =>
                       openDocumentPopup(
-                        nocRequest.buyerPanDocument.s3Key,
-                        nocRequest.buyerPanDocument.fileName,
-                        nocRequest.buyerPanDocument.fileType
+                        nocRequest.buyerPanDocument!.s3Key,
+                        nocRequest.buyerPanDocument!.fileName,
+                        nocRequest.buyerPanDocument!.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200">
-                    <FileText className="h-8 w-8 text-indigo-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Buyer PAN Card
                       </p>
                       <p className="text-xs text-slate-600 truncate">
-                        {nocRequest.buyerPanDocument.fileName}
+                        {nocRequest.buyerPanDocument!.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
               </div>
@@ -793,15 +883,19 @@ export default function NocRequestDetailPage() {
               </div>
               <div className="px-6 py-4">
                 <p className="text-sm text-slate-600 mb-4">
-                  Download the official NOC request form PDF with all submitted details.
+                  Download the official NOC request form PDF with all submitted
+                  details.
                 </p>
                 <Button
                   onClick={handleGeneratePdf}
                   disabled={generatingPdf}
                   isLoading={generatingPdf}
-                  className="w-full gap-2">
+                  className="w-full gap-2"
+                >
                   <Download className="h-4 w-4" />
-                  {generatingPdf ? "Generating..." : "Generate NOC Request Form"}
+                  {generatingPdf
+                    ? "Generating..."
+                    : "Generate NOC Request Form"}
                 </Button>
               </div>
             </div>
@@ -813,10 +907,12 @@ export default function NocRequestDetailPage() {
       {documentPopup && documentPopup.isOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={closeDocumentPopup}>
+          onClick={closeDocumentPopup}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
@@ -834,7 +930,8 @@ export default function NocRequestDetailPage() {
               </div>
               <button
                 onClick={closeDocumentPopup}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -853,6 +950,7 @@ export default function NocRequestDetailPage() {
                 />
               ) : (
                 <div className="flex items-center justify-center bg-slate-50 rounded-lg p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={documentPopup.url}
                     alt={documentPopup.fileName}
@@ -874,7 +972,8 @@ export default function NocRequestDetailPage() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                >
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>
@@ -892,4 +991,3 @@ export default function NocRequestDetailPage() {
     </div>
   );
 }
-
