@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { shareCertificateAPI, nominationAPI, nocRequestAPI } from '@/lib/api';
 import { Search, CheckCircle, Clock, XCircle, AlertCircle, FileText } from 'lucide-react';
+import { Header } from '@/components/layout/Header';
 
 export default function StatusPage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState('');
@@ -109,15 +110,12 @@ export default function StatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <Header />
+
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
         <div className="text-center mb-10">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 mb-4">
-            <span className="mr-2">←</span> Back to Home
-          </Link>
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             Track Application Status
           </h1>

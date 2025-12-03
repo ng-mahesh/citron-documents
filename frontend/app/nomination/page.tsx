@@ -12,6 +12,7 @@ import { nominationAPI } from "@/lib/api";
 import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
 import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
+import { Header } from "@/components/layout/Header";
 
 export default function NominationPage() {
   const router = useRouter();
@@ -481,15 +482,12 @@ export default function NominationPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <Header />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
         <div className="text-center mb-10">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 mb-4">
-            <span className="mr-2">←</span> Back to Home
-          </Link>
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             Nomination Form
           </h1>

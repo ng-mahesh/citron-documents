@@ -1,65 +1,70 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import Image from "next/image";
+import { Header } from "@/components/layout/Header";
 import {
   FileText,
   Users,
   Search,
-  Shield,
   CheckCircle,
   Clock,
   Award,
   FileCheck,
+  Shield,
 } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                {/* Full title on desktop, short on mobile */}
-                <h1 className="text-base sm:text-lg font-bold text-slate-900">
-                  <span className="hidden sm:inline">
-                    Citron Phase 2 C & D Co-operative Housing Society Limited
-                  </span>
-                  <span className="sm:hidden">Citron Phase - 2</span>
-                </h1>
-                <p className="text-xs text-slate-500">Documents Portal</p>
-              </div>
-            </div>
-            <Link href="/admin/login">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Shield className="h-4 w-4" />
-                Admin
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 pt-16 pb-12">
-        <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-            Manage Your Society
-            <br />
-            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-              Documents Online
-            </span>
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Apply for share certificates, register nominations, request NOC for flat transfers, and track
-            applications—all from the comfort of your home
-          </p>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-slate-50">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 md:py-20">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Content */}
+            <div className="text-center lg:text-left order-2 lg:order-1">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+                Manage Your Society
+                <span className="block mt-2 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                  Documents Online
+                </span>
+              </h1>
+              <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
+                Apply for share certificates, register nominations, request NOC for flat transfers, and track applications—all from the comfort of your home.
+              </p>
+              {/* <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                <Link href="/share-certificate">
+                  <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-200 transition-all">
+                    Get Started
+                  </button>
+                </Link>
+                <Link href="/status">
+                  <button className="px-6 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-xl font-semibold hover:border-blue-300 hover:shadow-md transition-all">
+                    Track Status
+                  </button>
+                </Link>
+              </div> */}
+            </div>
+
+            {/* Right Side - Logo */}
+            <div className="flex justify-center items-center order-1 lg:order-2">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-3xl opacity-20 scale-110"></div>
+                <div className="relative h-64 w-64 sm:h-80 sm:w-80 md:h-96 md:w-96">
+                  <Image
+                    src="/logo.png"
+                    alt="Citron Society Logo"
+                    width={384}
+                    height={384}
+                    className="rounded-3xl object-contain drop-shadow-2xl"
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

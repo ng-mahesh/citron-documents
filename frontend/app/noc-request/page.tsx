@@ -12,6 +12,7 @@ import { nocRequestAPI } from "@/lib/api";
 import { DocumentMetadata } from "@/lib/types";
 import { CheckCircle, Download, Info } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
+import { Header } from "@/components/layout/Header";
 
 export default function NocRequestPage() {
   const router = useRouter();
@@ -329,14 +330,11 @@ export default function NocRequestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-12">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <Header />
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-10">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-green-600 hover:text-green-700 mb-4">
-            <span className="mr-2">←</span> Back to Home
-          </Link>
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             NOC Request & Flat Transfer
           </h1>
