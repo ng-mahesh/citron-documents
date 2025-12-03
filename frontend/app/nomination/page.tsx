@@ -12,6 +12,8 @@ import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { ToastType } from "@/components/ui/Toast";
 
 export default function NominationPage() {
   const router = useRouter();
@@ -65,6 +67,10 @@ export default function NominationPage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -386,10 +392,12 @@ export default function NominationPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
-      alert(
-        err.response?.data?.message ||
-          "Failed to submit nomination. Please try again."
-      );
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to submit nomination. Please try again.",
+        type: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -412,10 +420,12 @@ export default function NominationPage() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
-      alert(
-        err.response?.data?.message ||
-          "Failed to download PDF. Please try again."
-      );
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to download PDF. Please try again.",
+        type: "error",
+      });
     } finally {
       setDownloadingPdf(false);
     }
@@ -986,6 +996,9 @@ export default function NominationPage() {
           </div>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

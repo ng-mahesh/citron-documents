@@ -12,6 +12,8 @@ import { CheckCircle, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { ToastType } from "@/components/ui/Toast";
 
 export default function ShareCertificatePage() {
   const router = useRouter();
@@ -41,6 +43,10 @@ export default function ShareCertificatePage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState("");
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
 
   const membershipTypes = [
     { value: "Primary", label: "Primary Member" },
@@ -222,10 +228,12 @@ export default function ShareCertificatePage() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
-      alert(
-        err.response?.data?.message ||
-          "Failed to download PDF. Please try again."
-      );
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to download PDF. Please try again.",
+        type: "error",
+      });
     } finally {
       setDownloadingPdf(false);
     }
@@ -268,10 +276,12 @@ export default function ShareCertificatePage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
-      alert(
-        err.response?.data?.message ||
-          "Failed to submit application. Please try again."
-      );
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to submit application. Please try again.",
+        type: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -697,6 +707,9 @@ export default function ShareCertificatePage() {
           </div>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

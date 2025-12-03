@@ -13,6 +13,8 @@ import { CheckCircle, Download, Info } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { ToastType } from "@/components/ui/Toast";
 
 export default function NocRequestPage() {
   const router = useRouter();
@@ -57,6 +59,10 @@ export default function NocRequestPage() {
     totalAmount: number;
   } | null>(null);
   const [checkingPending, setCheckingPending] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
 
   const nocReasons = [
     { value: "Sale", label: "Sale" },
@@ -247,10 +253,12 @@ export default function NocRequestPage() {
     } catch (error) {
       console.error("Error submitting NOC request:", error);
       const err = error as { response?: { data?: { message?: string } } };
-      alert(
-        err.response?.data?.message ||
-          "Failed to submit NOC request. Please try again."
-      );
+      setToast({
+        message:
+          err.response?.data?.message ||
+          "Failed to submit NOC request. Please try again.",
+        type: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -272,7 +280,10 @@ export default function NocRequestPage() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      alert("Failed to download PDF. Please try again.");
+      setToast({
+        message: "Failed to download PDF. Please try again.",
+        type: "error",
+      });
     }
   };
 
@@ -734,6 +745,9 @@ export default function NocRequestPage() {
           </Card>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

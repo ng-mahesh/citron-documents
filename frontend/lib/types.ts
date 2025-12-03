@@ -61,22 +61,28 @@ export interface Witness {
 export interface Nomination {
   _id?: string;
   acknowledgementNumber?: string;
-  memberFullName: string;
+  primaryMemberName?: string;
+  primaryMemberEmail?: string;
+  primaryMemberMobile?: string;
   flatNumber: string;
-  building: string;
+  building?: string;
   wing: string;
-  email: string;
-  mobileNumber: string;
-  memberAadhaarNumber: string;
-  memberAadhaarDocument: DocumentMetadata;
+  email?: string;
+  mobileNumber?: string;
+  memberAadhaarNumber?: string;
+  memberAadhaarDocument?: DocumentMetadata;
   nominees: Nominee[];
-  witness1: Witness;
-  witness2: Witness;
+  witness1?: Witness;
+  witness2?: Witness;
+  witnesses?: Witness[];
+  memberSignature?: string;
   declarationAccepted: boolean;
   status?: Status;
   submittedAt?: Date;
   updatedAt?: Date;
   adminNotes?: string;
+  // Legacy fields for backward compatibility
+  memberFullName?: string;
 }
 
 export interface DashboardStats {
@@ -116,16 +122,26 @@ export interface AdminUser {
 export interface NocRequest {
   _id?: string;
   acknowledgementNumber?: string;
-  fullName: string;
+  sellerName: string;
+  sellerEmail: string;
+  sellerMobileNumber: string;
+  sellerAlternateMobile?: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerMobileNumber: string;
   flatNumber: string;
   wing: string;
-  email: string;
-  mobileNumber: string;
-  purpose: string;
-  requestDetails: string;
+  reason: string;
+  expectedTransferDate?: string;
   status?: Status;
   submittedAt?: Date;
   updatedAt?: Date;
   adminNotes?: string;
   documents?: DocumentMetadata[];
+  // Legacy fields for backward compatibility
+  fullName?: string;
+  email?: string;
+  mobileNumber?: string;
+  purpose?: string;
+  requestDetails?: string;
 }

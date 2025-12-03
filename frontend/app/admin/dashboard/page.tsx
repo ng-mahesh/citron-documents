@@ -30,9 +30,12 @@ import {
   ChevronLeft,
   ChevronRight,
   FileSignature,
+  Home,
 } from "lucide-react";
 import { theme } from "@/lib/theme";
 import { Loader } from "@/components/ui/Loader";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { ToastType } from "@/components/ui/Toast";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -79,6 +82,12 @@ export default function AdminDashboard() {
   const [nocSearchQuery, setNocSearchQuery] = useState("");
   const [nocCurrentPage, setNocCurrentPage] = useState(1);
   const nocItemsPerPage = 10;
+
+  // Toast state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -137,7 +146,7 @@ export default function AdminDashboard() {
       link.click();
       link.remove();
     } catch {
-      alert("Failed to export data");
+      setToast({ message: "Failed to export data", type: "error" });
     } finally {
       setExporting(false);
     }
@@ -160,7 +169,7 @@ export default function AdminDashboard() {
       }
       fetchDashboardData();
     } catch {
-      alert("Failed to update status");
+      setToast({ message: "Failed to update status", type: "error" });
     }
   };
 
@@ -188,8 +197,9 @@ export default function AdminDashboard() {
       }
       fetchDashboardData();
       setDeleteModal(null);
+      setToast({ message: "Entry deleted successfully", type: "success" });
     } catch {
-      alert("Failed to delete entry");
+      setToast({ message: "Failed to delete entry", type: "error" });
     } finally {
       setDeleting(false);
     }
@@ -241,7 +251,10 @@ export default function AdminDashboard() {
         loading: false,
       });
     } catch {
-      alert("Failed to load document. Please try again.");
+      setToast({
+        message: "Failed to load document. Please try again.",
+        type: "error",
+      });
       setDocumentPopup(null);
     }
   };
@@ -278,11 +291,13 @@ export default function AdminDashboard() {
   const filteredNominations = useMemo(() => {
     return nominations.filter((nom) => {
       const searchLower = nomSearchQuery.toLowerCase();
+      const memberName = nom.primaryMemberName || nom.memberFullName || "";
+      const memberEmail = nom.primaryMemberEmail || nom.email || "";
       return (
         nom.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
-        nom.memberFullName?.toLowerCase().includes(searchLower) ||
+        memberName.toLowerCase().includes(searchLower) ||
         nom.flatNumber?.toLowerCase().includes(searchLower) ||
-        nom.email?.toLowerCase().includes(searchLower) ||
+        memberEmail.toLowerCase().includes(searchLower) ||
         nom.wing?.toLowerCase().includes(searchLower)
       );
     });
@@ -302,10 +317,12 @@ export default function AdminDashboard() {
       const searchLower = nocSearchQuery.toLowerCase();
       return (
         noc.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
-        noc.fullName?.toLowerCase().includes(searchLower) ||
+        noc.sellerName?.toLowerCase().includes(searchLower) ||
+        noc.buyerName?.toLowerCase().includes(searchLower) ||
         noc.flatNumber?.toLowerCase().includes(searchLower) ||
-        noc.email?.toLowerCase().includes(searchLower) ||
-        noc.wing?.toLowerCase().includes(searchLower)
+        noc.sellerEmail?.toLowerCase().includes(searchLower) ||
+        noc.wing?.toLowerCase().includes(searchLower) ||
+        noc.reason?.toLowerCase().includes(searchLower)
       );
     });
   }, [nocRequests, nocSearchQuery]);
@@ -349,25 +366,36 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-[#175a00] to-[#185900] rounded-xl flex items-center justify-center shadow-lg shadow-green-200">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900">
+                <h1 className="text-lg sm:text-xl font-bold text-[#175a00]">
                   Admin Dashboard
                 </h1>
                 <p className="text-xs text-slate-500">Citron Documents App</p>
               </div>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="gap-2 text-xs sm:text-sm"
-            >
-              <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => router.push("/")}
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs sm:text-sm"
+              >
+                <Home className="h-3 w-3 sm:h-4 sm:w-4" />
+                Home
+              </Button>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs sm:text-sm"
+              >
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -521,7 +549,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={certSearchQuery}
                   onChange={(e) => setCertSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -684,7 +712,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={nomSearchQuery}
                   onChange={(e) => setNomSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -728,7 +756,9 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
                           <div className="truncate">
-                            {nom.memberFullName || "N/A"}
+                            {nom.primaryMemberName ||
+                              nom.memberFullName ||
+                              "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
@@ -736,7 +766,9 @@ export default function AdminDashboard() {
                           {nom.flatNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
-                          <div className="truncate">{nom.email || "N/A"}</div>
+                          <div className="truncate">
+                            {nom.primaryMemberEmail || nom.email || "N/A"}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                           <span
@@ -765,7 +797,9 @@ export default function AdminDashboard() {
                                 handleDelete(
                                   nom._id!,
                                   "nomination",
-                                  nom.memberFullName || "N/A",
+                                  nom.primaryMemberName ||
+                                    nom.memberFullName ||
+                                    "N/A",
                                   `${nom.wing} - ${nom.flatNumber}`
                                 )
                               }
@@ -858,7 +892,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={nocSearchQuery}
                   onChange={(e) => setNocSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -905,15 +939,23 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
                           <div className="truncate">
-                            {noc.fullName || "N/A"}
+                            {noc.sellerName || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 max-w-xs">
-                          <div className="truncate">{noc.purpose || "N/A"}</div>
+                          <div className="truncate">
+                            {noc.buyerName || "N/A"}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                           {noc.wing && `${noc.wing} - `}
                           {noc.flatNumber}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {noc.reason || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          ₹26,000
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(noc.status!)}
@@ -935,7 +977,7 @@ export default function AdminDashboard() {
                                 handleDelete(
                                   noc._id!,
                                   "noc-request",
-                                  noc.fullName || "N/A",
+                                  noc.sellerName || "N/A",
                                   `${noc.wing} - ${noc.flatNumber}`
                                 )
                               }
@@ -1184,6 +1226,9 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
