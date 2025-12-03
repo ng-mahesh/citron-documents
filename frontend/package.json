@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate:images": "node scripts/generate-og-images.js"
+    "generate:images": "node scripts/generate-og-images.js",
+    "generate:favicon": "node scripts/generate-favicon.js",
+    "generate:all": "npm run generate:images && npm run generate:favicon"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
