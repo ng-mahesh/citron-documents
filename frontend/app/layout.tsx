@@ -36,6 +36,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-image.png`,
+        secureUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "Citron Documents - Document Management System",
@@ -83,6 +84,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Additional meta tags for better WhatsApp large image preview */}
+        <meta property="og:image:secure_url" content={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-image.png`} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Citron Phase 2 Document Request" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
