@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ShareCertificateModule } from './share-certificate/share-certificate.module';
 import { NominationModule } from './nomination/nomination.module';
+import { NocRequestModule } from './noc-request/noc-request.module';
 import { AdminModule } from './admin/admin.module';
 import { UploadModule } from './upload/upload.module';
 import { EmailModule } from './email/email.module';
@@ -31,6 +32,7 @@ import { EmailModule } from './email/email.module';
     // Feature modules
     ShareCertificateModule,
     NominationModule,
+    NocRequestModule,
     AdminModule,
     UploadModule,
     EmailModule,
