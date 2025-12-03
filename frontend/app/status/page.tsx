@@ -424,6 +424,16 @@ export default function StatusPage() {
         )}
 
         {/* Footer */}
+        {result && (
+          <div className="flex justify-center mb-8">
+            <Button
+              onClick={() => window.location.href = "/"}
+              variant="outline"
+              className="px-8">
+              Back to Home
+            </Button>
+          </div>
+        )}
         <div className="text-center">
           <p className="text-sm text-slate-600 mb-2">
             Need help? We're here for you

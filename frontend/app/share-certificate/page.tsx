@@ -312,6 +312,12 @@ export default function ShareCertificatePage() {
               </Button>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
+                  onClick={() => router.push("/")}
+                  variant="outline"
+                  className="flex-1 sm:flex-initial">
+                  Home
+                </Button>
+                <Button
                   onClick={() => router.push("/status")}
                   variant="outline"
                   className="flex-1 sm:flex-initial">
