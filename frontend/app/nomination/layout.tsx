@@ -18,10 +18,11 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-nomination.png",
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-nomination.png`,
         width: 1200,
         height: 630,
         alt: "Nomination Form",
+        type: "image/png",
       },
     ],
   },
@@ -30,6 +31,7 @@ export const metadata: Metadata = {
     title: "Nomination Form | Citron Documents",
     description:
       "Register your nominees for share certificate inheritance online.",
+    images: [`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/og-nomination.png`],
   },
 };
 
