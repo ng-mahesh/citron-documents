@@ -7,10 +7,11 @@ import { Transporter } from 'nodemailer';
  * Interface for acknowledgement email data
  */
 interface AcknowledgementEmailData {
-  email: string;
+  email: string | string[]; // Single email or multiple emails for To recipients
   name: string;
   acknowledgementNumber: string;
-  type: string; // 'Share Certificate' or 'Nomination'
+  type: string; // 'Share Certificate' or 'Nomination or 'NOC Request'
+  ccEmails?: string[]; // Optional CC recipients
 }
 
 /**
@@ -89,57 +90,19 @@ export class EmailService {
   }
 
   /**
-   * Send test email
-   */
-  async sendTestEmail(toEmail: string): Promise<void> {
-    const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL');
-    const mailOptions = {
-      from: fromEmail,
-      to: toEmail,
-      subject: 'Test Email - Citron Society Documents',
-      html: `
-        <h1>Test Email</h1>
-        <p>This is a test email to verify SMTP configuration.</p>
-        <p>If you receive this email, your SMTP settings are working correctly!</p>
-        <p>Sent at: ${new Date().toLocaleString()}</p>
-      `,
-      text: 'This is a test email to verify SMTP configuration. If you receive this email, your SMTP settings are working correctly!',
-    };
-
-    try {
-      console.log('📧 Attempting to send test email...');
-      console.log('   From:', fromEmail);
-      console.log('   To:', toEmail);
-      console.log('   Subject:', mailOptions.subject);
-
-      const info = await this.transporter.sendMail(mailOptions);
-
-      console.log('✅ Test email sent successfully!');
-      console.log('   Message ID:', info.messageId);
-      console.log('   Response:', info.response);
-      console.log('   Accepted:', info.accepted);
-      console.log('   Rejected:', info.rejected);
-      console.log('   Pending:', info.pending);
-    } catch (error) {
-      console.error('❌ Error sending test email:');
-      console.error('   Error Type:', error.name);
-      console.error('   Error Message:', error.message);
-      console.error('   Error Code:', error.code);
-      console.error('   Full Error:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Send acknowledgement email after successful submission
    */
   async sendAcknowledgementEmail(data: AcknowledgementEmailData): Promise<void> {
-    const { email, name, acknowledgementNumber, type } = data;
+    const { email, name, acknowledgementNumber, type, ccEmails } = data;
 
     const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL');
+    // Handle both single email and array of emails for To recipients
+    const toEmails = Array.isArray(email) ? email.join(', ') : email;
+
     const mailOptions = {
-      from: `"Citron Society" <${fromEmail}>`,
-      to: email,
+      from: `"Citron Phase 2 - Office" <${fromEmail}>`,
+      to: toEmails,
+      cc: ccEmails && ccEmails.length > 0 ? ccEmails.join(', ') : undefined,
       subject: `${type} Submission Acknowledgement - ${acknowledgementNumber}`,
       text: `Dear ${name},\n\nThank you for submitting your ${type} application. We have received your documents successfully.\n\nAcknowledgement Number: ${acknowledgementNumber}\n\nYou can track your application status using this number.\n\nBest regards,\nCitron Phase 2 C & D Co-operative Housing Society Limited`,
       html: `
@@ -197,7 +160,10 @@ export class EmailService {
       console.log('='.repeat(60));
       console.log(`📧 Sending ${type} acknowledgement email`);
       console.log(`   From: ${mailOptions.from}`);
-      console.log(`   To: ${email}`);
+      console.log(`   To: ${toEmails}`);
+      if (ccEmails && ccEmails.length > 0) {
+        console.log(`   CC: ${ccEmails.join(', ')}`);
+      }
       console.log(`   Subject: ${mailOptions.subject}`);
       console.log(`   Acknowledgement #: ${acknowledgementNumber}`);
 
@@ -215,7 +181,7 @@ export class EmailService {
     } catch (error) {
       console.error('='.repeat(60));
       console.error('❌ Error sending acknowledgement email');
-      console.error(`   To: ${email}`);
+      console.error(`   To: ${toEmails}`);
       console.error(`   Error: ${error.message}`);
       console.error(`   Code: ${error.code}`);
       console.error('='.repeat(60));
@@ -253,8 +219,9 @@ export class EmailService {
         statusMessage = `Your application status has been updated to: ${status}`;
     }
 
+    const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL');
     const mailOptions = {
-      from: this.configService.get<string>('SMTP_FROM_EMAIL'),
+      from: `"Citron Phase 2 - Office" <${fromEmail}>`,
       to: email,
       subject: `${type} Application Status Update`,
       html: `

@@ -5,6 +5,7 @@ import { NocRequest, PaymentStatus } from './schemas/noc-request.schema';
 import { CreateNocRequestDto } from './dto/create-noc-request.dto';
 import { UpdateNocRequestDto } from './dto/update-noc-request.dto';
 import { EmailService } from '../email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Service handling business logic for NOC Request operations
@@ -15,6 +16,7 @@ export class NocRequestService {
     @InjectModel(NocRequest.name)
     private nocRequestModel: Model<NocRequest>,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -70,12 +72,19 @@ export class NocRequestService {
 
       const saved = await nocRequest.save();
 
-      // Send acknowledgement email to seller
+      // Send acknowledgement email to both seller and buyer, CC to chairman, secretary, and treasurer
+      const ccEmails = [
+        this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
+        this.configService.get<string>('CC_SECRETARY_EMAIL'),
+        this.configService.get<string>('CC_TREASURER_EMAIL'),
+      ].filter((email) => email); // Filter out any undefined emails
+
       await this.emailService.sendAcknowledgementEmail({
-        email: saved.sellerEmail,
-        name: saved.sellerName,
+        email: [saved.sellerEmail, saved.buyerEmail], // Send to both seller and buyer
+        name: `${saved.sellerName} and ${saved.buyerName}`,
         acknowledgementNumber: saved.acknowledgementNumber,
         type: 'NOC Request',
+        ccEmails,
       });
 
       return saved;

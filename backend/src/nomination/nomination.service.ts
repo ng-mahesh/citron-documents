@@ -5,6 +5,7 @@ import { Nomination } from './schemas/nomination.schema';
 import { CreateNominationDto } from './dto/create-nomination.dto';
 import { UpdateNominationDto } from './dto/update-nomination.dto';
 import { EmailService } from '../email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Service handling business logic for Nomination operations
@@ -15,6 +16,7 @@ export class NominationService {
     @InjectModel(Nomination.name)
     private nominationModel: Model<Nomination>,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -80,12 +82,19 @@ export class NominationService {
 
       const saved = await nomination.save();
 
-      // Send acknowledgement email
+      // Send acknowledgement email to requestor and CC to chairman, secretary, and treasurer
+      const ccEmails = [
+        this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
+        this.configService.get<string>('CC_SECRETARY_EMAIL'),
+        this.configService.get<string>('CC_TREASURER_EMAIL'),
+      ].filter((email) => email); // Filter out any undefined emails
+
       await this.emailService.sendAcknowledgementEmail({
         email: saved.primaryMemberEmail,
         name: saved.primaryMemberName,
         acknowledgementNumber: saved.acknowledgementNumber,
         type: 'Nomination',
+        ccEmails,
       });
 
       return saved;

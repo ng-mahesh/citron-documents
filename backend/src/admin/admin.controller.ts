@@ -96,27 +96,6 @@ export class AdminController {
     };
   }
 
-  /**
-   * Send test email
-   * POST /api/admin/email/test
-   */
-  @Post('email/test')
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  async sendTestEmail(@Body() body: { email: string }) {
-    try {
-      await this.emailService.sendTestEmail(body.email);
-      return {
-        success: true,
-        message: 'Test email sent successfully',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: `Failed to send test email: ${error.message}`,
-      };
-    }
-  }
 
   /**
    * Send notification email to resident
