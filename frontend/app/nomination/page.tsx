@@ -428,7 +428,7 @@ export default function NominationPage() {
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
-              Nomination Submitted!
+              Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-purple-500 rounded-xl p-5 mb-8">
@@ -437,8 +437,7 @@ export default function NominationPage() {
               </p>
             </div>
             <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-              Save this number for tracking. A confirmation email has been sent
-              to your inbox.
+              Save this number for tracking. A confirmation email has been sent to your inbox.
             </p>
             <div className="flex flex-col gap-3">
               <Button
@@ -447,7 +446,7 @@ export default function NominationPage() {
                 disabled={downloadingPdf}
                 className="w-full gap-2">
                 <Download className="h-5 w-5" />
-                {downloadingPdf ? "Downloading..." : "Download PDF Form"}
+                {downloadingPdf ? "Generating..." : "Download Application Form"}
               </Button>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button

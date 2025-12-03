@@ -245,94 +245,78 @@ export default function NocRequestPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-3xl mx-auto px-4">
-          <Card className="p-8">
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <CheckCircle className="h-16 w-16 text-green-500" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                NOC Request Submitted Successfully!
-              </h1>
-              <p className="text-gray-600 mb-6">
-                Your NOC request has been submitted and is under review.
-              </p>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                <p className="text-sm text-gray-600 mb-2">
-                  Acknowledgement Number
-                </p>
-                <p className="text-2xl font-bold text-blue-600 mb-4">
-                  {acknowledgementNumber}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Please save this number for future reference
-                </p>
-              </div>
-
-              {paymentDetails && (
-                <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6 mb-6">
-                  <div className="flex items-start gap-3">
-                    <Info className="h-6 w-6 text-yellow-600 flex-shrink-0" />
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900 mb-3">
-                        Payment Required
-                      </h3>
-                      <div className="space-y-2 bg-white rounded-lg p-4 mb-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-700">NOC Fees:</span>
-                          <span className="font-bold text-gray-900 text-lg">₹{paymentDetails.nocFees}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-700">Transfer Fees:</span>
-                          <span className="font-bold text-gray-900 text-lg">₹{paymentDetails.transferFees}</span>
-                        </div>
-                        <div className="border-t-2 border-yellow-300 pt-2 flex justify-between items-center">
-                          <span className="font-bold text-gray-900 text-lg">Total Amount:</span>
-                          <span className="font-bold text-blue-600 text-2xl">₹{paymentDetails.totalAmount}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-700 bg-yellow-100/50 p-3 rounded">
-                        💡 Payment instructions will be sent to your email shortly.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Button
-                  onClick={handleDownloadPdf}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download NOC Request PDF
-                </Button>
-
-                <Button
-                  onClick={() => router.push(`/status?ackNo=${acknowledgementNumber}`)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Track Request Status
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/")}
-                  variant="primary"
-                  className="w-full"
-                >
-                  Back to Home
-                </Button>
-              </div>
-
-              <p className="text-sm text-gray-500 mt-6">
-                A confirmation email has been sent to {formData.sellerEmail}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl mx-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
+            <div className="h-20 w-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
+              <CheckCircle className="h-10 w-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+              Successfully Submitted!
+            </h2>
+            <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-green-500 rounded-xl p-5 mb-8">
+              <p className="text-3xl font-bold text-green-700 tracking-wide">
+                {acknowledgementNumber}
               </p>
             </div>
-          </Card>
+
+            {paymentDetails && (
+              <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 text-left">
+                    <h3 className="text-base font-bold text-gray-900 mb-2">
+                      Payment Required
+                    </h3>
+                    <div className="space-y-1.5 bg-white rounded-lg p-3 mb-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">NOC Fees:</span>
+                        <span className="font-bold text-gray-900">₹{paymentDetails.nocFees}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Transfer Fees:</span>
+                        <span className="font-bold text-gray-900">₹{paymentDetails.transferFees}</span>
+                      </div>
+                      <div className="border-t border-yellow-300 pt-1.5 flex justify-between items-center">
+                        <span className="font-bold text-gray-900">Total Amount:</span>
+                        <span className="font-bold text-blue-600 text-lg">₹{paymentDetails.totalAmount}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-700 bg-yellow-100/50 p-2 rounded">
+                      Payment instructions will be sent to your email shortly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm text-slate-600 mb-8 leading-relaxed">
+              Save this number for tracking. A confirmation email has been sent to your inbox.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={handleDownloadPdf}
+                className="w-full gap-2">
+                <Download className="h-5 w-5" />
+                Download Application Form
+              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={() => router.push("/status")}
+                  variant="outline"
+                  className="flex-1 sm:flex-initial">
+                  Track Status
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="flex-1 sm:flex-initial">
+                  Submit Another
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

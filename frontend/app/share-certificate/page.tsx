@@ -299,8 +299,7 @@ export default function ShareCertificatePage() {
               </p>
             </div>
             <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-              Save this number for tracking. A confirmation email has been sent
-              to your inbox.
+              Save this number for tracking. A confirmation email has been sent to your inbox.
             </p>
             <div className="flex flex-col gap-3">
               <Button
