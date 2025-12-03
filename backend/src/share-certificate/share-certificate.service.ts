@@ -5,6 +5,7 @@ import { ShareCertificate } from './schemas/share-certificate.schema';
 import { CreateShareCertificateDto } from './dto/create-share-certificate.dto';
 import { UpdateShareCertificateDto } from './dto/update-share-certificate.dto';
 import { EmailService } from '../email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Service handling business logic for Share Certificate operations
@@ -15,6 +16,7 @@ export class ShareCertificateService {
     @InjectModel(ShareCertificate.name)
     private shareCertificateModel: Model<ShareCertificate>,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -67,12 +69,19 @@ export class ShareCertificateService {
 
       const saved = await shareCertificate.save();
 
-      // Send acknowledgement email
+      // Send acknowledgement email to requestor and CC to chairman, secretary, and treasurer
+      const ccEmails = [
+        this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
+        this.configService.get<string>('CC_SECRETARY_EMAIL'),
+        this.configService.get<string>('CC_TREASURER_EMAIL'),
+      ].filter((email) => email); // Filter out any undefined emails
+
       await this.emailService.sendAcknowledgementEmail({
         email: saved.email,
         name: saved.fullName,
         acknowledgementNumber: saved.acknowledgementNumber,
         type: 'Share Certificate',
+        ccEmails,
       });
 
       return saved;

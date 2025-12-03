@@ -11,6 +11,7 @@ import { FileUpload } from "@/components/forms/FileUpload";
 import { nocRequestAPI } from "@/lib/api";
 import { DocumentMetadata } from "@/lib/types";
 import { CheckCircle, Download, Info } from "lucide-react";
+import { InlineLoader } from "@/components/ui/Loader";
 
 export default function NocRequestPage() {
   const router = useRouter();
@@ -404,6 +405,14 @@ export default function NocRequestPage() {
                   onChange={handleInputChange}
                   onBlur={checkPendingRequest}
                   error={errors.wing}
+                  helperText={
+                    checkingPending ? (
+                      <span className="flex items-center gap-2 text-blue-600">
+                        <InlineLoader className="h-4 w-4" />
+                        Checking for pending NOC requests...
+                      </span>
+                    ) : undefined
+                  }
                   options={[
                     { value: "", label: "Select Wing" },
                     { value: "C", label: "Wing C" },

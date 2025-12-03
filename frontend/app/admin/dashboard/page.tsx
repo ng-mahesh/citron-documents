@@ -29,6 +29,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Loader, InlineLoader } from "@/components/ui/Loader";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -39,6 +40,8 @@ export default function AdminDashboard() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [nocRequests, setNocRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<"certificates" | "nominations" | "noc-requests">(
     "certificates"
   );
@@ -47,6 +50,7 @@ export default function AdminDashboard() {
     url: string;
     fileName: string;
     fileType: string;
+    loading?: boolean;
   } | null>(null);
 
   // Delete confirmation modal state
@@ -109,6 +113,7 @@ export default function AdminDashboard() {
   };
 
   const handleExport = async (type: "certificates" | "nominations" | "noc-requests") => {
+    setExporting(true);
     try {
       const response =
         type === "certificates"
@@ -126,6 +131,8 @@ export default function AdminDashboard() {
       link.remove();
     } catch (error) {
       alert("Failed to export data");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -161,6 +168,7 @@ export default function AdminDashboard() {
   const confirmDelete = async () => {
     if (!deleteModal) return;
 
+    setDeleting(true);
     try {
       if (deleteModal.type === "certificate") {
         await shareCertificateAPI.delete(deleteModal.id);
@@ -173,6 +181,8 @@ export default function AdminDashboard() {
       setDeleteModal(null);
     } catch (error) {
       alert("Failed to delete entry");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -210,15 +220,19 @@ export default function AdminDashboard() {
     fileName: string,
     fileType: string
   ) => {
+    // Show loading state
+    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+
     try {
       // Fetch pre-signed URL from backend
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
 
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType });
+      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       alert("Failed to load document. Please try again.");
+      setDocumentPopup(null);
     }
   };
 
@@ -452,9 +466,11 @@ export default function AdminDashboard() {
               onClick={() => handleExport(activeTab)}
               variant="outline"
               size="sm"
+              isLoading={exporting}
+              disabled={exporting}
               className="gap-2 w-full sm:w-auto justify-center">
-              <Download className="h-4 w-4" />
-              Export to Excel
+              {!exporting && <Download className="h-4 w-4" />}
+              {exporting ? "Exporting..." : "Export to Excel"}
             </Button>
           </div>
         </div>
@@ -1005,7 +1021,11 @@ export default function AdminDashboard() {
 
             {/* Document Content */}
             <div className="flex-1 p-4 overflow-auto">
-              {documentPopup.fileType?.includes("pdf") ? (
+              {documentPopup.loading ? (
+                <div className="flex items-center justify-center min-h-[60vh]">
+                  <Loader size="lg" message="Loading document..." />
+                </div>
+              ) : documentPopup.fileType?.includes("pdf") ? (
                 <iframe
                   src={documentPopup.url}
                   className="w-full h-full min-h-[60vh] border-0 rounded-lg"
@@ -1024,14 +1044,21 @@ export default function AdminDashboard() {
 
             {/* Footer */}
             <div className="flex items-center justify-between p-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
-              <a
-                href={documentPopup.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
-                <Download className="h-4 w-4" />
-                Download Document
-              </a>
+              {documentPopup.loading ? (
+                <div className="px-4 py-2 bg-slate-300 text-slate-500 rounded-lg cursor-not-allowed font-medium text-sm inline-flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download Document
+                </div>
+              ) : (
+                <a
+                  href={documentPopup.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  <Download className="h-4 w-4" />
+                  Download Document
+                </a>
+              )}
               <Button onClick={closeDocumentPopup} variant="outline" size="sm">
                 Close
               </Button>
@@ -1097,14 +1124,17 @@ export default function AdminDashboard() {
               <Button
                 onClick={() => setDeleteModal(null)}
                 variant="outline"
-                size="sm">
+                size="sm"
+                disabled={deleting}>
                 Cancel
               </Button>
               <Button
                 onClick={confirmDelete}
                 size="sm"
+                isLoading={deleting}
+                disabled={deleting}
                 className="bg-red-600 hover:bg-red-700 text-white">
-                Delete
+                {deleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </div>

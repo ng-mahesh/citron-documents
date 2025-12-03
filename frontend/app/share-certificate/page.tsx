@@ -12,6 +12,7 @@ import { shareCertificateAPI } from "@/lib/api";
 import { DocumentMetadata, MembershipType } from "@/lib/types";
 import { CheckCircle, Download } from "lucide-react";
 import { generateShareCertificateReceipt } from "@/lib/pdfGenerator";
+import { InlineLoader } from "@/components/ui/Loader";
 
 export default function ShareCertificatePage() {
   const router = useRouter();
@@ -448,7 +449,14 @@ export default function ShareCertificatePage() {
                     { value: "D", label: "D" },
                   ]}
                   error={errors.wing}
-                  helperText={checkingDuplicate ? "Checking..." : undefined}
+                  helperText={
+                    checkingDuplicate ? (
+                      <span className="flex items-center gap-2 text-blue-600">
+                        <InlineLoader className="h-4 w-4" />
+                        Checking for duplicate flat...
+                      </span>
+                    ) : undefined
+                  }
                   required
                 />
                 <Input

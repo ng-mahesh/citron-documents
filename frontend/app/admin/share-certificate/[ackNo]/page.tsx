@@ -24,6 +24,7 @@ import {
   Home,
   Ruler,
 } from "lucide-react";
+import { Loader } from "@/components/ui/Loader";
 
 export default function ShareCertificateDetailPage() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function ShareCertificateDetailPage() {
     url: string;
     fileName: string;
     fileType: string;
+    loading?: boolean;
   } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
@@ -109,16 +111,20 @@ export default function ShareCertificateDetailPage() {
     fileName: string,
     fileType: string
   ) => {
+    // Show loading state
+    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+
     try {
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType });
+      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       setToast({
         message: "Failed to load document. Please try again.",
         type: "error",
       });
+      setDocumentPopup(null);
     }
   };
 
@@ -621,7 +627,11 @@ export default function ShareCertificateDetailPage() {
 
             {/* Document Content */}
             <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
-              {documentPopup.fileType?.includes("pdf") ? (
+              {documentPopup.loading ? (
+                <div className="flex items-center justify-center min-h-[60vh]">
+                  <Loader size="lg" message="Loading document..." />
+                </div>
+              ) : documentPopup.fileType?.includes("pdf") ? (
                 <iframe
                   src={documentPopup.url}
                   className="w-full h-[70vh] border-0 rounded-lg"
@@ -640,14 +650,21 @@ export default function ShareCertificateDetailPage() {
 
             {/* Footer */}
             <div className="flex items-center justify-between p-4 border-t border-slate-200 bg-slate-50">
-              <a
-                href={documentPopup.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
-                <Download className="h-4 w-4" />
-                Download Document
-              </a>
+              {documentPopup.loading ? (
+                <div className="px-4 py-2 bg-slate-300 text-slate-500 rounded-lg cursor-not-allowed font-medium text-sm inline-flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download Document
+                </div>
+              ) : (
+                <a
+                  href={documentPopup.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  <Download className="h-4 w-4" />
+                  Download Document
+                </a>
+              )}
               <Button onClick={closeDocumentPopup} variant="outline" size="sm">
                 Close
               </Button>

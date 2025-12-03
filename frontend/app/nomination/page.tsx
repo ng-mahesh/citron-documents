@@ -11,6 +11,7 @@ import { FileUpload } from "@/components/forms/FileUpload";
 import { nominationAPI } from "@/lib/api";
 import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
 import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
+import { InlineLoader } from "@/components/ui/Loader";
 
 export default function NominationPage() {
   const router = useRouter();
@@ -526,7 +527,14 @@ export default function NominationPage() {
                     { value: "D", label: "D" },
                   ]}
                   error={errors.wing}
-                  helperText={checkingDuplicate ? "Checking..." : undefined}
+                  helperText={
+                    checkingDuplicate ? (
+                      <span className="flex items-center gap-2 text-blue-600">
+                        <InlineLoader className="h-4 w-4" />
+                        Checking for duplicate flat...
+                      </span>
+                    ) : undefined
+                  }
                   required
                 />
                 <Input
