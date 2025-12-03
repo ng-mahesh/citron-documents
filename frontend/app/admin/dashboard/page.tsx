@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
-import { adminAPI, shareCertificateAPI, nominationAPI, nocRequestAPI } from "@/lib/api";
+import {
+  adminAPI,
+  shareCertificateAPI,
+  nominationAPI,
+  nocRequestAPI,
+} from "@/lib/api";
 import {
   DashboardStats,
   ShareCertificate,
@@ -28,8 +33,10 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  FileSignature,
 } from "lucide-react";
 import { Loader, InlineLoader } from "@/components/ui/Loader";
+import { theme } from "@/lib/theme";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -42,9 +49,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"certificates" | "nominations" | "noc-requests">(
-    "certificates"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "certificates" | "nominations" | "noc-requests"
+  >("certificates");
   const [documentPopup, setDocumentPopup] = useState<{
     isOpen: boolean;
     url: string;
@@ -88,12 +95,13 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, certificatesRes, nominationsRes, nocRequestsRes] = await Promise.all([
-        adminAPI.getDashboardStats(),
-        shareCertificateAPI.getAll(),
-        nominationAPI.getAll(),
-        nocRequestAPI.getAll(),
-      ]);
+      const [statsRes, certificatesRes, nominationsRes, nocRequestsRes] =
+        await Promise.all([
+          adminAPI.getDashboardStats(),
+          shareCertificateAPI.getAll(),
+          nominationAPI.getAll(),
+          nocRequestAPI.getAll(),
+        ]);
 
       setStats(statsRes.data.data);
       setShareCertificates(certificatesRes.data.data);
@@ -112,7 +120,9 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   };
 
-  const handleExport = async (type: "certificates" | "nominations" | "noc-requests") => {
+  const handleExport = async (
+    type: "certificates" | "nominations" | "noc-requests"
+  ) => {
     setExporting(true);
     try {
       const response =
@@ -196,16 +206,11 @@ export default function AdminDashboard() {
 
   const getStatusBadge = (status: Status) => {
     const colors: Record<Status, string> = {
-      Pending:
-        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300",
-      "Under Review":
-        "bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border border-amber-300",
-      Approved:
-        "bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 border border-emerald-300",
-      Rejected:
-        "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300",
-      "Document Required":
-        "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300",
+      Pending: `${theme.status.pending.bg} ${theme.status.pending.text} border ${theme.status.pending.border}`,
+      "Under Review": `${theme.status.underReview.bg} ${theme.status.underReview.text} border ${theme.status.underReview.border}`,
+      Approved: `${theme.status.approved.bg} ${theme.status.approved.text} border ${theme.status.approved.border}`,
+      Rejected: `${theme.status.rejected.bg} ${theme.status.rejected.text} border ${theme.status.rejected.border}`,
+      "Document Required": `${theme.status.documentRequired.bg} ${theme.status.documentRequired.text} border ${theme.status.documentRequired.border}`,
     };
     return (
       <span
@@ -221,14 +226,26 @@ export default function AdminDashboard() {
     fileType: string
   ) => {
     // Show loading state
-    setDocumentPopup({ isOpen: true, url: "", fileName, fileType, loading: true });
+    setDocumentPopup({
+      isOpen: true,
+      url: "",
+      fileName,
+      fileType,
+      loading: true,
+    });
 
     try {
       // Fetch pre-signed URL from backend
       const response = await adminAPI.getDocumentPresignedUrl(s3Key);
       const presignedUrl = response.data.data.presignedUrl;
 
-      setDocumentPopup({ isOpen: true, url: presignedUrl, fileName, fileType, loading: false });
+      setDocumentPopup({
+        isOpen: true,
+        url: presignedUrl,
+        fileName,
+        fileType,
+        loading: false,
+      });
     } catch (error) {
       console.error("Failed to fetch document URL:", error);
       alert("Failed to load document. Please try again.");
@@ -366,66 +383,83 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
                 <FileText className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">
-                  Total Certificates
-                </p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {stats?.shareCertificates.total || 0}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Total Certificates
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {stats?.shareCertificates.total || 0}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
                 <Users className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">
-                  Total Nominations
-                </p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {stats?.nominations.total || 0}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Total Nominations
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {stats?.nominations.total || 0}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
+                <FileSignature className="h-7 w-7 text-white" />
+              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Total NOC Requests
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {stats?.nocRequests?.total || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}>
                 <CheckCircle className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">Approved</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {(stats?.shareCertificates.approved || 0) +
-                    (stats?.nominations.approved || 0)}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Approved
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {(stats?.shareCertificates.approved || 0) +
+                  (stats?.nominations.approved || 0) +
+                  (stats?.nocRequests?.approved || 0)}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center">
-              <div className="h-14 w-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mr-4">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className={`h-14 w-14 ${theme.iconBg.amber} rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mb-3`}>
                 <Clock className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-600">Pending</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {(stats?.shareCertificates.pending || 0) +
-                    (stats?.nominations.pending || 0)}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-600 mb-1">
+                Pending
+              </p>
+              <p className="text-3xl font-bold text-slate-900">
+                {(stats?.shareCertificates.pending || 0) +
+                  (stats?.nominations.pending || 0) +
+                  (stats?.nocRequests?.pending || 0)}
+              </p>
             </div>
           </div>
         </div>
@@ -438,7 +472,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab("certificates")}
                 className={`${
                   activeTab === "certificates"
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
+                    ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
                 } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
                 Share Certificates ({shareCertificates.length})
@@ -447,7 +481,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab("nominations")}
                 className={`${
                   activeTab === "nominations"
-                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md"
+                    ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
                 } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
                 Nominations ({nominations.length})
@@ -456,7 +490,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab("noc-requests")}
                 className={`${
                   activeTab === "noc-requests"
-                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md"
+                    ? `${theme.button.primary.bg} text-white shadow-md`
                     : "text-slate-600 hover:bg-slate-100"
                 } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}>
                 NOC Requests ({nocRequests.length})
@@ -487,7 +521,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={certSearchQuery}
                   onChange={(e) => setCertSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -546,7 +580,7 @@ export default function AdminDashboard() {
                                   `/admin/share-certificate/${cert.acknowledgementNumber}`
                                 )
                               }
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}>
                               View Details
                             </button>
                             <button
@@ -612,7 +646,7 @@ export default function AdminDashboard() {
                         onClick={() => setCertCurrentPage(page)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                           certCurrentPage === page
-                            ? "bg-blue-600 text-white"
+                            ? `${theme.button.primary.bg} text-white`
                             : "text-slate-600 hover:bg-slate-100"
                         }`}>
                         {page}
@@ -643,7 +677,7 @@ export default function AdminDashboard() {
                   placeholder="Search by name, ack no, flat, email, wing..."
                   value={nomSearchQuery}
                   onChange={(e) => setNomSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                 />
               </div>
             </div>
@@ -701,7 +735,8 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-semibold">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg ${theme.status.pending.bg} ${theme.status.pending.text} font-semibold`}>
                             {nom.nominees?.length || 0}
                           </span>
                         </td>
@@ -716,7 +751,7 @@ export default function AdminDashboard() {
                                   `/admin/nomination/${nom.acknowledgementNumber}`
                                 )
                               }
-                              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}>
                               View Details
                             </button>
                             <button
@@ -782,7 +817,7 @@ export default function AdminDashboard() {
                           onClick={() => setNomCurrentPage(page)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             nomCurrentPage === page
-                              ? "bg-purple-600 text-white"
+                              ? `${theme.button.primary.bg} text-white`
                               : "text-slate-600 hover:bg-slate-100"
                           }`}>
                           {page}
@@ -873,22 +908,24 @@ export default function AdminDashboard() {
                           {noc.flatNumber}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
-                            noc.reason === 'Sale'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-orange-100 text-orange-800'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
+                              noc.reason === "Sale"
+                                ? `${theme.status.pending.bg} ${theme.status.pending.text}`
+                                : `${theme.status.documentRequired.bg} ${theme.status.documentRequired.text}`
+                            }`}>
                             {noc.reason}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
-                            noc.paymentStatus === 'Paid'
-                              ? 'bg-green-100 text-green-800'
-                              : noc.paymentStatus === 'Pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg font-semibold ${
+                              noc.paymentStatus === "Paid"
+                                ? `${theme.status.approved.bg} ${theme.status.approved.text}`
+                                : noc.paymentStatus === "Pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : `${theme.status.rejected.bg} ${theme.status.rejected.text}`
+                            }`}>
                             {noc.paymentStatus}
                           </span>
                         </td>
@@ -903,7 +940,7 @@ export default function AdminDashboard() {
                                   `/admin/noc-request/${noc.acknowledgementNumber}`
                                 )
                               }
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                              className={`px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors text-sm font-medium`}>
                               View Details
                             </button>
                             <button
@@ -967,7 +1004,7 @@ export default function AdminDashboard() {
                           onClick={() => setNocCurrentPage(page)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             nocCurrentPage === page
-                              ? "bg-green-600 text-white"
+                              ? `${theme.button.primary.bg} text-white`
                               : "text-slate-600 hover:bg-slate-100"
                           }`}>
                           {page}
@@ -1000,7 +1037,8 @@ export default function AdminDashboard() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <div
+                  className={`h-10 w-10 ${theme.iconBg.primary} rounded-lg flex items-center justify-center`}>
                   <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1054,7 +1092,7 @@ export default function AdminDashboard() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}>
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>
@@ -1097,7 +1135,9 @@ export default function AdminDashboard() {
                 <span className="font-semibold">
                   {deleteModal.type === "certificate"
                     ? "share certificate"
-                    : "nomination"}
+                    : deleteModal.type === "nomination"
+                    ? "nomination"
+                    : "NOC request"}
                 </span>{" "}
                 application?
               </p>

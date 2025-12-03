@@ -13,6 +13,7 @@ import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
 import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
+import { theme } from "@/lib/theme";
 
 export default function NominationPage() {
   const router = useRouter();
@@ -425,15 +426,15 @@ export default function NominationPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
-            <div className="h-20 w-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
+            <div className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}>
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-purple-500 rounded-xl p-5 mb-8">
-              <p className="text-3xl font-bold text-purple-700 tracking-wide">
+            <div className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}>
+              <p className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}>
                 {acknowledgementNumber}
               </p>
             </div>
@@ -639,19 +640,19 @@ export default function NominationPage() {
               </p>
             </div>
             <div className="px-8 py-6">
-              <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-300 rounded-xl">
+              <div className={`mb-6 p-5 ${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl`}>
                 <p className="text-sm font-medium text-slate-700">
                   Total Share Percentage:{" "}
                   <span
                     className={`text-lg font-bold ${
                       totalSharePercentage === 100
-                        ? "text-emerald-600"
+                        ? theme.status.approved.text
                         : "text-red-600"
                     }`}>
                     {totalSharePercentage}%
                   </span>
                   {totalSharePercentage === 100 && (
-                    <span className="ml-2 text-emerald-600">✓</span>
+                    <span className={`ml-2 ${theme.status.approved.text}`}>✓</span>
                   )}
                   {errors.totalPercentage && (
                     <span className="block text-red-600 mt-2 text-sm">

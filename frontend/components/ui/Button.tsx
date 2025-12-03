@@ -1,4 +1,5 @@
 import React from 'react';
+import { theme } from '@/lib/theme';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'outline';
@@ -19,10 +20,10 @@ export const Button: React.FC<ButtonProps> = ({
   const baseClasses = 'font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 inline-flex items-center justify-center';
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white focus:ring-blue-500 shadow-sm hover:shadow-md',
+    primary: `bg-gradient-to-r ${theme.colors.gradients.primary} hover:shadow-lg ${theme.button.primary.hover} text-white focus:ring-green-500 shadow-sm`,
     secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-900 focus:ring-slate-400 border border-slate-200',
     danger: 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white focus:ring-red-500 shadow-sm hover:shadow-md',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500 bg-white',
+    outline: `border-2 ${theme.button.outline.border} ${theme.button.outline.text} hover:bg-green-50 focus:ring-green-500 bg-white`,
   };
 
   const sizeClasses = {

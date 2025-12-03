@@ -13,6 +13,7 @@ import { DocumentMetadata } from "@/lib/types";
 import { CheckCircle, Download, Info } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
+import { theme } from "@/lib/theme";
 
 export default function NocRequestPage() {
   const router = useRouter();
@@ -249,15 +250,15 @@ export default function NocRequestPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
-            <div className="h-20 w-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
+            <div className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}>
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
-            <div className="bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-green-500 rounded-xl p-5 mb-8">
-              <p className="text-3xl font-bold text-green-700 tracking-wide">
+            <div className={`${theme.status.approved.bg} border-2 ${theme.status.approved.border} rounded-xl p-5 mb-8`}>
+              <p className={`text-3xl font-bold ${theme.status.approved.text} tracking-wide`}>
                 {acknowledgementNumber}
               </p>
             </div>
@@ -281,7 +282,7 @@ export default function NocRequestPage() {
                       </div>
                       <div className="border-t border-yellow-300 pt-1.5 flex justify-between items-center">
                         <span className="font-bold text-gray-900">Total Amount:</span>
-                        <span className="font-bold text-blue-600 text-lg">₹{paymentDetails.totalAmount}</span>
+                        <span className={`font-bold ${theme.status.approved.text} text-lg`}>₹{paymentDetails.totalAmount}</span>
                       </div>
                     </div>
                     <p className="text-xs text-gray-700 bg-yellow-100/50 p-2 rounded">
@@ -584,7 +585,7 @@ export default function NocRequestPage() {
 
           {/* Payment Information */}
           <Card className="p-8">
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-6">
+            <div className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-6`}>
               <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
@@ -595,9 +596,9 @@ export default function NocRequestPage() {
                   <span className="text-gray-700 font-medium">Transfer Fees:</span>
                   <span className="font-bold text-gray-900 text-lg">₹25,000</span>
                 </div>
-                <div className="border-t-2 border-blue-400 pt-3 flex justify-between items-center">
+                <div className={`border-t-2 ${theme.status.pending.border} pt-3 flex justify-between items-center`}>
                   <span className="font-bold text-gray-900 text-lg">Total Amount:</span>
-                  <span className="font-bold text-blue-600 text-2xl">₹26,000</span>
+                  <span className={`font-bold ${theme.status.approved.text} text-2xl`}>₹26,000</span>
                 </div>
               </div>
               <p className="text-sm text-gray-700 mt-4 bg-white/50 p-3 rounded-lg">

@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
+import { theme } from "@/lib/theme";
 
 export default function NocRequestDetailPage() {
   const router = useRouter();
@@ -216,7 +217,7 @@ export default function NocRequestDetailPage() {
   const getPaymentStatusBadgeColor = (paymentStatus: string) => {
     const statusColors: { [key: string]: string } = {
       Pending: "bg-yellow-100 text-yellow-800",
-      Paid: "bg-green-100 text-green-800",
+      Paid: `${theme.status.approved.bg} ${theme.status.approved.text}`,
       Failed: "bg-red-100 text-red-800",
     };
     return statusColors[paymentStatus] || "bg-gray-100 text-gray-800";
@@ -257,7 +258,7 @@ export default function NocRequestDetailPage() {
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-lg">
+                <div className={`h-10 w-10 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg`}>
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -456,9 +457,9 @@ export default function NocRequestDetailPage() {
               <div className="px-8 py-6">
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl border-2 border-blue-200">
+                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-blue-600" />
+                        <IndianRupee className="h-5 w-5 text-slate-600" />
                         <label className="text-sm font-medium text-slate-600">
                           NOC Fees
                         </label>
@@ -467,9 +468,9 @@ export default function NocRequestDetailPage() {
                         ₹{nocRequest.nocFees || 1000}
                       </p>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl border-2 border-emerald-200">
+                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-emerald-600" />
+                        <IndianRupee className="h-5 w-5 text-slate-600" />
                         <label className="text-sm font-medium text-slate-600">
                           Transfer Fees
                         </label>
@@ -478,14 +479,14 @@ export default function NocRequestDetailPage() {
                         ₹{nocRequest.transferFees || 25000}
                       </p>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200">
+                    <div className={`p-6 ${theme.status.approved.bg} rounded-xl border-2 ${theme.status.approved.border}`}>
                       <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-purple-600" />
-                        <label className="text-sm font-medium text-purple-600">
+                        <IndianRupee className={`h-5 w-5 ${theme.status.approved.text}`} />
+                        <label className={`text-sm font-medium ${theme.status.approved.text}`}>
                           Total Amount
                         </label>
                       </div>
-                      <p className="text-2xl font-bold text-purple-600">
+                      <p className={`text-2xl font-bold ${theme.status.approved.text}`}>
                         ₹{nocRequest.totalAmount || 26000}
                       </p>
                     </div>
@@ -649,8 +650,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.agreementDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
-                    <FileText className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Agreement Copy
@@ -659,7 +660,7 @@ export default function NocRequestDetailPage() {
                         {nocRequest.agreementDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -673,8 +674,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.shareCertificateDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
-                    <FileText className="h-8 w-8 text-green-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Share Certificate
@@ -683,7 +684,7 @@ export default function NocRequestDetailPage() {
                         {nocRequest.shareCertificateDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -697,8 +698,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.maintenanceReceiptDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
-                    <FileText className="h-8 w-8 text-purple-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Maintenance Receipt
@@ -707,7 +708,7 @@ export default function NocRequestDetailPage() {
                         {nocRequest.maintenanceReceiptDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -721,8 +722,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.buyerAadhaarDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200">
-                    <FileText className="h-8 w-8 text-orange-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Buyer Aadhaar Card
@@ -731,7 +732,7 @@ export default function NocRequestDetailPage() {
                         {nocRequest.buyerAadhaarDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -745,8 +746,8 @@ export default function NocRequestDetailPage() {
                         nocRequest.buyerPanDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200">
-                    <FileText className="h-8 w-8 text-indigo-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Buyer PAN Card
@@ -755,7 +756,7 @@ export default function NocRequestDetailPage() {
                         {nocRequest.buyerPanDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
               </div>

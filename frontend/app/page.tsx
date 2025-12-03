@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/layout/Header";
+import { theme } from "@/lib/theme";
 import {
   FileText,
   Users,
@@ -20,38 +21,31 @@ export default function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-slate-50">
+      <section
+        className={`relative overflow-hidden ${theme.colors.background.section}`}>
         <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 md:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Side - Content */}
             <div className="text-center lg:text-left order-2 lg:order-1">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
                 Manage Your Society
-                <span className="block mt-2 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                <span
+                  className={`block mt-2 bg-gradient-to-r ${theme.colors.gradients.text} bg-clip-text text-transparent`}>
                   Documents Online
                 </span>
               </h1>
               <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
-                Apply for share certificates, register nominations, request NOC for flat transfers, and track applications—all from the comfort of your home.
+                Apply for share certificates, register nominations, request NOC
+                for flat transfers, and track applications—all from the comfort
+                of your home.
               </p>
-              {/* <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                <Link href="/share-certificate">
-                  <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-200 transition-all">
-                    Get Started
-                  </button>
-                </Link>
-                <Link href="/status">
-                  <button className="px-6 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-xl font-semibold hover:border-blue-300 hover:shadow-md transition-all">
-                    Track Status
-                  </button>
-                </Link>
-              </div> */}
             </div>
 
             {/* Right Side - Logo */}
             <div className="flex justify-center items-center order-1 lg:order-2">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-3xl opacity-20 scale-110"></div>
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${theme.colors.background.blur} rounded-full blur-3xl opacity-20 scale-110`}></div>
                 <div className="relative h-64 w-64 sm:h-80 sm:w-80 md:h-96 md:w-96">
                   <Image
                     src="/logo.png"
@@ -72,8 +66,10 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link href="/share-certificate" className="group h-full">
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
-              <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <div
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
                 <FileText className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -82,7 +78,7 @@ export default function Home() {
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Apply for your share certificate with online document submission
               </p>
-              <div className="flex items-center text-blue-600 font-medium text-sm group-hover:gap-2 transition-all">
+              <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
                 Apply Now
                 <span className="inline-block group-hover:translate-x-1 transition-transform">
                   →
@@ -92,8 +88,10 @@ export default function Home() {
           </Link>
 
           <Link href="/nomination" className="group h-full">
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-purple-300 hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
-              <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <div
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
                 <Users className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -102,7 +100,7 @@ export default function Home() {
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Register your nominees for share certificate inheritance
               </p>
-              <div className="flex items-center text-purple-600 font-medium text-sm group-hover:gap-2 transition-all">
+              <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
                 Submit Form
                 <span className="inline-block group-hover:translate-x-1 transition-transform">
                   →
@@ -112,8 +110,10 @@ export default function Home() {
           </Link>
 
           <Link href="/noc-request" className="group h-full">
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-green-300 hover:shadow-xl hover:shadow-green-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
-              <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <div
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
                 <FileCheck className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -122,7 +122,7 @@ export default function Home() {
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Request No Objection Certificate for flat transfer or sale
               </p>
-              <div className="flex items-center text-green-600 font-medium text-sm group-hover:gap-2 transition-all">
+              <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
                 Request NOC
                 <span className="inline-block group-hover:translate-x-1 transition-transform">
                   →
@@ -132,8 +132,10 @@ export default function Home() {
           </Link>
 
           <Link href="/status" className="group h-full">
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left">
-              <div className="h-14 w-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <div
+              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}>
+              <div
+                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
                 <Search className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
@@ -142,7 +144,7 @@ export default function Home() {
               <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                 Check real-time status of your applications
               </p>
-              <div className="flex items-center text-emerald-600 font-medium text-sm group-hover:gap-2 transition-all">
+              <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
                 Track Now
                 <span className="inline-block group-hover:translate-x-1 transition-transform">
                   →
@@ -161,8 +163,9 @@ export default function Home() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-6 w-6 text-emerald-600" />
+              <div
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                <CheckCircle className="h-6 w-6 text-white" />
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Quick & Simple</h4>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -170,8 +173,9 @@ export default function Home() {
               </p>
             </div>
             <div className="text-center">
-              <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-6 w-6 text-blue-600" />
+              <div
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                <Clock className="h-6 w-6 text-white" />
               </div>
               <h4 className="font-bold text-slate-900 mb-2">
                 Always Available
@@ -181,8 +185,9 @@ export default function Home() {
               </p>
             </div>
             <div className="text-center">
-              <div className="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-6 w-6 text-purple-600" />
+              <div
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                <Shield className="h-6 w-6 text-white" />
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Safe & Secure</h4>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -201,7 +206,8 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="relative">
             <div className="text-center">
-              <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg shadow-blue-200">
+              <div
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
                 1
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Fill Details</h4>
@@ -212,7 +218,8 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="text-center">
-              <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg shadow-blue-200">
+              <div
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
                 2
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Upload Files</h4>
@@ -223,7 +230,8 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="text-center">
-              <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg shadow-blue-200">
+              <div
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
                 3
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Get Confirmed</h4>
@@ -234,7 +242,8 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="text-center">
-              <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg shadow-blue-200">
+              <div
+                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}>
                 4
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Track Progress</h4>

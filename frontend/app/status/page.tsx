@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { shareCertificateAPI, nominationAPI, nocRequestAPI } from '@/lib/api';
 import { Search, CheckCircle, Clock, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
+import { theme } from '@/lib/theme';
 
 export default function StatusPage() {
   const [acknowledgementNumber, setAcknowledgementNumber] = useState('');
@@ -19,31 +20,31 @@ export default function StatusPage() {
     switch (status) {
       case 'Approved':
         return (
-          <div className="h-20 w-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-200">
+          <div className={`h-20 w-20 bg-gradient-to-br ${theme.status.approved.icon} rounded-full flex items-center justify-center mx-auto shadow-lg ${theme.colors.shadows.primary}`}>
             <CheckCircle className="h-10 w-10 text-white" />
           </div>
         );
       case 'Rejected':
         return (
-          <div className="h-20 w-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-red-200">
+          <div className={`h-20 w-20 bg-gradient-to-br ${theme.status.rejected.icon} rounded-full flex items-center justify-center mx-auto shadow-lg shadow-red-200`}>
             <XCircle className="h-10 w-10 text-white" />
           </div>
         );
       case 'Under Review':
         return (
-          <div className="h-20 w-20 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-amber-200">
+          <div className={`h-20 w-20 bg-gradient-to-br ${theme.status.underReview.icon} rounded-full flex items-center justify-center mx-auto shadow-lg shadow-amber-200`}>
             <Clock className="h-10 w-10 text-white" />
           </div>
         );
       case 'Document Required':
         return (
-          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-orange-200">
+          <div className={`h-20 w-20 bg-gradient-to-br ${theme.status.documentRequired.icon} rounded-full flex items-center justify-center mx-auto shadow-lg shadow-orange-200`}>
             <FileText className="h-10 w-10 text-white" />
           </div>
         );
       default:
         return (
-          <div className="h-20 w-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-blue-200">
+          <div className={`h-20 w-20 bg-gradient-to-br ${theme.status.pending.icon} rounded-full flex items-center justify-center mx-auto shadow-lg ${theme.colors.shadows.primary}`}>
             <Clock className="h-10 w-10 text-white" />
           </div>
         );
@@ -53,15 +54,15 @@ export default function StatusPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Approved':
-        return 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-500 text-emerald-800';
+        return `${theme.status.approved.bg} ${theme.status.approved.border} ${theme.status.approved.text}`;
       case 'Rejected':
-        return 'bg-gradient-to-br from-red-50 to-red-100/50 border-red-500 text-red-800';
+        return `${theme.status.rejected.bg} ${theme.status.rejected.border} ${theme.status.rejected.text}`;
       case 'Under Review':
-        return 'bg-gradient-to-br from-amber-50 to-amber-100/50 border-amber-500 text-amber-800';
+        return `${theme.status.underReview.bg} ${theme.status.underReview.border} ${theme.status.underReview.text}`;
       case 'Document Required':
-        return 'bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-500 text-orange-800';
+        return `${theme.status.documentRequired.bg} ${theme.status.documentRequired.border} ${theme.status.documentRequired.text}`;
       default:
-        return 'bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-500 text-blue-800';
+        return `${theme.status.pending.bg} ${theme.status.pending.border} ${theme.status.pending.text}`;
     }
   };
 
@@ -259,11 +260,11 @@ export default function StatusPage() {
                         </dd>
                       </div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className={`p-4 ${theme.status.pending.bg} rounded-xl border ${theme.status.pending.border}`}>
                       <dt className="text-sm font-semibold text-slate-600 mb-2">
                         Payment Amount
                       </dt>
-                      <dd className="text-2xl font-bold text-blue-600">
+                      <dd className={`text-2xl font-bold ${theme.status.pending.text}`}>
                         ₹{result.paymentAmount || '26,000'}
                       </dd>
                     </div>
@@ -304,28 +305,28 @@ export default function StatusPage() {
 
             {/* Next Steps */}
             <div className="px-8 py-6 border-t border-slate-200 bg-slate-50">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-300 rounded-xl p-5">
-                <h3 className="text-base font-bold text-blue-900 mb-3 flex items-center gap-2">
-                  <div className="h-6 w-6 bg-blue-200 rounded-full flex items-center justify-center">
-                    <span className="text-blue-800 text-xs">ℹ</span>
+              <div className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5`}>
+                <h3 className={`text-base font-bold ${theme.status.pending.text} mb-3 flex items-center gap-2`}>
+                  <div className={`h-6 w-6 bg-gradient-to-br ${theme.status.pending.icon} rounded-full flex items-center justify-center`}>
+                    <span className="text-white text-xs">ℹ</span>
                   </div>
                   What happens next?
                 </h3>
-                <ul className="text-sm text-blue-800 space-y-2 leading-relaxed">
+                <ul className={`text-sm ${theme.status.pending.text} space-y-2 leading-relaxed`}>
                   {result.status === "Pending" && (
                     <>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span className={`${theme.status.pending.text} mt-0.5`}>•</span>
                         <span>Your application is in queue for review</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span className={`${theme.status.pending.text} mt-0.5`}>•</span>
                         <span>
                           You will receive an email when the review begins
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span className={`${theme.status.pending.text} mt-0.5`}>•</span>
                         <span>Typical review time is 7-10 business days</span>
                       </li>
                     </>
@@ -333,19 +334,19 @@ export default function StatusPage() {
                   {result.status === "Under Review" && (
                     <>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span className={`${theme.status.pending.text} mt-0.5`}>•</span>
                         <span>
                           Our team is currently reviewing your application
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span className={`${theme.status.pending.text} mt-0.5`}>•</span>
                         <span>
                           You will be notified of the decision via email
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span className={`${theme.status.pending.text} mt-0.5`}>•</span>
                         <span>
                           Please check this page regularly for updates
                         </span>

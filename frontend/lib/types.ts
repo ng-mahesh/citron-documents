@@ -7,8 +7,18 @@ export interface DocumentMetadata {
   s3Key: string;
 }
 
-export type MembershipType = 'Primary' | 'Spouse' | 'Son' | 'Daughter' | 'Legal Heir';
-export type Status = 'Pending' | 'Under Review' | 'Approved' | 'Rejected' | 'Document Required';
+export type MembershipType =
+  | "Primary"
+  | "Spouse"
+  | "Son"
+  | "Daughter"
+  | "Legal Heir";
+export type Status =
+  | "Pending"
+  | "Under Review"
+  | "Approved"
+  | "Rejected"
+  | "Document Required";
 
 export interface ShareCertificate {
   _id?: string;
@@ -16,7 +26,7 @@ export interface ShareCertificate {
   fullName: string;
   index2ApplicantNames?: string[];
   flatNumber: string;
-  wing: 'C' | 'D';
+  wing: "C" | "D";
   email: string;
   mobileNumber: string;
   carpetArea?: number;
@@ -79,6 +89,14 @@ export interface DashboardStats {
     documentRequired: number;
   };
   nominations: {
+    total: number;
+    pending: number;
+    underReview: number;
+    approved: number;
+    rejected: number;
+    documentRequired: number;
+  };
+  nocRequests?: {
     total: number;
     pending: number;
     underReview: number;

@@ -25,6 +25,7 @@ import {
   Ruler,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
+import { theme } from "@/lib/theme";
 
 export default function ShareCertificateDetailPage() {
   const router = useRouter();
@@ -161,16 +162,11 @@ export default function ShareCertificateDetailPage() {
 
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
-      Pending:
-        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300",
-      "Under Review":
-        "bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border border-amber-300",
-      Approved:
-        "bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 border border-emerald-300",
-      Rejected:
-        "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300",
-      "Document Required":
-        "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300",
+      Pending: `${theme.status.pending.bg} ${theme.status.pending.text} border ${theme.status.pending.border}`,
+      "Under Review": `${theme.status.underReview.bg} ${theme.status.underReview.text} border ${theme.status.underReview.border}`,
+      Approved: `${theme.status.approved.bg} ${theme.status.approved.text} border ${theme.status.approved.border}`,
+      Rejected: `${theme.status.rejected.bg} ${theme.status.rejected.text} border ${theme.status.rejected.border}`,
+      "Document Required": `${theme.status.documentRequired.bg} ${theme.status.documentRequired.text} border ${theme.status.documentRequired.border}`,
     };
     return (
       <span
@@ -197,7 +193,7 @@ export default function ShareCertificateDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-green-600 mx-auto mb-4"></div>
           <p className="text-slate-600 font-medium">
             Loading certificate details...
           </p>
@@ -237,7 +233,7 @@ export default function ShareCertificateDetailPage() {
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+                <div className={`h-10 w-10 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg`}>
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -265,7 +261,7 @@ export default function ShareCertificateDetailPage() {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-8 py-5 border-b border-slate-200">
                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
+                  <User className="h-5 w-5 text-green-600" />
                   Member Information
                 </h3>
               </div>
@@ -296,7 +292,7 @@ export default function ShareCertificateDetailPage() {
                       </label>
                       <div className="mt-2 space-y-2">
                         {certificate.index2ApplicantNames.map((name:any, index:any) => (
-                          <div key={index} className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                          <div key={index} className="flex items-center gap-2 ${theme.status.pending.bg} border ${theme.status.pending.border} rounded-lg px-3 py-2">
                             <span className="text-xs font-bold text-blue-700 bg-blue-200 rounded-full h-6 w-6 flex items-center justify-center">
                               {index + 1}
                             </span>
@@ -427,7 +423,7 @@ export default function ShareCertificateDetailPage() {
                     onChange={(e) =>
                       setSelectedStatus(e.target.value as Status)
                     }
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                     disabled={updatingStatus}>
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
@@ -483,8 +479,8 @@ export default function ShareCertificateDetailPage() {
                         certificate.index2Document.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
-                    <FileText className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Index-2 Document
@@ -493,7 +489,7 @@ export default function ShareCertificateDetailPage() {
                         {certificate.index2Document.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -507,8 +503,8 @@ export default function ShareCertificateDetailPage() {
                         certificate.possessionLetterDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
-                    <FileText className="h-8 w-8 text-green-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Possession Letter
@@ -517,7 +513,7 @@ export default function ShareCertificateDetailPage() {
                         {certificate.possessionLetterDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
 
@@ -531,8 +527,8 @@ export default function ShareCertificateDetailPage() {
                         certificate.aadhaarCardDocument.fileType
                       )
                     }
-                    className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
-                    <FileText className="h-8 w-8 text-purple-600 flex-shrink-0" />
+                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-slate-900">
                         Aadhaar Card
@@ -541,7 +537,7 @@ export default function ShareCertificateDetailPage() {
                         {certificate.aadhaarCardDocument.fileName}
                       </p>
                     </div>
-                    <Eye className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
                   </button>
                 )}
               </div>
@@ -660,7 +656,7 @@ export default function ShareCertificateDetailPage() {
                   href={documentPopup.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                  className={`inline-flex items-center gap-2 px-4 py-2 ${theme.button.primary.bg} ${theme.button.primary.text} rounded-lg ${theme.button.primary.hover} transition-colors font-medium text-sm`}>
                   <Download className="h-4 w-4" />
                   Download Document
                 </a>
