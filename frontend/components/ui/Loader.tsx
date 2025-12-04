@@ -44,14 +44,14 @@ export const Loader: React.FC<LoaderProps> = ({
               y="40"
               width="40"
               height="55"
-              fill="#3B82F6"
+              fill="#175a00"
               className="animate-building-grow"
             />
 
             {/* Roof */}
             <polygon
               points="28,40 50,25 72,40"
-              fill="#2563EB"
+              fill="#185900"
               className="animate-building-grow-delayed"
             />
 
@@ -121,7 +121,7 @@ export const Loader: React.FC<LoaderProps> = ({
               y="82"
               width="12"
               height="13"
-              fill="#1E40AF"
+              fill="#0d3300"
               className="animate-building-grow"
             />
             <circle cx="47" cy="88" r="0.8" fill="#FFF" />
@@ -141,15 +141,15 @@ export const Loader: React.FC<LoaderProps> = ({
       {/* Loading dots */}
       <div className="flex gap-2">
         <div
-          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+          className="w-2 h-2 bg-green-700 rounded-full animate-bounce"
           style={{ animationDelay: "0ms" }}
         ></div>
         <div
-          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+          className="w-2 h-2 bg-green-700 rounded-full animate-bounce"
           style={{ animationDelay: "150ms" }}
         ></div>
         <div
-          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+          className="w-2 h-2 bg-green-700 rounded-full animate-bounce"
           style={{ animationDelay: "300ms" }}
         ></div>
       </div>
