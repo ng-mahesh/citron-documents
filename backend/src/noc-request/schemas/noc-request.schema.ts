@@ -4,7 +4,17 @@ import { SubmissionStatus } from '../../common/enums/status.enum';
 import { UploadedDocument } from '../../common/interfaces/document.interface';
 
 /**
- * NOC Request Reason Enum
+ * NOC Request Type Enum (New - supports 4 types)
+ */
+export enum NocType {
+  FLAT_TRANSFER = 'Flat Transfer/Sale/Purchase',
+  BANK_ACCOUNT_TRANSFER = 'Bank Account Transfer',
+  MSEB_BILL_CHANGE = 'MSEB Electricity Bill Name Change',
+  OTHER = 'Other Purpose',
+}
+
+/**
+ * NOC Request Reason Enum (Legacy - for backward compatibility)
  */
 export enum NocReason {
   SALE = 'Sale',
@@ -47,38 +57,55 @@ export class NocRequest extends Document {
   @Prop({ required: true, enum: ['C', 'D'] })
   wing: string;
 
-  // Buyer Information
-  @Prop({ required: true })
+  // Buyer Information (optional - only required for Flat Transfer)
+  @Prop()
   buyerName: string;
 
-  @Prop({ required: true })
+  @Prop()
   buyerMobileNumber: string;
 
-  @Prop({ required: true })
+  @Prop()
   buyerEmail: string;
 
   // NOC Details
-  @Prop({ required: true, type: String, enum: Object.values(NocReason) })
-  reason: NocReason;
+  @Prop({ required: true, type: String, enum: Object.values(NocType) })
+  nocType: NocType;
 
-  @Prop({ required: true })
-  expectedTransferDate: Date;
+  @Prop()
+  purposeDescription: string; // Required for "Other Purpose" type
 
-  // Document Uploads
-  @Prop({ type: Object, required: true })
+  @Prop({ type: String, enum: Object.values(NocReason) })
+  reason: NocReason; // Legacy field for backward compatibility
+
+  @Prop()
+  expectedTransferDate: Date; // Optional - mainly for Flat Transfer
+
+  // Document Uploads (type-specific - validation handled in DTO)
+  // Flat Transfer documents
+  @Prop({ type: Object })
   agreementDocument: UploadedDocument;
 
   @Prop({ type: Object })
   shareCertificateDocument: UploadedDocument;
 
-  @Prop({ type: Object, required: true })
+  @Prop({ type: Object })
   maintenanceReceiptDocument: UploadedDocument;
 
-  @Prop({ type: Object, required: true })
+  @Prop({ type: Object })
   buyerAadhaarDocument: UploadedDocument;
 
   @Prop({ type: Object })
   buyerPanDocument: UploadedDocument;
+
+  // Additional documents for other NOC types
+  @Prop({ type: Object })
+  identityProofDocument: UploadedDocument; // For Bank Account, MSEB, Other
+
+  @Prop({ type: Object })
+  currentElectricityBillDocument: UploadedDocument; // For MSEB
+
+  @Prop({ type: Object })
+  supportingDocuments: UploadedDocument; // For Other Purpose
 
   // Payment Information
   @Prop({

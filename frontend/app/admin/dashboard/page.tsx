@@ -911,7 +911,7 @@ export default function AdminDashboard() {
                       Flat
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Reason
+                      NOC Type
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                       Payment
@@ -949,10 +949,16 @@ export default function AdminDashboard() {
                           {noc.flatNumber}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
-                          {noc.reason || "N/A"}
+                          <span className="text-sm font-medium text-slate-700">
+                            {noc.nocType || noc.reason || 'N/A'}
+                          </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
-                          ₹26,000
+                          {noc.totalAmount && noc.totalAmount > 0 ? (
+                            <span className="font-medium">₹{noc.totalAmount.toLocaleString()}</span>
+                          ) : (
+                            <span className="text-green-600 font-semibold">FREE</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(noc.status!)}

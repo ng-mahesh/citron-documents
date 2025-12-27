@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/forms/FileUpload";
 import { nocRequestAPI } from "@/lib/api";
-import { DocumentMetadata } from "@/lib/types";
+import { DocumentMetadata, NocType } from "@/lib/types";
 import { CheckCircle, Download, Info } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { ToastType } from "@/components/ui/Toast";
+import { NOC_TYPE_CONFIGS, NOC_TYPE_OPTIONS, getDocumentLabel } from "@/lib/noc-type-config";
 
 export default function NocRequestPage() {
   const router = useRouter();
@@ -27,14 +28,15 @@ export default function NocRequestPage() {
     flatNumber: "",
     wing: "" as "C" | "D" | "",
 
-    // Buyer Information
+    // NOC Type
+    nocType: "" as NocType | "",
+    purposeDescription: "", // For "Other Purpose"
+    expectedTransferDate: "",
+
+    // Buyer Information (conditional)
     buyerName: "",
     buyerMobileNumber: "",
     buyerEmail: "",
-
-    // NOC Details
-    reason: "" as "Sale" | "Mortgage" | "",
-    expectedTransferDate: "",
 
     // Declaration
     digitalSignature: "",
@@ -42,11 +44,16 @@ export default function NocRequestPage() {
   });
 
   const [documents, setDocuments] = useState<{
+    // Flat Transfer documents
     agreementDocument?: DocumentMetadata;
     shareCertificateDocument?: DocumentMetadata;
     maintenanceReceiptDocument?: DocumentMetadata;
     buyerAadhaarDocument?: DocumentMetadata;
     buyerPanDocument?: DocumentMetadata;
+    // Other type documents
+    identityProofDocument?: DocumentMetadata;
+    currentElectricityBillDocument?: DocumentMetadata;
+    supportingDocuments?: DocumentMetadata;
   }>({});
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -64,13 +71,14 @@ export default function NocRequestPage() {
     type: ToastType;
   } | null>(null);
 
-  const nocReasons = [
-    { value: "Sale", label: "Sale" },
-    { value: "Mortgage", label: "Mortgage" },
-  ];
+  // Computed values based on selected NOC type
+  const currentTypeConfig = formData.nocType ? NOC_TYPE_CONFIGS[formData.nocType] : null;
+  const requiresBuyerInfo = currentTypeConfig?.requiresBuyerInfo || false;
+  const requiresPurposeDescription = currentTypeConfig?.requiresPurposeDescription || false;
+  const totalFees = currentTypeConfig ? currentTypeConfig.nocFees + currentTypeConfig.transferFees : 0;
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -129,7 +137,7 @@ export default function NocRequestPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    // Seller Information
+    // Seller Information (always required)
     if (!formData.sellerName.trim())
       newErrors.sellerName = "Seller name is required";
     if (!formData.sellerEmail.trim())
@@ -153,31 +161,42 @@ export default function NocRequestPage() {
       newErrors.flatNumber = "Flat number must contain only numbers";
     if (!formData.wing) newErrors.wing = "Wing is required";
 
-    // Buyer Information
-    if (!formData.buyerName.trim())
-      newErrors.buyerName = "Buyer name is required";
-    if (!formData.buyerEmail.trim())
-      newErrors.buyerEmail = "Buyer email is required";
-    else if (!/^\S+@\S+\.\S+$/.test(formData.buyerEmail))
-      newErrors.buyerEmail = "Please enter a valid buyer email";
-    if (!formData.buyerMobileNumber.trim())
-      newErrors.buyerMobileNumber = "Buyer mobile number is required";
-    else if (!/^[6-9]\d{9}$/.test(formData.buyerMobileNumber))
-      newErrors.buyerMobileNumber =
-        "Please enter a valid 10-digit buyer mobile number";
+    // NOC Type
+    if (!formData.nocType) newErrors.nocType = "NOC type is required";
 
-    // NOC Details
-    if (!formData.reason) newErrors.reason = "Reason for NOC is required";
-    if (!formData.expectedTransferDate)
+    // Conditional: Buyer Information (only for Flat Transfer)
+    if (requiresBuyerInfo) {
+      if (!formData.buyerName.trim())
+        newErrors.buyerName = "Buyer name is required";
+      if (!formData.buyerEmail.trim())
+        newErrors.buyerEmail = "Buyer email is required";
+      else if (!/^\S+@\S+\.\S+$/.test(formData.buyerEmail))
+        newErrors.buyerEmail = "Please enter a valid buyer email";
+      if (!formData.buyerMobileNumber.trim())
+        newErrors.buyerMobileNumber = "Buyer mobile number is required";
+      else if (!/^[6-9]\d{9}$/.test(formData.buyerMobileNumber))
+        newErrors.buyerMobileNumber =
+          "Please enter a valid 10-digit buyer mobile number";
+    }
+
+    // Conditional: Purpose Description (only for Other)
+    if (requiresPurposeDescription && !formData.purposeDescription.trim()) {
+      newErrors.purposeDescription = "Purpose description is required";
+    }
+
+    // Conditional: Expected Transfer Date (only for Flat Transfer)
+    if (formData.nocType === 'Flat Transfer/Sale/Purchase' && !formData.expectedTransferDate) {
       newErrors.expectedTransferDate = "Expected transfer date is required";
+    }
 
-    // Documents
-    if (!documents.agreementDocument?.fileName)
-      newErrors.agreementDocument = "Agreement document is required";
-    if (!documents.maintenanceReceiptDocument?.fileName)
-      newErrors.maintenanceReceiptDocument = "Maintenance receipt is required";
-    if (!documents.buyerAadhaarDocument?.fileName)
-      newErrors.buyerAadhaarDocument = "Buyer Aadhaar document is required";
+    // Type-specific document validation
+    if (currentTypeConfig) {
+      currentTypeConfig.requiredDocuments.forEach((docField) => {
+        if (!documents[docField as keyof typeof documents]?.fileName) {
+          newErrors[docField] = `${getDocumentLabel(docField)} is required`;
+        }
+      });
+    }
 
     // Declaration
     if (!formData.digitalSignature.trim())
@@ -192,6 +211,7 @@ export default function NocRequestPage() {
   const isFormValid = () => {
     if (Object.keys(errors).length > 0) return false;
 
+    // Seller information (always required)
     if (!formData.sellerName.trim()) return false;
     if (
       !formData.sellerEmail.trim() ||
@@ -206,24 +226,47 @@ export default function NocRequestPage() {
     if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber))
       return false;
     if (!formData.wing) return false;
-    if (!formData.buyerName.trim()) return false;
-    if (
-      !formData.buyerEmail.trim() ||
-      !/^\S+@\S+\.\S+$/.test(formData.buyerEmail)
-    )
+
+    // NOC Type
+    if (!formData.nocType) return false;
+
+    // Conditional: Buyer Information
+    if (requiresBuyerInfo) {
+      if (!formData.buyerName.trim()) return false;
+      if (
+        !formData.buyerEmail.trim() ||
+        !/^\S+@\S+\.\S+$/.test(formData.buyerEmail)
+      )
+        return false;
+      if (
+        !formData.buyerMobileNumber.trim() ||
+        !/^[6-9]\d{9}$/.test(formData.buyerMobileNumber)
+      )
+        return false;
+    }
+
+    // Conditional: Purpose Description
+    if (requiresPurposeDescription && !formData.purposeDescription.trim()) {
       return false;
-    if (
-      !formData.buyerMobileNumber.trim() ||
-      !/^[6-9]\d{9}$/.test(formData.buyerMobileNumber)
-    )
+    }
+
+    // Conditional: Expected Transfer Date
+    if (formData.nocType === 'Flat Transfer/Sale/Purchase' && !formData.expectedTransferDate) {
       return false;
-    if (!formData.reason) return false;
-    if (!formData.expectedTransferDate) return false;
+    }
+
+    // Type-specific document validation
+    if (currentTypeConfig) {
+      for (const docField of currentTypeConfig.requiredDocuments) {
+        if (!documents[docField as keyof typeof documents]?.fileName) {
+          return false;
+        }
+      }
+    }
+
+    // Declaration
     if (!formData.digitalSignature.trim()) return false;
     if (!formData.declarationAccepted) return false;
-    if (!documents.agreementDocument?.fileName) return false;
-    if (!documents.maintenanceReceiptDocument?.fileName) return false;
-    if (!documents.buyerAadhaarDocument?.fileName) return false;
 
     return true;
   };
@@ -486,203 +529,406 @@ export default function NocRequestPage() {
             </div>
           </Card>
 
-          {/* Buyer Information Section */}
+          {/* NOC Type & Details Section */}
           <Card className="p-8">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-slate-900">
-                Buyer Information
+                NOC Type & Details
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Buyer Full Name"
-                name="buyerName"
-                value={formData.buyerName}
-                onChange={handleInputChange}
-                error={errors.buyerName}
-                placeholder="Enter buyer full name"
-                required
-              />
-              <Input
-                label="Buyer Mobile Number"
-                name="buyerMobileNumber"
-                value={formData.buyerMobileNumber}
-                onChange={handleInputChange}
-                error={errors.buyerMobileNumber}
-                placeholder="9876543210"
-                required
-              />
-              <Input
-                label="Buyer Email Address"
-                name="buyerEmail"
-                type="email"
-                value={formData.buyerEmail}
-                onChange={handleInputChange}
-                error={errors.buyerEmail}
-                placeholder="Enter buyer email address"
-                required
-              />
-            </div>
-          </Card>
-
-          {/* NOC Details Section */}
-          <Card className="p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
-                NOC & Transfer Details
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <Select
-                label="Reason for NOC"
-                name="reason"
-                value={formData.reason}
+                label="NOC Type"
+                name="nocType"
+                value={formData.nocType}
                 onChange={handleInputChange}
-                error={errors.reason}
-                options={[{ value: "", label: "Select Reason" }, ...nocReasons]}
+                error={errors.nocType}
+                options={[ ...NOC_TYPE_OPTIONS]}
                 required
               />
-              <Input
-                label="Expected Transfer Date"
-                name="expectedTransferDate"
-                type="date"
-                value={formData.expectedTransferDate}
-                onChange={handleInputChange}
-                error={errors.expectedTransferDate}
-                required
-              />
+
+              {/* Conditional: Purpose Description for "Other" type */}
+              {requiresPurposeDescription && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Purpose Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="purposeDescription"
+                    value={formData.purposeDescription}
+                    onChange={handleInputChange}
+                    placeholder="Please describe the purpose of your NOC request in detail..."
+                    rows={4}
+                    className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {errors.purposeDescription && (
+                    <p className="text-red-600 text-sm mt-1">{errors.purposeDescription}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Conditional: Expected Transfer Date (only for Flat Transfer) */}
+              {formData.nocType === 'Flat Transfer/Sale/Purchase' && (
+                <Input
+                  label="Expected Transfer Date"
+                  name="expectedTransferDate"
+                  type="date"
+                  value={formData.expectedTransferDate}
+                  onChange={handleInputChange}
+                  error={errors.expectedTransferDate}
+                  required
+                />
+              )}
             </div>
           </Card>
 
-          {/* Document Upload Section */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">
-                Required Documents
-              </h3>
-              <p className="text-sm text-slate-600 mt-1">
-                Upload clear copies in PDF or JPEG format (max 2MB each)
-              </p>
-            </div>
-            <div className="px-8 py-6">
+          {/* Buyer Information Section - Only show for Flat Transfer */}
+          {requiresBuyerInfo && (
+            <Card className="p-8">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-slate-900">
+                  Buyer Information
+                </h2>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FileUpload
-                  label="Agreement Copy / Allotment Letter"
+                <Input
+                  label="Buyer Full Name"
+                  name="buyerName"
+                  value={formData.buyerName}
+                  onChange={handleInputChange}
+                  error={errors.buyerName}
+                  placeholder="Enter buyer full name"
                   required
-                  flatNumber={formData.flatNumber}
-                  documentType="agreement"
-                  fullName={formData.sellerName}
-                  value={documents.agreementDocument}
-                  onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({
-                      ...prev,
-                      agreementDocument: metadata,
-                    }))
-                  }
-                  error={errors.agreementDocument}
                 />
-                <FileUpload
-                  label="Share Certificate Copy (if issued)"
-                  flatNumber={formData.flatNumber}
-                  documentType="share-certificate"
-                  fullName={formData.sellerName}
-                  value={documents.shareCertificateDocument}
-                  onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({
-                      ...prev,
-                      shareCertificateDocument: metadata,
-                    }))
-                  }
-                />
-                <FileUpload
-                  label="Latest Maintenance Receipt (no dues)"
+                <Input
+                  label="Buyer Mobile Number"
+                  name="buyerMobileNumber"
+                  value={formData.buyerMobileNumber}
+                  onChange={handleInputChange}
+                  error={errors.buyerMobileNumber}
+                  placeholder="9876543210"
                   required
-                  flatNumber={formData.flatNumber}
-                  documentType="maintenance-receipt"
-                  fullName={formData.sellerName}
-                  value={documents.maintenanceReceiptDocument}
-                  onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({
-                      ...prev,
-                      maintenanceReceiptDocument: metadata,
-                    }))
-                  }
-                  error={errors.maintenanceReceiptDocument}
                 />
-                <FileUpload
-                  label="Buyer Aadhaar Card"
+                <Input
+                  label="Buyer Email Address"
+                  name="buyerEmail"
+                  type="email"
+                  value={formData.buyerEmail}
+                  onChange={handleInputChange}
+                  error={errors.buyerEmail}
+                  placeholder="Enter buyer email address"
                   required
-                  flatNumber={formData.flatNumber}
-                  documentType="buyer-aadhaar"
-                  fullName={formData.buyerName}
-                  value={documents.buyerAadhaarDocument}
-                  onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({
-                      ...prev,
-                      buyerAadhaarDocument: metadata,
-                    }))
-                  }
-                  error={errors.buyerAadhaarDocument}
-                />
-                <FileUpload
-                  label="Buyer PAN Card (optional)"
-                  flatNumber={formData.flatNumber}
-                  documentType="buyer-pan"
-                  fullName={formData.buyerName}
-                  value={documents.buyerPanDocument}
-                  onUploadSuccess={(metadata) =>
-                    setDocuments((prev) => ({
-                      ...prev,
-                      buyerPanDocument: metadata,
-                    }))
-                  }
                 />
               </div>
-            </div>
-          </div>
+            </Card>
+          )}
 
-          {/* Payment Information */}
-          <Card className="p-8">
-            <div
-              className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-6`}
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Payment Details
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">NOC Fees:</span>
-                  <span className="font-bold text-gray-900 text-lg">
-                    ₹1,000
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">
-                    Transfer Fees:
-                  </span>
-                  <span className="font-bold text-gray-900 text-lg">
-                    ₹25,000
-                  </span>
-                </div>
-                <div
-                  className={`border-t-2 ${theme.status.pending.border} pt-3 flex justify-between items-center`}
-                >
-                  <span className="font-bold text-gray-900 text-lg">
-                    Total Amount:
-                  </span>
-                  <span
-                    className={`font-bold ${theme.status.approved.text} text-2xl`}
-                  >
-                    ₹26,000
-                  </span>
+          {/* Document Upload Section - Dynamic based on NOC type */}
+          {formData.nocType && currentTypeConfig && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="px-8 py-5 border-b border-slate-200">
+                <h3 className="text-xl font-bold text-slate-900">
+                  Required Documents
+                </h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  Upload clear copies in PDF or JPEG format (max 2MB each)
+                </p>
+              </div>
+              <div className="px-8 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Flat Transfer Documents */}
+                  {formData.nocType === 'Flat Transfer/Sale/Purchase' && (
+                    <>
+                      <FileUpload
+                        label="Agreement Copy / Allotment Letter"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="agreement"
+                        fullName={formData.sellerName}
+                        value={documents.agreementDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            agreementDocument: metadata,
+                          }))
+                        }
+                        error={errors.agreementDocument}
+                      />
+                      <FileUpload
+                        label="Share Certificate Copy (if issued)"
+                        flatNumber={formData.flatNumber}
+                        documentType="share-certificate"
+                        fullName={formData.sellerName}
+                        value={documents.shareCertificateDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            shareCertificateDocument: metadata,
+                          }))
+                        }
+                      />
+                      <FileUpload
+                        label="Latest Maintenance Receipt (no dues)"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="maintenance-receipt"
+                        fullName={formData.sellerName}
+                        value={documents.maintenanceReceiptDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            maintenanceReceiptDocument: metadata,
+                          }))
+                        }
+                        error={errors.maintenanceReceiptDocument}
+                      />
+                      <FileUpload
+                        label="Buyer Aadhaar Card"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="buyer-aadhaar"
+                        fullName={formData.buyerName}
+                        value={documents.buyerAadhaarDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            buyerAadhaarDocument: metadata,
+                          }))
+                        }
+                        error={errors.buyerAadhaarDocument}
+                      />
+                      <FileUpload
+                        label="Buyer PAN Card (optional)"
+                        flatNumber={formData.flatNumber}
+                        documentType="buyer-pan"
+                        fullName={formData.buyerName}
+                        value={documents.buyerPanDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            buyerPanDocument: metadata,
+                          }))
+                        }
+                      />
+                    </>
+                  )}
+
+                  {/* Bank Account Transfer Documents */}
+                  {formData.nocType === 'Bank Account Transfer' && (
+                    <>
+                      <FileUpload
+                        label="Identity Proof (Aadhaar)"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="identity-proof"
+                        fullName={formData.sellerName}
+                        value={documents.identityProofDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            identityProofDocument: metadata,
+                          }))
+                        }
+                        error={errors.identityProofDocument}
+                      />
+                      <FileUpload
+                        label="Share Certificate"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="share-certificate"
+                        fullName={formData.sellerName}
+                        value={documents.shareCertificateDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            shareCertificateDocument: metadata,
+                          }))
+                        }
+                        error={errors.shareCertificateDocument}
+                      />
+                    </>
+                  )}
+
+                  {/* MSEB Bill Change Documents */}
+                  {formData.nocType === 'MSEB Electricity Bill Name Change' && (
+                    <>
+                      <FileUpload
+                        label="Current Electricity Bill"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="electricity-bill"
+                        fullName={formData.sellerName}
+                        value={documents.currentElectricityBillDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            currentElectricityBillDocument: metadata,
+                          }))
+                        }
+                        error={errors.currentElectricityBillDocument}
+                      />
+                      <FileUpload
+                        label="Identity Proof (Aadhaar)"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="identity-proof"
+                        fullName={formData.sellerName}
+                        value={documents.identityProofDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            identityProofDocument: metadata,
+                          }))
+                        }
+                        error={errors.identityProofDocument}
+                      />
+                      <FileUpload
+                        label="Share Certificate"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="share-certificate"
+                        fullName={formData.sellerName}
+                        value={documents.shareCertificateDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            shareCertificateDocument: metadata,
+                          }))
+                        }
+                        error={errors.shareCertificateDocument}
+                      />
+                    </>
+                  )}
+
+                  {/* Other Purpose Documents */}
+                  {formData.nocType === 'Other Purpose' && (
+                    <>
+                      <FileUpload
+                        label="Maintenance Receipt"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="maintenance-receipt"
+                        fullName={formData.sellerName}
+                        value={documents.maintenanceReceiptDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            maintenanceReceiptDocument: metadata,
+                          }))
+                        }
+                        error={errors.maintenanceReceiptDocument}
+                      />
+                      <FileUpload
+                        label="Share Certificate"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="share-certificate"
+                        fullName={formData.sellerName}
+                        value={documents.shareCertificateDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            shareCertificateDocument: metadata,
+                          }))
+                        }
+                        error={errors.shareCertificateDocument}
+                      />
+                      <FileUpload
+                        label="Supporting Documents"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="supporting-docs"
+                        fullName={formData.sellerName}
+                        value={documents.supportingDocuments}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            supportingDocuments: metadata,
+                          }))
+                        }
+                        error={errors.supportingDocuments}
+                      />
+                      <FileUpload
+                        label="Identity Proof (Aadhaar)"
+                        required
+                        flatNumber={formData.flatNumber}
+                        documentType="identity-proof"
+                        fullName={formData.sellerName}
+                        value={documents.identityProofDocument}
+                        onUploadSuccess={(metadata) =>
+                          setDocuments((prev) => ({
+                            ...prev,
+                            identityProofDocument: metadata,
+                          }))
+                        }
+                        error={errors.identityProofDocument}
+                      />
+                    </>
+                  )}
                 </div>
               </div>
-              <p className="text-sm text-gray-700 mt-4 bg-white/50 p-3 rounded-lg">
-                Payment instructions will be provided after document
-                verification.
-              </p>
             </div>
-          </Card>
+          )}
+
+          {/* Payment Information - Dynamic based on fees */}
+          {currentTypeConfig && totalFees > 0 && (
+            <Card className="p-8">
+              <div
+                className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-6`}
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Payment Details
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">NOC Fees:</span>
+                    <span className="font-bold text-gray-900 text-lg">
+                      ₹{currentTypeConfig.nocFees.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">
+                      Transfer Fees:
+                    </span>
+                    <span className="font-bold text-gray-900 text-lg">
+                      ₹{currentTypeConfig.transferFees.toLocaleString()}
+                    </span>
+                  </div>
+                  <div
+                    className={`border-t-2 ${theme.status.pending.border} pt-3 flex justify-between items-center`}
+                  >
+                    <span className="font-bold text-gray-900 text-lg">
+                      Total Amount:
+                    </span>
+                    <span
+                      className={`font-bold ${theme.status.approved.text} text-2xl`}
+                    >
+                      ₹{totalFees.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700 mt-4 bg-white/50 p-3 rounded-lg">
+                  Payment instructions will be provided after document
+                  verification.
+                </p>
+              </div>
+            </Card>
+          )}
+
+          {/* Free NOC Information */}
+          {currentTypeConfig && totalFees === 0 && (
+            <Card className="p-8">
+              <div className="bg-green-50 border-2 border-green-300 rounded-xl p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  No Payment Required
+                </h3>
+                <p className="text-sm text-gray-700">
+                  This NOC type is free of charge. No payment is required for processing.
+                </p>
+              </div>
+            </Card>
+          )}
 
           {/* Digital Signature & Declaration */}
           <Card className="p-8">
@@ -709,11 +955,9 @@ export default function NocRequestPage() {
                   className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <span className="text-sm text-gray-700">
-                  I hereby declare that all the information provided above is
-                  true and correct. I understand that the society will verify
-                  all documents and maintenance dues before processing this NOC
-                  request. I agree to pay all applicable fees and complete the
-                  transfer process as per society norms.
+                  {formData.nocType === 'Flat Transfer/Sale/Purchase'
+                    ? 'I hereby declare that all the information provided above is true and correct. I understand that the society will verify all documents and maintenance dues before processing this NOC request. I agree to pay all applicable fees and complete the transfer process as per society norms.'
+                    : 'I hereby declare that all the information provided above is true and correct. I understand that the society will verify all submitted documents before processing this NOC request.'}
                 </span>
               </label>
               {errors.declarationAccepted && (

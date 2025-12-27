@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { NocRequest, PaymentStatus } from './schemas/noc-request.schema';
+import { NocRequest, PaymentStatus, NocType } from './schemas/noc-request.schema';
 import { CreateNocRequestDto } from './dto/create-noc-request.dto';
 import { UpdateNocRequestDto } from './dto/update-noc-request.dto';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { NOC_TYPE_CONFIGS } from './config/noc-type.config';
 
 /**
  * Service handling business logic for NOC Request operations
@@ -44,48 +45,51 @@ export class NocRequestService {
    */
   async create(createDto: CreateNocRequestDto): Promise<NocRequest> {
     try {
-      // Check for pending NOC requests for the same flat
-      const existingRequest = await this.nocRequestModel
-        .findOne({
-          flatNumber: createDto.flatNumber,
-          wing: createDto.wing,
-          status: { $nin: ['Approved', 'Rejected'] },
-        })
-        .exec();
-
-      if (existingRequest) {
-        throw new BadRequestException(
-          `A NOC request is already pending for Flat ${createDto.flatNumber} Wing ${createDto.wing}. Please wait for the current request to be processed.`,
-        );
-      }
-
       const acknowledgementNumber = await this.generateAcknowledgementNumber();
+
+      // Get fees based on NOC type
+      const typeConfig = NOC_TYPE_CONFIGS[createDto.nocType];
+      const nocFees = typeConfig.nocFees;
+      const transferFees = typeConfig.transferFees;
+      const totalAmount = nocFees + transferFees;
 
       const nocRequest = new this.nocRequestModel({
         ...createDto,
         acknowledgementNumber,
-        nocFees: 1000, // ₹1,000
-        transferFees: 25000, // ₹25,000
-        totalAmount: 26000, // ₹26,000
-        paymentStatus: PaymentStatus.PENDING,
+        nocFees,
+        transferFees,
+        totalAmount,
+        paymentStatus: totalAmount > 0 ? PaymentStatus.PENDING : PaymentStatus.PAID,
       });
 
       const saved = await nocRequest.save();
 
-      // Send acknowledgement email to both seller and buyer, CC to chairman, secretary, and treasurer
+      // Send acknowledgement email - conditional based on NOC type
       const ccEmails = [
         this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
         this.configService.get<string>('CC_SECRETARY_EMAIL'),
         this.configService.get<string>('CC_TREASURER_EMAIL'),
       ].filter((email) => email); // Filter out any undefined emails
 
-      await this.emailService.sendAcknowledgementEmail({
-        email: [saved.sellerEmail, saved.buyerEmail], // Send to both seller and buyer
-        name: `${saved.sellerName} and ${saved.buyerName}`,
-        acknowledgementNumber: saved.acknowledgementNumber,
-        type: 'NOC Request',
-        ccEmails,
-      });
+      // For Flat Transfer, send to both seller and buyer
+      if (createDto.nocType === NocType.FLAT_TRANSFER) {
+        await this.emailService.sendAcknowledgementEmail({
+          email: [saved.sellerEmail, saved.buyerEmail], // Send to both seller and buyer
+          name: `${saved.sellerName} and ${saved.buyerName}`,
+          acknowledgementNumber: saved.acknowledgementNumber,
+          type: 'NOC Request - Flat Transfer',
+          ccEmails,
+        });
+      } else {
+        // For other types, send only to seller
+        await this.emailService.sendAcknowledgementEmail({
+          email: [saved.sellerEmail],
+          name: saved.sellerName,
+          acknowledgementNumber: saved.acknowledgementNumber,
+          type: `NOC Request - ${saved.nocType}`,
+          ccEmails,
+        });
+      }
 
       return saved;
     } catch (error) {
@@ -159,8 +163,12 @@ export class NocRequestService {
           type: 'NOC Request',
         });
 
-        // Also notify buyer if approved
-        if (updateDto.status === 'Approved') {
+        // Also notify buyer if approved (only for Flat Transfer)
+        if (
+          updateDto.status === 'Approved' &&
+          request.nocType === NocType.FLAT_TRANSFER &&
+          request.buyerEmail
+        ) {
           await this.emailService.sendStatusUpdateEmail({
             email: request.buyerEmail,
             name: request.buyerName,
@@ -286,27 +294,13 @@ export class NocRequestService {
 
   /**
    * Check if there's a pending NOC request for a flat
+   * Updated to allow multiple NOC requests per flat
    */
   async checkPendingRequest(
-    flatNumber: string,
-    wing: string,
+    _flatNumber: string,
+    _wing: string,
   ): Promise<{ exists: boolean; status?: string; message?: string }> {
-    const existing = await this.nocRequestModel
-      .findOne({
-        flatNumber,
-        wing,
-        status: { $nin: ['Approved', 'Rejected'] },
-      })
-      .exec();
-
-    if (existing) {
-      return {
-        exists: true,
-        status: existing.status,
-        message: `A NOC request is already ${existing.status.toLowerCase()} for Flat ${flatNumber} Wing ${wing}.`,
-      };
-    }
-
+    // Allow multiple NOC requests - always return exists: false
     return { exists: false };
   }
 
@@ -320,5 +314,15 @@ export class NocRequestService {
     // TODO: Integrate with maintenance module
     // For now, return no dues
     return { hasDues: false, amount: 0 };
+  }
+
+  /**
+   * Map old reason to new nocType for backward compatibility
+   */
+  private mapReasonToNocType(reason?: string): NocType {
+    if (reason === 'Sale' || reason === 'Mortgage') {
+      return NocType.FLAT_TRANSFER;
+    }
+    return NocType.FLAT_TRANSFER; // Default
   }
 }
