@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
-import { NocRequest } from './schemas/noc-request.schema';
+import { NocRequest, NocType } from './schemas/noc-request.schema';
+import { UploadedDocument } from '../common/interfaces/document.interface';
 
 @Injectable()
 export class NocRequestPdfService {
@@ -271,7 +272,7 @@ export class NocRequestPdfService {
   }
 
   /**
-   * Add buyer details section
+   * Add buyer details section (only for Flat Transfer)
    */
   private addBuyerDetailsSection(
     doc: PDFKit.PDFDocument,
@@ -279,6 +280,11 @@ export class NocRequestPdfService {
     request: NocRequest,
   ): number {
     let y = startY;
+
+    // Skip buyer section if not Flat Transfer
+    if (request.nocType !== NocType.FLAT_TRANSFER) {
+      return y;
+    }
 
     // Section header
     doc
@@ -334,38 +340,69 @@ export class NocRequestPdfService {
     const col1Width = this.contentWidth * 0.5;
     const col2Width = this.contentWidth * 0.5;
 
-    // Row 1: Reason | Expected Transfer Date
-    this.drawBox(doc, this.margin, y, col1Width, boxHeight, 'Reason for NOC', request.reason);
-    const transferDate = new Date(request.expectedTransferDate).toLocaleDateString('en-IN');
-    this.drawBox(
-      doc,
-      this.margin + col1Width,
-      y,
-      col2Width,
-      boxHeight,
-      'Expected Transfer Date',
-      transferDate,
-    );
+    // Row 1: NOC Type | Expected Transfer Date (if applicable)
+    this.drawBox(doc, this.margin, y, col1Width, boxHeight, 'NOC Type', request.nocType);
+
+    if (request.expectedTransferDate) {
+      const transferDate = new Date(request.expectedTransferDate).toLocaleDateString('en-IN');
+      this.drawBox(
+        doc,
+        this.margin + col1Width,
+        y,
+        col2Width,
+        boxHeight,
+        'Expected Transfer Date',
+        transferDate,
+      );
+    }
     y += boxHeight;
 
-    // Row 2: Status
-    this.drawBox(doc, this.margin, y, col1Width, boxHeight, 'Request Status', request.status);
-    this.drawBox(
-      doc,
-      this.margin + col1Width,
-      y,
-      col2Width,
-      boxHeight,
-      'Payment Status',
-      request.paymentStatus,
-    );
+    // Purpose description for "Other" type
+    if (request.nocType === NocType.OTHER && request.purposeDescription) {
+      this.drawBox(
+        doc,
+        this.margin,
+        y,
+        this.contentWidth,
+        boxHeight + 10,
+        'Purpose Description',
+        request.purposeDescription,
+      );
+      y += boxHeight + 10;
+    }
+
+    // Row 2: Status (show payment status only if totalAmount > 0)
+    if (request.totalAmount && request.totalAmount > 0) {
+      // Show both Request Status and Payment Status
+      this.drawBox(doc, this.margin, y, col1Width, boxHeight, 'Request Status', request.status);
+      this.drawBox(
+        doc,
+        this.margin + col1Width,
+        y,
+        col2Width,
+        boxHeight,
+        'Payment Status',
+        request.paymentStatus,
+      );
+    } else {
+      // Show only Request Status (full width) for free NOC types
+      this.drawBox(
+        doc,
+        this.margin,
+        y,
+        this.contentWidth,
+        boxHeight,
+        'Request Status',
+        request.status,
+      );
+    }
     y += boxHeight + 10;
 
     return y;
   }
 
   /**
-   * Add payment details section
+   * Add payment details section (skip if totalAmount is 0)
    */
   private addPaymentDetailsSection(
     doc: PDFKit.PDFDocument,
@@ -373,6 +410,11 @@ export class NocRequestPdfService {
     request: NocRequest,
   ): number {
     let y = startY;
+
+    // Skip payment section if totalAmount is 0 (free NOC types)
+    if (!request.totalAmount || request.totalAmount === 0) {
+      return y;
+    }
 
     // Section header
     doc
@@ -459,11 +501,14 @@ export class NocRequestPdfService {
     doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000').text('DECLARATION', this.margin, y);
     y += 12;
 
-    // Declaration text
+    // Declaration text (conditional based on NOC type)
     const declarationText =
-      'I hereby declare that all the information provided above is true and correct to the best of my knowledge. ' +
-      'I understand that the society will verify all submitted documents and maintenance dues before processing this NOC request. ' +
-      'I agree to pay all applicable fees and complete the transfer process as per society norms.';
+      request.nocType === NocType.FLAT_TRANSFER
+        ? 'I hereby declare that all the information provided above is true and correct to the best of my knowledge. ' +
+          'I understand that the society will verify all submitted documents and maintenance dues before processing this NOC request. ' +
+          'I agree to pay all applicable fees and complete the transfer process as per society norms.'
+        : 'I hereby declare that all the information provided above is true and correct to the best of my knowledge. ' +
+          'I understand that the society will verify all submitted documents before processing this NOC request.';
 
     doc.fontSize(7).font('Helvetica').text(declarationText, this.margin, y, {
       width: this.contentWidth,
@@ -492,7 +537,7 @@ export class NocRequestPdfService {
   }
 
   /**
-   * Add enclosures section
+   * Add enclosures section (type-specific documents)
    */
   private addEnclosuresSection(
     doc: PDFKit.PDFDocument,
@@ -509,17 +554,40 @@ export class NocRequestPdfService {
       .text('ENCLOSURES / DOCUMENTS SUBMITTED', this.margin, y);
     y += 12;
 
-    const enclosures = [
-      { name: 'Agreement Copy / Allotment Letter', doc: request.agreementDocument },
-      {
-        name: 'Share Certificate Copy (if issued)',
-        doc: request.shareCertificateDocument,
-        optional: true,
-      },
-      { name: 'Latest Maintenance Receipt (no dues)', doc: request.maintenanceReceiptDocument },
-      { name: 'Buyer Aadhaar Card', doc: request.buyerAadhaarDocument },
-      { name: 'Buyer PAN Card', doc: request.buyerPanDocument, optional: true },
-    ];
+    // Build enclosures list based on NOC type
+    const enclosures: Array<{ name: string; doc: UploadedDocument; optional?: boolean }> = [];
+
+    if (request.nocType === NocType.FLAT_TRANSFER) {
+      enclosures.push(
+        { name: 'Agreement Copy / Allotment Letter', doc: request.agreementDocument },
+        {
+          name: 'Share Certificate Copy (if issued)',
+          doc: request.shareCertificateDocument,
+          optional: true,
+        },
+        { name: 'Latest Maintenance Receipt (no dues)', doc: request.maintenanceReceiptDocument },
+        { name: 'Buyer Aadhaar Card', doc: request.buyerAadhaarDocument },
+        { name: 'Buyer PAN Card', doc: request.buyerPanDocument, optional: true },
+      );
+    } else if (request.nocType === NocType.BANK_ACCOUNT_TRANSFER) {
+      enclosures.push(
+        { name: 'Identity Proof (Aadhaar)', doc: request.identityProofDocument },
+        { name: 'Share Certificate', doc: request.shareCertificateDocument },
+      );
+    } else if (request.nocType === NocType.MSEB_BILL_CHANGE) {
+      enclosures.push(
+        { name: 'Current Electricity Bill', doc: request.currentElectricityBillDocument },
+        { name: 'Identity Proof (Aadhaar)', doc: request.identityProofDocument },
+        { name: 'Share Certificate', doc: request.shareCertificateDocument },
+      );
+    } else if (request.nocType === NocType.OTHER) {
+      enclosures.push(
+        { name: 'Maintenance Receipt', doc: request.maintenanceReceiptDocument },
+        { name: 'Share Certificate', doc: request.shareCertificateDocument },
+        { name: 'Supporting Documents', doc: request.supportingDocuments },
+        { name: 'Identity Proof (Aadhaar)', doc: request.identityProofDocument },
+      );
+    }
 
     doc.fontSize(8).font('Helvetica');
 

@@ -119,26 +119,69 @@ export interface AdminUser {
   fullName: string;
 }
 
+export type NocType =
+  | 'Flat Transfer/Sale/Purchase'
+  | 'Bank Account Transfer'
+  | 'MSEB Electricity Bill Name Change'
+  | 'Other Purpose';
+
 export interface NocRequest {
   _id?: string;
   acknowledgementNumber?: string;
+
+  // Seller Information (always required)
   sellerName: string;
   sellerEmail: string;
   sellerMobileNumber: string;
   sellerAlternateMobile?: string;
-  buyerName: string;
-  buyerEmail: string;
-  buyerMobileNumber: string;
   flatNumber: string;
   wing: string;
-  reason: string;
+
+  // NOC Type & Details
+  nocType: NocType;
   expectedTransferDate?: string;
+  purposeDescription?: string; // Required for "Other Purpose"
+
+  // Buyer Information (only for Flat Transfer)
+  buyerName?: string;
+  buyerEmail?: string;
+  buyerMobileNumber?: string;
+
+  // Documents (type-specific)
+  agreementDocument?: DocumentMetadata;
+  shareCertificateDocument?: DocumentMetadata;
+  maintenanceReceiptDocument?: DocumentMetadata;
+  buyerAadhaarDocument?: DocumentMetadata;
+  buyerPanDocument?: DocumentMetadata;
+  identityProofDocument?: DocumentMetadata;
+  currentElectricityBillDocument?: DocumentMetadata;
+  supportingDocuments?: DocumentMetadata;
+
+  // Payment (type-specific fees)
+  nocFees?: number;
+  transferFees?: number;
+  totalAmount?: number;
+  paymentStatus?: string;
+  paymentTransactionId?: string;
+  paymentDate?: string;
+  paymentMethod?: string;
+
+  // Digital Signature & Declaration
+  digitalSignature?: string;
+  declarationAccepted?: boolean;
+
+  // Status tracking
   status?: Status;
   submittedAt?: Date;
   updatedAt?: Date;
   adminNotes?: string;
-  documents?: DocumentMetadata[];
+  adminRemarks?: string;
+  reviewedAt?: Date;
+  reviewedBy?: string;
+
   // Legacy fields for backward compatibility
+  reason?: string; // Old "Sale/Mortgage" field
+  documents?: DocumentMetadata[];
   fullName?: string;
   email?: string;
   mobileNumber?: string;

@@ -40,11 +40,13 @@ export default function NocRequestDetailPage() {
     sellerAlternateMobile?: string;
     flatNumber: string;
     wing: string;
-    buyerName: string;
-    buyerMobileNumber: string;
-    buyerEmail: string;
-    reason: string;
-    expectedTransferDate: string;
+    buyerName?: string;
+    buyerMobileNumber?: string;
+    buyerEmail?: string;
+    reason?: string;
+    nocType?: string;
+    purposeDescription?: string;
+    expectedTransferDate?: string;
     status: Status;
     paymentStatus?: string;
     paymentAmount?: number;
@@ -76,6 +78,9 @@ export default function NocRequestDetailPage() {
       fileType: string;
     };
     buyerPanDocument?: { s3Key: string; fileName: string; fileType: string };
+    identityProofDocument?: { s3Key: string; fileName: string; fileType: string };
+    currentElectricityBillDocument?: { s3Key: string; fileName: string; fileType: string };
+    supportingDocuments?: { s3Key: string; fileName: string; fileType: string };
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
@@ -439,46 +444,6 @@ export default function NocRequestDetailPage() {
               </div>
             </div>
 
-            {/* Buyer Information */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-              <div className="px-8 py-5 border-b border-slate-200">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <User className="h-5 w-5 text-green-600" />
-                  Buyer Information
-                </h3>
-              </div>
-              <div className="px-8 py-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">
-                      Buyer Name
-                    </label>
-                    <p className="text-base font-semibold text-slate-900 mt-1">
-                      {nocRequest.buyerName}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                      <Phone className="h-4 w-4" />
-                      Mobile
-                    </label>
-                    <p className="text-base text-slate-900 mt-1">
-                      {nocRequest.buyerMobileNumber}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                      <Mail className="h-4 w-4" />
-                      Email
-                    </label>
-                    <p className="text-base text-slate-900 mt-1">
-                      {nocRequest.buyerEmail}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* NOC Details */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-8 py-5 border-b border-slate-200">
@@ -492,128 +457,188 @@ export default function NocRequestDetailPage() {
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
-                      Reason
+                      NOC Type
                     </label>
                     <p className="text-base font-semibold text-slate-900 mt-1">
-                      {nocRequest.reason}
+                      {nocRequest.nocType || nocRequest.reason || 'N/A'}
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      Expected Transfer Date
-                    </label>
-                    <p className="text-base text-slate-900 mt-1">
-                      {new Date(
-                        nocRequest.expectedTransferDate
-                      ).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Payment Details */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-              <div className="px-8 py-5 border-b border-slate-200">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <IndianRupee className="h-5 w-5 text-green-600" />
-                  Payment Information
-                </h3>
-              </div>
-              <div className="px-8 py-6">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
-                      <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-slate-600" />
-                        <label className="text-sm font-medium text-slate-600">
-                          NOC Fees
-                        </label>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-900">
-                        ₹{nocRequest.nocFees || 1000}
+                  {/* Conditional: Show expected transfer date only for Flat Transfer */}
+                  {nocRequest.nocType === 'Flat Transfer/Sale/Purchase' && nocRequest.expectedTransferDate && (
+                    <div>
+                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        Expected Transfer Date
+                      </label>
+                      <p className="text-base text-slate-900 mt-1">
+                        {new Date(
+                          nocRequest.expectedTransferDate
+                        ).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </p>
                     </div>
-                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
-                      <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee className="h-5 w-5 text-slate-600" />
-                        <label className="text-sm font-medium text-slate-600">
-                          Transfer Fees
-                        </label>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-900">
-                        ₹{nocRequest.transferFees || 25000}
+                  )}
+
+                  {/* Conditional: Show purpose description for Other type */}
+                  {nocRequest.nocType === 'Other Purpose' && nocRequest.purposeDescription && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-slate-500">
+                        Purpose Description
+                      </label>
+                      <p className="text-base text-slate-900 mt-1 bg-slate-50 p-4 rounded-lg">
+                        {nocRequest.purposeDescription}
                       </p>
-                    </div>
-                    <div
-                      className={`p-6 ${theme.status.approved.bg} rounded-xl border-2 ${theme.status.approved.border}`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <IndianRupee
-                          className={`h-5 w-5 ${theme.status.approved.text}`}
-                        />
-                        <label
-                          className={`text-sm font-medium ${theme.status.approved.text}`}
-                        >
-                          Total Amount
-                        </label>
-                      </div>
-                      <p
-                        className={`text-2xl font-bold ${theme.status.approved.text}`}
-                      >
-                        ₹{nocRequest.totalAmount || 26000}
-                      </p>
-                    </div>
-                  </div>
-                  {nocRequest.paymentTransactionId && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                          <CreditCard className="h-4 w-4" />
-                          Transaction ID
-                        </label>
-                        <p className="text-base text-slate-900 mt-1 font-mono">
-                          {nocRequest.paymentTransactionId}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          Payment Date
-                        </label>
-                        <p className="text-base text-slate-900 mt-1">
-                          {nocRequest.paymentDate
-                            ? new Date(
-                                nocRequest.paymentDate
-                              ).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })
-                            : "Pending"}
-                        </p>
-                      </div>
-                      {nocRequest.paymentMethod && (
-                        <div>
-                          <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                            <CreditCard className="h-4 w-4" />
-                            Payment Method
-                          </label>
-                          <p className="text-base text-slate-900 mt-1">
-                            {nocRequest.paymentMethod}
-                          </p>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Buyer Information - Only show for Flat Transfer */}
+            {nocRequest.nocType === 'Flat Transfer/Sale/Purchase' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div className="px-8 py-5 border-b border-slate-200">
+                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <User className="h-5 w-5 text-green-600" />
+                    Buyer Information
+                  </h3>
+                </div>
+                <div className="px-8 py-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium text-slate-500">
+                        Buyer Name
+                      </label>
+                      <p className="text-base font-semibold text-slate-900 mt-1">
+                        {nocRequest.buyerName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                        <Phone className="h-4 w-4" />
+                        Mobile
+                      </label>
+                      <p className="text-base text-slate-900 mt-1">
+                        {nocRequest.buyerMobileNumber}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                        <Mail className="h-4 w-4" />
+                        Email
+                      </label>
+                      <p className="text-base text-slate-900 mt-1">
+                        {nocRequest.buyerEmail}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Details - Only show if totalAmount > 0 */}
+            {(nocRequest.totalAmount ?? 0) > 0 && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div className="px-8 py-5 border-b border-slate-200">
+                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <IndianRupee className="h-5 w-5 text-green-600" />
+                    Payment Information
+                  </h3>
+                </div>
+                <div className="px-8 py-6">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <IndianRupee className="h-5 w-5 text-slate-600" />
+                          <label className="text-sm font-medium text-slate-600">
+                            NOC Fees
+                          </label>
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900">
+                          ₹{nocRequest.nocFees || 1000}
+                        </p>
+                      </div>
+                      <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <IndianRupee className="h-5 w-5 text-slate-600" />
+                          <label className="text-sm font-medium text-slate-600">
+                            Transfer Fees
+                          </label>
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900">
+                          ₹{nocRequest.transferFees || 25000}
+                        </p>
+                      </div>
+                      <div
+                        className={`p-6 ${theme.status.approved.bg} rounded-xl border-2 ${theme.status.approved.border}`}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <IndianRupee
+                            className={`h-5 w-5 ${theme.status.approved.text}`}
+                          />
+                          <label
+                            className={`text-sm font-medium ${theme.status.approved.text}`}
+                          >
+                            Total Amount
+                          </label>
+                        </div>
+                        <p
+                          className={`text-2xl font-bold ${theme.status.approved.text}`}
+                        >
+                          ₹{nocRequest.totalAmount || 26000}
+                        </p>
+                      </div>
+                    </div>
+                    {nocRequest.paymentTransactionId && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                            <CreditCard className="h-4 w-4" />
+                            Transaction ID
+                          </label>
+                          <p className="text-base text-slate-900 mt-1 font-mono">
+                            {nocRequest.paymentTransactionId}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            Payment Date
+                          </label>
+                          <p className="text-base text-slate-900 mt-1">
+                            {nocRequest.paymentDate
+                              ? new Date(
+                                  nocRequest.paymentDate
+                                ).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : "Pending"}
+                          </p>
+                        </div>
+                        {nocRequest.paymentMethod && (
+                          <div>
+                            <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                              <CreditCard className="h-4 w-4" />
+                              Payment Method
+                            </label>
+                            <p className="text-base text-slate-900 mt-1">
+                              {nocRequest.paymentMethod}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar - 1 column */}
@@ -863,8 +888,9 @@ export default function NocRequestDetailPage() {
                       Declaration Accepted
                     </p>
                     <p className="text-xs text-slate-600">
-                      The seller has accepted all terms and conditions and
-                      confirmed that the information provided is accurate.
+                      {nocRequest.nocType === 'Flat Transfer/Sale/Purchase'
+                        ? 'The seller has accepted all terms and conditions, confirmed that the information provided is accurate, and agreed to pay all applicable fees and complete the transfer process as per society norms.'
+                        : 'The applicant has confirmed that all the information provided is accurate and understands that the society will verify all submitted documents before processing this NOC request.'}
                     </p>
                   </div>
                 </div>
