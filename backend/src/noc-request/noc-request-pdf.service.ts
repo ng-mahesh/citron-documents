@@ -371,32 +371,19 @@ export class NocRequestPdfService {
       y += boxHeight + 10;
     }
 
-    // Row 2: Status (show payment status only if totalAmount > 0)
+    // Row 2: Payment Status (only if totalAmount > 0)
     if (request.totalAmount && request.totalAmount > 0) {
-      // Show both Request Status and Payment Status
-      this.drawBox(doc, this.margin, y, col1Width, boxHeight, 'Request Status', request.status);
-      this.drawBox(
-        doc,
-        this.margin + col1Width,
-        y,
-        col2Width,
-        boxHeight,
-        'Payment Status',
-        request.paymentStatus,
-      );
-    } else {
-      // Show only Request Status (full width) for free NOC types
       this.drawBox(
         doc,
         this.margin,
         y,
         this.contentWidth,
         boxHeight,
-        'Request Status',
-        request.status,
+        'Payment Status',
+        request.paymentStatus,
       );
+      y += boxHeight + 10;
     }
-    y += boxHeight + 10;
 
     return y;
   }

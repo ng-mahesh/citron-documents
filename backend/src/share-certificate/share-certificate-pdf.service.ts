@@ -192,10 +192,13 @@ export class ShareCertificatePdfService {
 
     y += 25;
 
-    // Date (below both boxes, aligned right)
-    doc.fontSize(7).font('Helvetica').text('Date: __/__/____', rightColStart, y);
+    // Date (below both boxes, aligned right) - show actual submission date
+    const submissionDate = certificate.createdAt
+      ? new Date(certificate.createdAt).toLocaleDateString('en-IN')
+      : new Date().toLocaleDateString('en-IN');
+    doc.fontSize(7).font('Helvetica').text(`Date: ${submissionDate}`, rightColStart, y);
 
-    y += 25; // Space after date for manual writing
+    y += 25; // Space after date
 
     // Form title (centered, full width)
     doc
@@ -422,7 +425,7 @@ export class ShareCertificatePdfService {
   private addDeclarationSection(
     doc: PDFKit.PDFDocument,
     startY: number,
-    _certificate: ShareCertificate,
+    certificate: ShareCertificate,
   ): number {
     let y = startY;
 
@@ -459,29 +462,23 @@ export class ShareCertificatePdfService {
       );
     y += declarationHeight;
 
-    // Signature and Date
-    const colWidth = this.contentWidth / 2;
-    const boxHeight = 30;
-    this.drawBox(
-      doc,
-      this.margin,
-      y,
-      colWidth,
-      boxHeight,
-      'Member Signature',
-      '', // Empty signature box
-    );
-    this.drawBox(
-      doc,
-      this.margin + colWidth,
-      y,
-      colWidth,
-      boxHeight,
-      'Date',
-      '', // Empty date box
-    );
+    // Digital Signature (similar to NOC format)
+    const sigBoxHeight = 35;
+    const sigBoxWidth = this.contentWidth * 0.4;
 
-    return y + boxHeight + 10;
+    doc.rect(this.margin, y, sigBoxWidth, sigBoxHeight).stroke();
+    doc
+      .fontSize(7)
+      .font('Helvetica')
+      .text('Digital Signature', this.margin + 5, y + 5);
+    doc
+      .fontSize(9)
+      .font('Helvetica-Bold')
+      .text(certificate.digitalSignature || '', this.margin + 5, y + 18, {
+        width: sigBoxWidth - 10,
+      });
+
+    return y + sigBoxHeight + 10;
   }
 
   /**
