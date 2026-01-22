@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/layout/Header";
+import { ShareCertificateRegistrationModal } from "@/components/modals/ShareCertificateRegistrationModal";
 import { theme } from "@/lib/theme";
 import {
   FileText,
@@ -17,6 +18,7 @@ import {
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <ShareCertificateRegistrationModal />
       <Header />
 
       {/* Hero Section */}
@@ -282,6 +284,21 @@ export default function Home() {
             <p className="text-sm font-medium text-slate-900">
               office@citronsociety.in • +91 9673639643
             </p>
+            <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+              <Link
+                href="/privacy"
+                className="text-slate-600 hover:text-[#175a00] transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-slate-300">|</span>
+              <Link
+                href="/terms"
+                className="text-slate-600 hover:text-[#175a00] transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </div>
             <p className="mt-6 text-xs text-slate-500">
               &copy; 2025 Citron Phase 2 C & D Co-operative Housing Society
               Limited. All rights reserved.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { shareCertificateAPI, nominationAPI, nocRequestAPI } from "@/lib/api";
@@ -510,6 +511,21 @@ export default function StatusPage() {
           <p className="text-sm font-medium text-slate-900">
             office@citronsociety.in • +91 9673639643
           </p>
+          <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+            <Link
+              href="/privacy"
+              className="text-slate-600 hover:text-[#175a00] transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link
+              href="/terms"
+              className="text-slate-600 hover:text-[#175a00] transition-colors"
+            >
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
     </div>
