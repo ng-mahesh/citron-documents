@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsEnum, IsDateString, IsObject, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+  IsObject,
+  IsNumber,
+  IsEmail,
+  IsMobilePhone,
+} from 'class-validator';
 import { SubmissionStatus } from '../../common/enums/status.enum';
 import { PaymentStatus } from '../schemas/noc-request.schema';
 import { UploadedDocument } from '../../common/interfaces/document.interface';
@@ -19,6 +28,39 @@ export class UpdateNocRequestDto {
   @IsString()
   @IsOptional()
   reviewedBy?: string;
+
+  // Basic information fields
+  @IsString()
+  @IsOptional()
+  sellerName?: string;
+
+  @IsEmail()
+  @IsOptional()
+  sellerEmail?: string;
+
+  @IsMobilePhone('en-IN')
+  @IsOptional()
+  sellerMobileNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  flatNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  wing?: string;
+
+  @IsString()
+  @IsOptional()
+  buyerName?: string;
+
+  @IsEmail()
+  @IsOptional()
+  buyerEmail?: string;
+
+  @IsMobilePhone('en-IN')
+  @IsOptional()
+  buyerMobileNumber?: string;
 
   @IsDateString()
   @IsOptional()

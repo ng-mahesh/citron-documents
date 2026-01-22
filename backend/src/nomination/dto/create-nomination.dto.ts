@@ -132,16 +132,16 @@ export class CreateNominationDto {
 
   // Documents
   @IsObject()
-  @IsNotEmpty()
-  index2Document: UploadedDocument;
+  @IsOptional()
+  index2Document?: UploadedDocument;
 
   @IsObject()
-  @IsNotEmpty()
-  possessionLetterDocument: UploadedDocument;
+  @IsOptional()
+  possessionLetterDocument?: UploadedDocument;
 
   @IsObject()
-  @IsNotEmpty()
-  primaryMemberAadhaar: UploadedDocument;
+  @IsOptional()
+  aadhaarCardDocument?: UploadedDocument;
 
   @IsObject()
   @IsOptional()
