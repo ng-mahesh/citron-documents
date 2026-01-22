@@ -85,16 +85,16 @@ export class CreateShareCertificateDto {
   jointMemberMobile?: string;
 
   @IsObject()
-  @IsOptional()
-  index2Document?: UploadedDocument;
+  @IsNotEmpty()
+  index2Document: UploadedDocument;
 
   @IsObject()
-  @IsOptional()
-  possessionLetterDocument?: UploadedDocument;
+  @IsNotEmpty()
+  possessionLetterDocument: UploadedDocument;
 
   @IsObject()
-  @IsOptional()
-  aadhaarCardDocument?: UploadedDocument;
+  @IsNotEmpty()
+  aadhaarCardDocument: UploadedDocument;
 
   @IsString()
   @IsNotEmpty()

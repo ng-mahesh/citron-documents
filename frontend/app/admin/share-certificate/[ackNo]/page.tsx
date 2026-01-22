@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/Button";
 import { shareCertificateAPI, adminAPI, api, uploadApi } from "@/lib/api";
 import { Status } from "@/lib/types";
@@ -260,7 +261,10 @@ export default function ShareCertificateDetailPage() {
         ...editData,
       });
       setIsEditMode(false);
-      setToast({ message: "Certificate details updated successfully", type: "success" });
+      setToast({
+        message: "Certificate details updated successfully",
+        type: "success",
+      });
     } catch (error) {
       console.error("Failed to update certificate details:", error);
       setToast({
@@ -272,7 +276,10 @@ export default function ShareCertificateDetailPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    documentType: string
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !certificate) return;
 
@@ -289,12 +296,12 @@ export default function ShareCertificateDetailPage() {
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('flatNumber', certificate.flatNumber);
-      formData.append('documentType', documentType);
-      formData.append('fullName', certificate.fullName);
+      formData.append("file", file);
+      formData.append("flatNumber", certificate.flatNumber);
+      formData.append("documentType", documentType);
+      formData.append("fullName", certificate.fullName);
 
-      console.log('Uploading document:', {
+      console.log("Uploading document:", {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
@@ -304,7 +311,7 @@ export default function ShareCertificateDetailPage() {
       });
 
       // Upload file
-      const uploadResponse = await uploadApi.post('/upload', formData);
+      const uploadResponse = await uploadApi.post("/upload", formData);
 
       const documentData = {
         documentType,
@@ -319,14 +326,17 @@ export default function ShareCertificateDetailPage() {
       if (!certificate._id) {
         throw new Error("Certificate ID is missing");
       }
-      await api.post(`/share-certificate/${certificate._id}/documents`, documentData);
+      await api.post(
+        `/share-certificate/${certificate._id}/documents`,
+        documentData
+      );
 
       // Refresh certificate data
       await fetchCertificateDetails();
       setToast({ message: "Document uploaded successfully", type: "success" });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to upload document:", error);
-      const errorMessage = error.response?.data?.message || "Failed to upload document. Please try again.";
+      const errorMessage = error instanceof AxiosError ? error.response?.data?.message : "Failed to upload document. Please try again.";
       setToast({
         message: errorMessage,
         type: "error",
@@ -334,7 +344,7 @@ export default function ShareCertificateDetailPage() {
     } finally {
       setUploadingDocument(false);
       // Reset file input
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
@@ -344,10 +354,12 @@ export default function ShareCertificateDetailPage() {
     setDeletingDocument(documentType);
     try {
       // Remove document from certificate
-      await api.delete(`/share-certificate/${certificate._id}/documents/${documentType}`);
+      await api.delete(
+        `/share-certificate/${certificate._id}/documents/${documentType}`
+      );
 
       // Delete file from S3
-      await uploadApi.delete('/upload', { data: { key: s3Key } });
+      await uploadApi.delete("/upload", { data: { key: s3Key } });
 
       // Refresh certificate data
       await fetchCertificateDetails();
@@ -393,13 +405,13 @@ export default function ShareCertificateDetailPage() {
     return labels[type] || type;
   };
 
-  const getPredefinedRemarks = (status: Status, certificate: any) => {
+  const getPredefinedRemarks = (status: Status) => {
     const baseRemarks = {
       Pending: `Application marked as pending. Awaiting further review and required documents.`,
       "Under Review": `Application is currently under review. All submitted documents are being verified.`,
       Approved: `Application has been approved. Share certificate will be issued shortly.`,
       Rejected: `Application has been rejected. Please check the requirements and resubmit.`,
-      "Document Required": `Additional documents are required. Please upload the missing documents to proceed.`
+      "Document Required": `Additional documents are required. Please upload the missing documents to proceed.`,
     };
 
     return baseRemarks[status] || "";
@@ -522,7 +534,9 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="text"
                         value={editData.fullName}
-                        onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({ ...editData, fullName: e.target.value })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -541,13 +555,23 @@ export default function ShareCertificateDetailPage() {
                         <input
                           type="text"
                           value={editData.flatNumber}
-                          onChange={(e) => setEditData({ ...editData, flatNumber: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              flatNumber: e.target.value,
+                            })
+                          }
                           placeholder="Flat Number"
                           className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                         <select
                           value={editData.wing}
-                          onChange={(e) => setEditData({ ...editData, wing: e.target.value as "C" | "D" })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              wing: e.target.value as "C" | "D",
+                            })
+                          }
                           className="px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         >
                           <option value="C">Wing C</option>
@@ -595,7 +619,9 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="email"
                         value={editData.email}
-                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({ ...editData, email: e.target.value })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -613,7 +639,12 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="tel"
                         value={editData.mobileNumber}
-                        onChange={(e) => setEditData({ ...editData, mobileNumber: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            mobileNumber: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -630,7 +661,12 @@ export default function ShareCertificateDetailPage() {
                     {isEditMode ? (
                       <select
                         value={editData.membershipType}
-                        onChange={(e) => setEditData({ ...editData, membershipType: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            membershipType: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       >
                         <option value="Primary">Primary Member</option>
@@ -669,7 +705,12 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="text"
                         value={editData.digitalSignature}
-                        onChange={(e) => setEditData({ ...editData, digitalSignature: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            digitalSignature: e.target.value,
+                          })
+                        }
                         placeholder="Enter digital signature"
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
@@ -738,19 +779,19 @@ export default function ShareCertificateDetailPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Change Status
                   </label>
-                   <select
-                     value={selectedStatus}
-                     onChange={(e) => {
-                       const newStatus = e.target.value as Status;
-                       setSelectedStatus(newStatus);
-                       // Auto-populate admin remarks with predefined message
-                       if (certificate) {
-                         setAdminRemarks(getPredefinedRemarks(newStatus, certificate));
-                       }
-                     }}
-                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                     disabled={updatingStatus}
-                   >
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => {
+                      const newStatus = e.target.value as Status;
+                      setSelectedStatus(newStatus);
+                      // Auto-populate admin remarks with predefined message
+                      if (certificate) {
+                        setAdminRemarks(getPredefinedRemarks(newStatus));
+                      }
+                    }}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    disabled={updatingStatus}
+                  >
                     <option value="Pending">Pending</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
@@ -762,17 +803,18 @@ export default function ShareCertificateDetailPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Admin Remarks
                   </label>
-                   <textarea
-                     value={adminRemarks}
-                     onChange={(e) => setAdminRemarks(e.target.value)}
-                     placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
-                     rows={4}
-                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
-                     disabled={updatingStatus}
-                   />
-                   <p className="text-xs text-slate-500 mt-1">
-                     Remarks are auto-populated based on status. Customize as needed. These will be included in the exported Excel file.
-                   </p>
+                  <textarea
+                    value={adminRemarks}
+                    onChange={(e) => setAdminRemarks(e.target.value)}
+                    placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
+                    rows={4}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+                    disabled={updatingStatus}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Remarks are auto-populated based on status. Customize as
+                    needed. These will be included in the exported Excel file.
+                  </p>
                 </div>
                 <Button
                   onClick={handleStatusUpdate}
@@ -808,7 +850,9 @@ export default function ShareCertificateDetailPage() {
                         {certificate.index2Document!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -828,12 +872,17 @@ export default function ShareCertificateDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('index2', certificate.index2Document!.s3Key)}
-                          disabled={deletingDocument === 'index2'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "index2",
+                              certificate.index2Document!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "index2"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'index2' ? (
+                          {deletingDocument === "index2" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -845,7 +894,7 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'index2')}
+                        onChange={(e) => handleFileUpload(e, "index2")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -872,7 +921,9 @@ export default function ShareCertificateDetailPage() {
                         {certificate.possessionLetterDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -892,12 +943,17 @@ export default function ShareCertificateDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('possessionLetter', certificate.possessionLetterDocument!.s3Key)}
-                          disabled={deletingDocument === 'possessionLetter'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "possessionLetter",
+                              certificate.possessionLetterDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "possessionLetter"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'possessionLetter' ? (
+                          {deletingDocument === "possessionLetter" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -909,7 +965,9 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'possessionLetter')}
+                        onChange={(e) =>
+                          handleFileUpload(e, "possessionLetter")
+                        }
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -936,7 +994,9 @@ export default function ShareCertificateDetailPage() {
                         {certificate.aadhaarCardDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -956,12 +1016,17 @@ export default function ShareCertificateDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('aadhaarCard', certificate.aadhaarCardDocument!.s3Key)}
-                          disabled={deletingDocument === 'aadhaarCard'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "aadhaarCard",
+                              certificate.aadhaarCardDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "aadhaarCard"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'aadhaarCard' ? (
+                          {deletingDocument === "aadhaarCard" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -973,7 +1038,7 @@ export default function ShareCertificateDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'aadhaarCard')}
+                        onChange={(e) => handleFileUpload(e, "aadhaarCard")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />

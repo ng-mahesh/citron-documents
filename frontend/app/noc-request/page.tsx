@@ -15,7 +15,11 @@ import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { ToastType } from "@/components/ui/Toast";
-import { NOC_TYPE_CONFIGS, NOC_TYPE_OPTIONS, getDocumentLabel } from "@/lib/noc-type-config";
+import {
+  NOC_TYPE_CONFIGS,
+  NOC_TYPE_OPTIONS,
+  getDocumentLabel,
+} from "@/lib/noc-type-config";
 
 export default function NocRequestPage() {
   const router = useRouter();
@@ -72,13 +76,20 @@ export default function NocRequestPage() {
   } | null>(null);
 
   // Computed values based on selected NOC type
-  const currentTypeConfig = formData.nocType ? NOC_TYPE_CONFIGS[formData.nocType] : null;
+  const currentTypeConfig = formData.nocType
+    ? NOC_TYPE_CONFIGS[formData.nocType]
+    : null;
   const requiresBuyerInfo = currentTypeConfig?.requiresBuyerInfo || false;
-  const requiresPurposeDescription = currentTypeConfig?.requiresPurposeDescription || false;
-  const totalFees = currentTypeConfig ? currentTypeConfig.nocFees + currentTypeConfig.transferFees : 0;
+  const requiresPurposeDescription =
+    currentTypeConfig?.requiresPurposeDescription || false;
+  const totalFees = currentTypeConfig
+    ? currentTypeConfig.nocFees + currentTypeConfig.transferFees
+    : 0;
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -185,7 +196,10 @@ export default function NocRequestPage() {
     }
 
     // Conditional: Expected Transfer Date (only for Flat Transfer)
-    if (formData.nocType === 'Flat Transfer/Sale/Purchase' && !formData.expectedTransferDate) {
+    if (
+      formData.nocType === "Flat Transfer/Sale/Purchase" &&
+      !formData.expectedTransferDate
+    ) {
       newErrors.expectedTransferDate = "Expected transfer date is required";
     }
 
@@ -251,7 +265,10 @@ export default function NocRequestPage() {
     }
 
     // Conditional: Expected Transfer Date
-    if (formData.nocType === 'Flat Transfer/Sale/Purchase' && !formData.expectedTransferDate) {
+    if (
+      formData.nocType === "Flat Transfer/Sale/Purchase" &&
+      !formData.expectedTransferDate
+    ) {
       return false;
     }
 
@@ -543,7 +560,7 @@ export default function NocRequestPage() {
                 value={formData.nocType}
                 onChange={handleInputChange}
                 error={errors.nocType}
-                options={[ ...NOC_TYPE_OPTIONS]}
+                options={[...NOC_TYPE_OPTIONS]}
                 required
               />
 
@@ -562,13 +579,15 @@ export default function NocRequestPage() {
                     className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.purposeDescription && (
-                    <p className="text-red-600 text-sm mt-1">{errors.purposeDescription}</p>
+                    <p className="text-red-600 text-sm mt-1">
+                      {errors.purposeDescription}
+                    </p>
                   )}
                 </div>
               )}
 
               {/* Conditional: Expected Transfer Date (only for Flat Transfer) */}
-              {formData.nocType === 'Flat Transfer/Sale/Purchase' && (
+              {formData.nocType === "Flat Transfer/Sale/Purchase" && (
                 <Input
                   label="Expected Transfer Date"
                   name="expectedTransferDate"
@@ -637,7 +656,7 @@ export default function NocRequestPage() {
               <div className="px-8 py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Flat Transfer Documents */}
-                  {formData.nocType === 'Flat Transfer/Sale/Purchase' && (
+                  {formData.nocType === "Flat Transfer/Sale/Purchase" && (
                     <>
                       <FileUpload
                         label="Agreement Copy / Allotment Letter"
@@ -714,7 +733,7 @@ export default function NocRequestPage() {
                   )}
 
                   {/* Bank Account Transfer Documents */}
-                  {formData.nocType === 'Bank Account Transfer' && (
+                  {formData.nocType === "Bank Account Transfer" && (
                     <>
                       <FileUpload
                         label="Identity Proof (Aadhaar)"
@@ -750,7 +769,7 @@ export default function NocRequestPage() {
                   )}
 
                   {/* MSEB Bill Change Documents */}
-                  {formData.nocType === 'MSEB Electricity Bill Name Change' && (
+                  {formData.nocType === "MSEB Electricity Bill Name Change" && (
                     <>
                       <FileUpload
                         label="Current Electricity Bill"
@@ -801,7 +820,7 @@ export default function NocRequestPage() {
                   )}
 
                   {/* Other Purpose Documents */}
-                  {formData.nocType === 'Other Purpose' && (
+                  {formData.nocType === "Other Purpose" && (
                     <>
                       <FileUpload
                         label="Maintenance Receipt"
@@ -924,7 +943,8 @@ export default function NocRequestPage() {
                   No Payment Required
                 </h3>
                 <p className="text-sm text-gray-700">
-                  This NOC type is free of charge. No payment is required for processing.
+                  This NOC type is free of charge. No payment is required for
+                  processing.
                 </p>
               </div>
             </Card>
@@ -955,9 +975,9 @@ export default function NocRequestPage() {
                   className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <span className="text-sm text-gray-700">
-                  {formData.nocType === 'Flat Transfer/Sale/Purchase'
-                    ? 'I hereby declare that all the information provided above is true and correct. I understand that the society will verify all documents and maintenance dues before processing this NOC request. I agree to pay all applicable fees and complete the transfer process as per society norms.'
-                    : 'I hereby declare that all the information provided above is true and correct. I understand that the society will verify all submitted documents before processing this NOC request.'}
+                  {formData.nocType === "Flat Transfer/Sale/Purchase"
+                    ? "I hereby declare that all the information provided above is true and correct. I understand that the society will verify all documents and maintenance dues before processing this NOC request. I agree to pay all applicable fees and complete the transfer process as per society norms."
+                    : "I hereby declare that all the information provided above is true and correct. I understand that the society will verify all submitted documents before processing this NOC request."}
                 </span>
               </label>
               {errors.declarationAccepted && (

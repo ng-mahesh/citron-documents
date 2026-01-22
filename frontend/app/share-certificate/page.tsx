@@ -151,6 +151,8 @@ export default function ShareCertificatePage() {
       newErrors.flatNumber = "Flat number is required";
     else if (!/^\d+$/.test(formData.flatNumber))
       newErrors.flatNumber = "Flat number must contain only numbers";
+    else if (formData.flatNumber.length > 5)
+      newErrors.flatNumber = "Flat number must be at most 5 digits";
     if (!formData.wing) newErrors.wing = "Wing is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/^\S+@\S+\.\S+$/.test(formData.email))
@@ -169,6 +171,12 @@ export default function ShareCertificatePage() {
       newErrors.membershipType = "Membership type is required";
     if (!formData.digitalSignature.trim())
       newErrors.digitalSignature = "Digital signature is required";
+    else if (formData.digitalSignature.length < 3)
+      newErrors.digitalSignature =
+        "Digital signature must be at least 3 characters";
+    else if (formData.digitalSignature.length > 25)
+      newErrors.digitalSignature =
+        "Digital signature must be at most 25 characters";
     if (!formData.declarationAccepted)
       newErrors.declarationAccepted = "You must accept the declaration";
 
@@ -189,7 +197,11 @@ export default function ShareCertificatePage() {
 
     // Check required fields
     if (!formData.fullName.trim()) return false;
-    if (!formData.flatNumber.trim() || !/^\d+$/.test(formData.flatNumber))
+    if (
+      !formData.flatNumber.trim() ||
+      !/^\d+$/.test(formData.flatNumber) ||
+      formData.flatNumber.length > 5
+    )
       return false;
     if (!formData.wing) return false;
     if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email))
@@ -199,8 +211,14 @@ export default function ShareCertificatePage() {
       !/^[6-9]\d{9}$/.test(formData.mobileNumber)
     )
       return false;
+    if (formData.flatNumber.length > 5) return false;
     if (!formData.membershipType) return false;
-    if (!formData.digitalSignature.trim()) return false;
+    if (
+      !formData.digitalSignature.trim() ||
+      formData.digitalSignature.length < 3 ||
+      formData.digitalSignature.length > 25
+    )
+      return false;
     if (!formData.declarationAccepted) return false;
     if (!documents.index2Document?.fileName) return false;
     if (!documents.possessionLetterDocument?.fileName) return false;

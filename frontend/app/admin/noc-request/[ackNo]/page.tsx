@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/Button";
 import { nocRequestAPI, adminAPI, api, uploadApi } from "@/lib/api";
 import { Status } from "@/lib/types";
@@ -11,7 +12,6 @@ import {
   ArrowLeft,
   Eye,
   User,
-  Users,
   MapPin,
   Mail,
   Phone,
@@ -82,8 +82,16 @@ export default function NocRequestDetailPage() {
       fileType: string;
     };
     buyerPanDocument?: { s3Key: string; fileName: string; fileType: string };
-    identityProofDocument?: { s3Key: string; fileName: string; fileType: string };
-    currentElectricityBillDocument?: { s3Key: string; fileName: string; fileType: string };
+    identityProofDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    currentElectricityBillDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
     supportingDocuments?: { s3Key: string; fileName: string; fileType: string };
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,23 +112,23 @@ export default function NocRequestDetailPage() {
     fileType: string;
     loading?: boolean;
   } | null>(null);
-   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
-   // Edit mode states
-   const [isEditMode, setIsEditMode] = useState(false);
-   const [editData, setEditData] = useState({
-     sellerName: "",
-     sellerEmail: "",
-     sellerMobileNumber: "",
-     flatNumber: "",
-     wing: "",
-     buyerName: "",
-     buyerEmail: "",
-     buyerMobileNumber: "",
-   });
-   const [updatingDetails, setUpdatingDetails] = useState(false);
-   const [uploadingDocument, setUploadingDocument] = useState(false);
-   const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
+  // Edit mode states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editData, setEditData] = useState({
+    sellerName: "",
+    sellerEmail: "",
+    sellerMobileNumber: "",
+    flatNumber: "",
+    wing: "",
+    buyerName: "",
+    buyerEmail: "",
+    buyerMobileNumber: "",
+  });
+  const [updatingDetails, setUpdatingDetails] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -256,144 +264,152 @@ export default function NocRequestDetailPage() {
     }
   };
 
-   const closeDocumentPopup = () => {
-     setDocumentPopup(null);
-   };
+  const closeDocumentPopup = () => {
+    setDocumentPopup(null);
+  };
 
-   const handleEditToggle = () => {
-     if (isEditMode) {
-       // Cancel edit - reset to original values
-       if (nocRequest) {
-         setEditData({
-           sellerName: nocRequest.sellerName || "",
-           sellerEmail: nocRequest.sellerEmail || "",
-           sellerMobileNumber: nocRequest.sellerMobileNumber || "",
-           flatNumber: nocRequest.flatNumber || "",
-           wing: nocRequest.wing || "",
-           buyerName: nocRequest.buyerName || "",
-           buyerEmail: nocRequest.buyerEmail || "",
-           buyerMobileNumber: nocRequest.buyerMobileNumber || "",
-         });
-       }
-     }
-     setIsEditMode(!isEditMode);
-   };
+  const handleEditToggle = () => {
+    if (isEditMode) {
+      // Cancel edit - reset to original values
+      if (nocRequest) {
+        setEditData({
+          sellerName: nocRequest.sellerName || "",
+          sellerEmail: nocRequest.sellerEmail || "",
+          sellerMobileNumber: nocRequest.sellerMobileNumber || "",
+          flatNumber: nocRequest.flatNumber || "",
+          wing: nocRequest.wing || "",
+          buyerName: nocRequest.buyerName || "",
+          buyerEmail: nocRequest.buyerEmail || "",
+          buyerMobileNumber: nocRequest.buyerMobileNumber || "",
+        });
+      }
+    }
+    setIsEditMode(!isEditMode);
+  };
 
-   const handleUpdateDetails = async () => {
-     if (!nocRequest) return;
+  const handleUpdateDetails = async () => {
+    if (!nocRequest) return;
 
-     setUpdatingDetails(true);
-     try {
-       await nocRequestAPI.update(nocRequest._id, editData);
-       setNocRequest({
-         ...nocRequest,
-         ...editData,
-       });
-       setIsEditMode(false);
-       setToast({ message: "NOC request details updated successfully", type: "success" });
-     } catch (error) {
-       console.error("Failed to update NOC request details:", error);
-       setToast({
-         message: "Failed to update NOC request details. Please try again.",
-         type: "error",
-       });
-     } finally {
-       setUpdatingDetails(false);
-     }
-   };
+    setUpdatingDetails(true);
+    try {
+      await nocRequestAPI.update(nocRequest._id, editData);
+      setNocRequest({
+        ...nocRequest,
+        ...editData,
+      });
+      setIsEditMode(false);
+      setToast({
+        message: "NOC request details updated successfully",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Failed to update NOC request details:", error);
+      setToast({
+        message: "Failed to update NOC request details. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setUpdatingDetails(false);
+    }
+  };
 
-   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
-     const file = event.target.files?.[0];
-     if (!file || !nocRequest) return;
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    documentType: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !nocRequest) return;
 
-     // Validate required NOC request data
-     if (!nocRequest.flatNumber || !nocRequest.sellerName) {
-       setToast({
-         message: "NOC request data is incomplete. Please refresh the page.",
-         type: "error",
-       });
-       return;
-     }
+    // Validate required NOC request data
+    if (!nocRequest.flatNumber || !nocRequest.sellerName) {
+      setToast({
+        message: "NOC request data is incomplete. Please refresh the page.",
+        type: "error",
+      });
+      return;
+    }
 
-     setUploadingDocument(true);
-     try {
-       // Create FormData for file upload
-       const formData = new FormData();
-       formData.append('file', file);
-       formData.append('flatNumber', nocRequest.flatNumber);
-       formData.append('documentType', documentType);
-       formData.append('fullName', nocRequest.sellerName);
+    setUploadingDocument(true);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("flatNumber", nocRequest.flatNumber);
+      formData.append("documentType", documentType);
+      formData.append("fullName", nocRequest.sellerName);
 
-       console.log('Uploading document:', {
-         fileName: file.name,
-         fileSize: file.size,
-         fileType: file.type,
-         flatNumber: nocRequest.flatNumber,
-         documentType,
-         fullName: nocRequest.sellerName,
-       });
+      console.log("Uploading document:", {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        flatNumber: nocRequest.flatNumber,
+        documentType,
+        fullName: nocRequest.sellerName,
+      });
 
-       // Upload file
-       const uploadResponse = await uploadApi.post('/upload', formData);
+      // Upload file
+      const uploadResponse = await uploadApi.post("/upload", formData);
 
-       const documentData = {
-         documentType,
-         s3Key: uploadResponse.data.data.s3Key,
-         fileName: uploadResponse.data.data.fileName,
-         fileType: uploadResponse.data.data.fileType,
-         fileSize: uploadResponse.data.data.fileSize,
-         uploadedAt: uploadResponse.data.data.uploadedAt,
-       };
+      const documentData = {
+        documentType,
+        s3Key: uploadResponse.data.data.s3Key,
+        fileName: uploadResponse.data.data.fileName,
+        fileType: uploadResponse.data.data.fileType,
+        fileSize: uploadResponse.data.data.fileSize,
+        uploadedAt: uploadResponse.data.data.uploadedAt,
+      };
 
-       // Add document to NOC request
-       if (!nocRequest._id) {
-         throw new Error("NOC request ID is missing");
-       }
-       await api.post(`/noc-request/${nocRequest._id}/documents`, documentData);
+      // Add document to NOC request
+      if (!nocRequest._id) {
+        throw new Error("NOC request ID is missing");
+      }
+      await api.post(`/noc-request/${nocRequest._id}/documents`, documentData);
 
-       // Refresh NOC request data
-       await fetchNocRequestDetails();
-       setToast({ message: "Document uploaded successfully", type: "success" });
-     } catch (error: any) {
-       console.error("Failed to upload document:", error);
-       const errorMessage = error.response?.data?.message || "Failed to upload document. Please try again.";
-       setToast({
-         message: errorMessage,
-         type: "error",
-       });
-     } finally {
-       setUploadingDocument(false);
-       // Reset file input
-       event.target.value = '';
-     }
-   };
+      // Refresh NOC request data
+      await fetchNocRequestDetails();
+      setToast({ message: "Document uploaded successfully", type: "success" });
+    } catch (error: unknown) {
+      console.error("Failed to upload document:", error);
+      const errorMessage = error instanceof AxiosError ? error.response?.data?.message : "Failed to upload document. Please try again.";
+      setToast({
+        message: errorMessage,
+        type: "error",
+      });
+    } finally {
+      setUploadingDocument(false);
+      // Reset file input
+      event.target.value = "";
+    }
+  };
 
-   const handleDeleteDocument = async (documentType: string, s3Key: string) => {
-     if (!nocRequest) return;
+  const handleDeleteDocument = async (documentType: string, s3Key: string) => {
+    if (!nocRequest) return;
 
-     setDeletingDocument(documentType);
-     try {
-       // Remove document from NOC request
-       await api.delete(`/noc-request/${nocRequest._id}/documents/${documentType}`);
+    setDeletingDocument(documentType);
+    try {
+      // Remove document from NOC request
+      await api.delete(
+        `/noc-request/${nocRequest._id}/documents/${documentType}`
+      );
 
-       // Delete file from S3
-       await uploadApi.delete('/upload', { data: { key: s3Key } });
+      // Delete file from S3
+      await uploadApi.delete("/upload", { data: { key: s3Key } });
 
-       // Refresh NOC request data
-       await fetchNocRequestDetails();
-       setToast({ message: "Document deleted successfully", type: "success" });
-     } catch (error) {
-       console.error("Failed to delete document:", error);
-       setToast({
-         message: "Failed to delete document. Please try again.",
-         type: "error",
-       });
-     } finally {
-       setDeletingDocument(null);
-     }
-   };
+      // Refresh NOC request data
+      await fetchNocRequestDetails();
+      setToast({ message: "Document deleted successfully", type: "success" });
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      setToast({
+        message: "Failed to delete document. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setDeletingDocument(null);
+    }
+  };
 
-   const handleGeneratePdf = async () => {
+  const handleGeneratePdf = async () => {
     if (!nocRequest) return;
 
     setGeneratingPdf(true);
@@ -446,13 +462,13 @@ export default function NocRequestDetailPage() {
     );
   };
 
-  const getPredefinedRemarks = (status: Status, nocRequest: any) => {
+  const getPredefinedRemarks = (status: Status) => {
     const baseRemarks = {
       Pending: `NOC request marked as pending. Awaiting further review and required documents.`,
       "Under Review": `NOC request is currently under review. All submitted documents are being verified.`,
       Approved: `NOC request has been approved. NOC certificate will be issued shortly.`,
       Rejected: `NOC request has been rejected. Please check the requirements and resubmit.`,
-      "Document Required": `Additional documents are required for NOC. Please upload the missing documents to proceed.`
+      "Document Required": `Additional documents are required for NOC. Please upload the missing documents to proceed.`,
     };
 
     return baseRemarks[status] || "";
@@ -578,7 +594,12 @@ export default function NocRequestDetailPage() {
                       <input
                         type="text"
                         value={editData.sellerName}
-                        onChange={(e) => setEditData({ ...editData, sellerName: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            sellerName: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -597,14 +618,21 @@ export default function NocRequestDetailPage() {
                         <input
                           type="text"
                           value={editData.flatNumber}
-                          onChange={(e) => setEditData({ ...editData, flatNumber: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              flatNumber: e.target.value,
+                            })
+                          }
                           placeholder="Flat Number"
                           className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                         <input
                           type="text"
                           value={editData.wing}
-                          onChange={(e) => setEditData({ ...editData, wing: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({ ...editData, wing: e.target.value })
+                          }
                           placeholder="Wing"
                           className="w-20 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
@@ -624,7 +652,12 @@ export default function NocRequestDetailPage() {
                       <input
                         type="email"
                         value={editData.sellerEmail}
-                        onChange={(e) => setEditData({ ...editData, sellerEmail: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            sellerEmail: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -642,7 +675,12 @@ export default function NocRequestDetailPage() {
                       <input
                         type="tel"
                         value={editData.sellerMobileNumber}
-                        onChange={(e) => setEditData({ ...editData, sellerMobileNumber: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            sellerMobileNumber: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -715,46 +753,48 @@ export default function NocRequestDetailPage() {
                       NOC Type
                     </label>
                     <p className="text-base font-semibold text-slate-900 mt-1">
-                      {nocRequest.nocType || nocRequest.reason || 'N/A'}
+                      {nocRequest.nocType || nocRequest.reason || "N/A"}
                     </p>
                   </div>
 
                   {/* Conditional: Show expected transfer date only for Flat Transfer */}
-                  {nocRequest.nocType === 'Flat Transfer/Sale/Purchase' && nocRequest.expectedTransferDate && (
-                    <div>
-                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        Expected Transfer Date
-                      </label>
-                      <p className="text-base text-slate-900 mt-1">
-                        {new Date(
-                          nocRequest.expectedTransferDate
-                        ).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                  )}
+                  {nocRequest.nocType === "Flat Transfer/Sale/Purchase" &&
+                    nocRequest.expectedTransferDate && (
+                      <div>
+                        <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          Expected Transfer Date
+                        </label>
+                        <p className="text-base text-slate-900 mt-1">
+                          {new Date(
+                            nocRequest.expectedTransferDate
+                          ).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    )}
 
                   {/* Conditional: Show purpose description for Other type */}
-                  {nocRequest.nocType === 'Other Purpose' && nocRequest.purposeDescription && (
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-slate-500">
-                        Purpose Description
-                      </label>
-                      <p className="text-base text-slate-900 mt-1 bg-slate-50 p-4 rounded-lg">
-                        {nocRequest.purposeDescription}
-                      </p>
-                    </div>
-                  )}
+                  {nocRequest.nocType === "Other Purpose" &&
+                    nocRequest.purposeDescription && (
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-slate-500">
+                          Purpose Description
+                        </label>
+                        <p className="text-base text-slate-900 mt-1 bg-slate-50 p-4 rounded-lg">
+                          {nocRequest.purposeDescription}
+                        </p>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
 
             {/* Buyer Information - Only show for Flat Transfer */}
-            {nocRequest.nocType === 'Flat Transfer/Sale/Purchase' && (
+            {nocRequest.nocType === "Flat Transfer/Sale/Purchase" && (
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
                 <div className="px-8 py-5 border-b border-slate-200">
                   <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -764,59 +804,74 @@ export default function NocRequestDetailPage() {
                 </div>
                 <div className="px-8 py-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                       <label className="text-sm font-medium text-slate-500">
-                         Buyer Name
-                       </label>
-                       {isEditMode ? (
-                         <input
-                           type="text"
-                           value={editData.buyerName}
-                           onChange={(e) => setEditData({ ...editData, buyerName: e.target.value })}
-                           className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                         />
-                       ) : (
-                         <p className="text-base font-semibold text-slate-900 mt-1">
-                           {nocRequest.buyerName}
-                         </p>
-                       )}
-                     </div>
-                     <div>
-                       <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                         <Phone className="h-4 w-4" />
-                         Mobile
-                       </label>
-                       {isEditMode ? (
-                         <input
-                           type="tel"
-                           value={editData.buyerMobileNumber}
-                           onChange={(e) => setEditData({ ...editData, buyerMobileNumber: e.target.value })}
-                           className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                         />
-                       ) : (
-                         <p className="text-base text-slate-900 mt-1">
-                           {nocRequest.buyerMobileNumber}
-                         </p>
-                       )}
-                     </div>
-                     <div>
-                       <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                         <Mail className="h-4 w-4" />
-                         Email
-                       </label>
-                       {isEditMode ? (
-                         <input
-                           type="email"
-                           value={editData.buyerEmail}
-                           onChange={(e) => setEditData({ ...editData, buyerEmail: e.target.value })}
-                           className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                         />
-                       ) : (
-                         <p className="text-base text-slate-900 mt-1">
-                           {nocRequest.buyerEmail}
-                         </p>
-                       )}
-                     </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-500">
+                        Buyer Name
+                      </label>
+                      {isEditMode ? (
+                        <input
+                          type="text"
+                          value={editData.buyerName}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              buyerName: e.target.value,
+                            })
+                          }
+                          className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                        />
+                      ) : (
+                        <p className="text-base font-semibold text-slate-900 mt-1">
+                          {nocRequest.buyerName}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                        <Phone className="h-4 w-4" />
+                        Mobile
+                      </label>
+                      {isEditMode ? (
+                        <input
+                          type="tel"
+                          value={editData.buyerMobileNumber}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              buyerMobileNumber: e.target.value,
+                            })
+                          }
+                          className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                        />
+                      ) : (
+                        <p className="text-base text-slate-900 mt-1">
+                          {nocRequest.buyerMobileNumber}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
+                        <Mail className="h-4 w-4" />
+                        Email
+                      </label>
+                      {isEditMode ? (
+                        <input
+                          type="email"
+                          value={editData.buyerEmail}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              buyerEmail: e.target.value,
+                            })
+                          }
+                          className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                        />
+                      ) : (
+                        <p className="text-base text-slate-900 mt-1">
+                          {nocRequest.buyerEmail}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -937,16 +992,16 @@ export default function NocRequestDetailPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Status
                   </label>
-                   <select
-                     value={selectedStatus}
-                     onChange={(e) => {
-                       const newStatus = e.target.value as Status;
-                       setSelectedStatus(newStatus);
-                       // Auto-populate admin remarks with predefined message
-                       if (nocRequest) {
-                         setAdminRemarks(getPredefinedRemarks(newStatus, nocRequest));
-                       }
-                     }}
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => {
+                      const newStatus = e.target.value as Status;
+                      setSelectedStatus(newStatus);
+                      // Auto-populate admin remarks with predefined message
+                      if (nocRequest) {
+                        setAdminRemarks(getPredefinedRemarks(newStatus));
+                      }
+                    }}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                     disabled={updatingStatus}
                   >
@@ -964,14 +1019,15 @@ export default function NocRequestDetailPage() {
                   <textarea
                     value={adminRemarks}
                     onChange={(e) => setAdminRemarks(e.target.value)}
-                     placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
-                     rows={4}
-                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
-                     disabled={updatingStatus}
-                   />
-                   <p className="text-xs text-slate-500 mt-1">
-                     Remarks are auto-populated based on status. Customize as needed. These will be included in the exported Excel file.
-                   </p>
+                    placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
+                    rows={4}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
+                    disabled={updatingStatus}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Remarks are auto-populated based on status. Customize as
+                    needed. These will be included in the exported Excel file.
+                  </p>
                 </div>
                 <Button
                   onClick={handleStatusUpdate}
@@ -1045,7 +1101,9 @@ export default function NocRequestDetailPage() {
                         {nocRequest.agreementDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1065,12 +1123,17 @@ export default function NocRequestDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('agreement', nocRequest.agreementDocument!.s3Key)}
-                          disabled={deletingDocument === 'agreement'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "agreement",
+                              nocRequest.agreementDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "agreement"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'agreement' ? (
+                          {deletingDocument === "agreement" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1082,7 +1145,7 @@ export default function NocRequestDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'agreement')}
+                        onChange={(e) => handleFileUpload(e, "agreement")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -1109,7 +1172,9 @@ export default function NocRequestDetailPage() {
                         {nocRequest.shareCertificateDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1129,12 +1194,17 @@ export default function NocRequestDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('shareCertificate', nocRequest.shareCertificateDocument!.s3Key)}
-                          disabled={deletingDocument === 'shareCertificate'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "shareCertificate",
+                              nocRequest.shareCertificateDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "shareCertificate"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'shareCertificate' ? (
+                          {deletingDocument === "shareCertificate" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1146,7 +1216,9 @@ export default function NocRequestDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'shareCertificate')}
+                        onChange={(e) =>
+                          handleFileUpload(e, "shareCertificate")
+                        }
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -1173,7 +1245,9 @@ export default function NocRequestDetailPage() {
                         {nocRequest.buyerAadhaarDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1193,12 +1267,17 @@ export default function NocRequestDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('buyerAadhaar', nocRequest.buyerAadhaarDocument!.s3Key)}
-                          disabled={deletingDocument === 'buyerAadhaar'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "buyerAadhaar",
+                              nocRequest.buyerAadhaarDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "buyerAadhaar"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'buyerAadhaar' ? (
+                          {deletingDocument === "buyerAadhaar" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1210,7 +1289,7 @@ export default function NocRequestDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'buyerAadhaar')}
+                        onChange={(e) => handleFileUpload(e, "buyerAadhaar")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -1237,7 +1316,9 @@ export default function NocRequestDetailPage() {
                         {nocRequest.buyerPanDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1257,12 +1338,17 @@ export default function NocRequestDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('buyerPan', nocRequest.buyerPanDocument!.s3Key)}
-                          disabled={deletingDocument === 'buyerPan'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "buyerPan",
+                              nocRequest.buyerPanDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "buyerPan"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'buyerPan' ? (
+                          {deletingDocument === "buyerPan" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1274,7 +1360,7 @@ export default function NocRequestDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'buyerPan')}
+                        onChange={(e) => handleFileUpload(e, "buyerPan")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -1306,9 +1392,9 @@ export default function NocRequestDetailPage() {
                       Declaration Accepted
                     </p>
                     <p className="text-xs text-slate-600">
-                      {nocRequest.nocType === 'Flat Transfer/Sale/Purchase'
-                        ? 'The seller has accepted all terms and conditions, confirmed that the information provided is accurate, and agreed to pay all applicable fees and complete the transfer process as per society norms.'
-                        : 'The applicant has confirmed that all the information provided is accurate and understands that the society will verify all submitted documents before processing this NOC request.'}
+                      {nocRequest.nocType === "Flat Transfer/Sale/Purchase"
+                        ? "The seller has accepted all terms and conditions, confirmed that the information provided is accurate, and agreed to pay all applicable fees and complete the transfer process as per society norms."
+                        : "The applicant has confirmed that all the information provided is accurate and understands that the society will verify all submitted documents before processing this NOC request."}
                     </p>
                   </div>
                 </div>

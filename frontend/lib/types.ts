@@ -120,10 +120,10 @@ export interface AdminUser {
 }
 
 export type NocType =
-  | 'Flat Transfer/Sale/Purchase'
-  | 'Bank Account Transfer'
-  | 'MSEB Electricity Bill Name Change'
-  | 'Other Purpose';
+  | "Flat Transfer/Sale/Purchase"
+  | "Bank Account Transfer"
+  | "MSEB Electricity Bill Name Change"
+  | "Other Purpose";
 
 export interface NocRequest {
   _id?: string;

@@ -70,22 +70,22 @@ export default function AdminDashboard() {
   } | null>(null);
 
   // Pagination and search states for certificates
-   const [certSearchQuery, setCertSearchQuery] = useState("");
-   const [certStatusFilter, setCertStatusFilter] = useState<Status | "">("");
-   const [certCurrentPage, setCertCurrentPage] = useState(1);
-   const certItemsPerPage = 10;
+  const [certSearchQuery, setCertSearchQuery] = useState("");
+  const [certStatusFilter, setCertStatusFilter] = useState<Status | "">("");
+  const [certCurrentPage, setCertCurrentPage] = useState(1);
+  const certItemsPerPage = 10;
 
-   // Pagination and search states for nominations
-   const [nomSearchQuery, setNomSearchQuery] = useState("");
-   const [nomStatusFilter, setNomStatusFilter] = useState<Status | "">("");
-   const [nomCurrentPage, setNomCurrentPage] = useState(1);
-   const nomItemsPerPage = 10;
+  // Pagination and search states for nominations
+  const [nomSearchQuery, setNomSearchQuery] = useState("");
+  const [nomStatusFilter, setNomStatusFilter] = useState<Status | "">("");
+  const [nomCurrentPage, setNomCurrentPage] = useState(1);
+  const nomItemsPerPage = 10;
 
-   // Pagination and search states for NOC requests
-   const [nocSearchQuery, setNocSearchQuery] = useState("");
-   const [nocStatusFilter, setNocStatusFilter] = useState<Status | "">("");
-   const [nocCurrentPage, setNocCurrentPage] = useState(1);
-   const nocItemsPerPage = 10;
+  // Pagination and search states for NOC requests
+  const [nocSearchQuery, setNocSearchQuery] = useState("");
+  const [nocStatusFilter, setNocStatusFilter] = useState<Status | "">("");
+  const [nocCurrentPage, setNocCurrentPage] = useState(1);
+  const nocItemsPerPage = 10;
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -278,7 +278,8 @@ export default function AdminDashboard() {
         cert.email?.toLowerCase().includes(searchLower) ||
         cert.wing?.toLowerCase().includes(searchLower);
 
-      const matchesStatus = certStatusFilter === "" || cert.status === certStatusFilter;
+      const matchesStatus =
+        certStatusFilter === "" || cert.status === certStatusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -307,7 +308,8 @@ export default function AdminDashboard() {
         memberEmail.toLowerCase().includes(searchLower) ||
         nom.wing?.toLowerCase().includes(searchLower);
 
-      const matchesStatus = nomStatusFilter === "" || nom.status === nomStatusFilter;
+      const matchesStatus =
+        nomStatusFilter === "" || nom.status === nomStatusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -334,7 +336,8 @@ export default function AdminDashboard() {
         noc.wing?.toLowerCase().includes(searchLower) ||
         noc.reason?.toLowerCase().includes(searchLower);
 
-      const matchesStatus = nocStatusFilter === "" || noc.status === nocStatusFilter;
+      const matchesStatus =
+        nocStatusFilter === "" || noc.status === nocStatusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -567,7 +570,9 @@ export default function AdminDashboard() {
                   <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <select
                     value={certStatusFilter}
-                    onChange={(e) => setCertStatusFilter(e.target.value as Status | "")}
+                    onChange={(e) =>
+                      setCertStatusFilter(e.target.value as Status | "")
+                    }
                     className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none"
                   >
                     <option value="">All Statuses</option>
@@ -748,7 +753,9 @@ export default function AdminDashboard() {
                   <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <select
                     value={nomStatusFilter}
-                    onChange={(e) => setNomStatusFilter(e.target.value as Status | "")}
+                    onChange={(e) =>
+                      setNomStatusFilter(e.target.value as Status | "")
+                    }
                     className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none"
                   >
                     <option value="">All Statuses</option>
@@ -946,7 +953,9 @@ export default function AdminDashboard() {
                   <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <select
                     value={nocStatusFilter}
-                    onChange={(e) => setNocStatusFilter(e.target.value as Status | "")}
+                    onChange={(e) =>
+                      setNocStatusFilter(e.target.value as Status | "")
+                    }
                     className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none"
                   >
                     <option value="">All Statuses</option>
@@ -1017,14 +1026,18 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
                           <span className="text-sm font-medium text-slate-700">
-                            {noc.nocType || noc.reason || 'N/A'}
+                            {noc.nocType || noc.reason || "N/A"}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
                           {noc.totalAmount && noc.totalAmount > 0 ? (
-                            <span className="font-medium">₹{noc.totalAmount.toLocaleString()}</span>
+                            <span className="font-medium">
+                              ₹{noc.totalAmount.toLocaleString()}
+                            </span>
                           ) : (
-                            <span className="text-green-600 font-semibold">FREE</span>
+                            <span className="text-green-600 font-semibold">
+                              FREE
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

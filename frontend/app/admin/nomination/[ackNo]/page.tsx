@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/Button";
 import { nominationAPI, adminAPI, api, uploadApi } from "@/lib/api";
 import { Status, Nominee, Witness } from "@/lib/types";
@@ -55,7 +56,7 @@ export default function NominationDetailPage() {
       fileName: string;
       fileType: string;
     };
-     aadhaarCardDocument?: {
+    aadhaarCardDocument?: {
       s3Key: string;
       fileName: string;
       fileType: string;
@@ -70,34 +71,34 @@ export default function NominationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
   const [adminRemarks, setAdminRemarks] = useState<string>("");
-   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
-   // Edit mode states
-   const [isEditMode, setIsEditMode] = useState(false);
-   const [editData, setEditData] = useState<{
-     primaryMemberName: string;
-     flatNumber: string;
-     wing: "C" | "D";
-     primaryMemberEmail: string;
-     primaryMemberMobile: string;
-     memberSignature: string;
-     nominees: Nominee[];
-     witnesses: Witness[];
-   }>({
-     primaryMemberName: "",
-     flatNumber: "",
-     wing: "C",
-     primaryMemberEmail: "",
-     primaryMemberMobile: "",
-     memberSignature: "",
-     nominees: [],
-     witnesses: [],
-   });
-   const [updatingDetails, setUpdatingDetails] = useState(false);
-   const [uploadingDocument, setUploadingDocument] = useState(false);
-   const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
+  // Edit mode states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editData, setEditData] = useState<{
+    primaryMemberName: string;
+    flatNumber: string;
+    wing: "C" | "D";
+    primaryMemberEmail: string;
+    primaryMemberMobile: string;
+    memberSignature: string;
+    nominees: Nominee[];
+    witnesses: Witness[];
+  }>({
+    primaryMemberName: "",
+    flatNumber: "",
+    wing: "C",
+    primaryMemberEmail: "",
+    primaryMemberMobile: "",
+    memberSignature: "",
+    nominees: [],
+    witnesses: [],
+  });
+  const [updatingDetails, setUpdatingDetails] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
 
-   const [toast, setToast] = useState<{
+  const [toast, setToast] = useState<{
     message: string;
     type: ToastType;
   } | null>(null);
@@ -277,7 +278,10 @@ export default function NominationDetailPage() {
         ...editData,
       });
       setIsEditMode(false);
-      setToast({ message: "Nomination details updated successfully", type: "success" });
+      setToast({
+        message: "Nomination details updated successfully",
+        type: "success",
+      });
     } catch (error) {
       console.error("Failed to update nomination details:", error);
       setToast({
@@ -289,7 +293,10 @@ export default function NominationDetailPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    documentType: string
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !nomination) return;
 
@@ -306,12 +313,12 @@ export default function NominationDetailPage() {
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('flatNumber', nomination.flatNumber);
-      formData.append('documentType', documentType);
-      formData.append('fullName', nomination.primaryMemberName);
+      formData.append("file", file);
+      formData.append("flatNumber", nomination.flatNumber);
+      formData.append("documentType", documentType);
+      formData.append("fullName", nomination.primaryMemberName);
 
-      console.log('Uploading document:', {
+      console.log("Uploading document:", {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
@@ -321,7 +328,7 @@ export default function NominationDetailPage() {
       });
 
       // Upload file
-      const uploadResponse = await uploadApi.post('/upload', formData);
+      const uploadResponse = await uploadApi.post("/upload", formData);
 
       const documentData = {
         documentType,
@@ -341,9 +348,9 @@ export default function NominationDetailPage() {
       // Refresh nomination data
       await fetchNominationDetails();
       setToast({ message: "Document uploaded successfully", type: "success" });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to upload document:", error);
-      const errorMessage = error.response?.data?.message || "Failed to upload document. Please try again.";
+      const errorMessage = error instanceof AxiosError ? error.response?.data?.message : "Failed to upload document. Please try again.";
       setToast({
         message: errorMessage,
         type: "error",
@@ -351,7 +358,7 @@ export default function NominationDetailPage() {
     } finally {
       setUploadingDocument(false);
       // Reset file input
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
@@ -361,10 +368,12 @@ export default function NominationDetailPage() {
     setDeletingDocument(documentType);
     try {
       // Remove document from nomination
-      await api.delete(`/nomination/${nomination._id}/documents/${documentType}`);
+      await api.delete(
+        `/nomination/${nomination._id}/documents/${documentType}`
+      );
 
       // Delete file from S3
-      await uploadApi.delete('/upload', { data: { key: s3Key } });
+      await uploadApi.delete("/upload", { data: { key: s3Key } });
 
       // Refresh nomination data
       await fetchNominationDetails();
@@ -380,7 +389,11 @@ export default function NominationDetailPage() {
     }
   };
 
-  const handleUpdateNominee = (index: number, field: keyof Nominee, value: string | number) => {
+  const handleUpdateNominee = (
+    index: number,
+    field: keyof Nominee,
+    value: string | number
+  ) => {
     const updatedNominees = [...(editData.nominees || [])];
     if (updatedNominees[index]) {
       updatedNominees[index] = {
@@ -407,11 +420,17 @@ export default function NominationDetailPage() {
   };
 
   const handleRemoveNominee = (index: number) => {
-    const updatedNominees = (editData.nominees || []).filter((_, i) => i !== index);
+    const updatedNominees = (editData.nominees || []).filter(
+      (_, i) => i !== index
+    );
     setEditData({ ...editData, nominees: updatedNominees });
   };
 
-  const handleUpdateWitness = (index: number, field: keyof Witness, value: string) => {
+  const handleUpdateWitness = (
+    index: number,
+    field: keyof Witness,
+    value: string
+  ) => {
     const updatedWitnesses = [...(editData.witnesses || [])];
     if (updatedWitnesses[index]) {
       updatedWitnesses[index] = {
@@ -435,7 +454,9 @@ export default function NominationDetailPage() {
   };
 
   const handleRemoveWitness = (index: number) => {
-    const updatedWitnesses = (editData.witnesses || []).filter((_, i) => i !== index);
+    const updatedWitnesses = (editData.witnesses || []).filter(
+      (_, i) => i !== index
+    );
     setEditData({ ...editData, witnesses: updatedWitnesses });
   };
 
@@ -458,13 +479,13 @@ export default function NominationDetailPage() {
     );
   };
 
-  const getPredefinedRemarks = (status: Status, nomination: any) => {
+  const getPredefinedRemarks = (status: Status) => {
     const baseRemarks = {
       Pending: `Nomination application marked as pending. Awaiting further review and required documents.`,
       "Under Review": `Nomination application is currently under review. All submitted documents are being verified.`,
       Approved: `Nomination application has been approved. Nomination certificate will be issued shortly.`,
       Rejected: `Nomination application has been rejected. Please check the requirements and resubmit.`,
-      "Document Required": `Additional documents are required for nomination. Please upload the missing documents to proceed.`
+      "Document Required": `Additional documents are required for nomination. Please upload the missing documents to proceed.`,
     };
 
     return baseRemarks[status] || "";
@@ -587,7 +608,12 @@ export default function NominationDetailPage() {
                       <input
                         type="text"
                         value={editData.primaryMemberName}
-                        onChange={(e) => setEditData({ ...editData, primaryMemberName: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            primaryMemberName: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -606,13 +632,23 @@ export default function NominationDetailPage() {
                         <input
                           type="text"
                           value={editData.flatNumber}
-                          onChange={(e) => setEditData({ ...editData, flatNumber: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              flatNumber: e.target.value,
+                            })
+                          }
                           placeholder="Flat Number"
                           className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                         <select
                           value={editData.wing}
-                          onChange={(e) => setEditData({ ...editData, wing: e.target.value as "C" | "D" })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              wing: e.target.value as "C" | "D",
+                            })
+                          }
                           className="px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         >
                           <option value="C">Wing C</option>
@@ -634,7 +670,12 @@ export default function NominationDetailPage() {
                       <input
                         type="email"
                         value={editData.primaryMemberEmail}
-                        onChange={(e) => setEditData({ ...editData, primaryMemberEmail: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            primaryMemberEmail: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -652,7 +693,12 @@ export default function NominationDetailPage() {
                       <input
                         type="tel"
                         value={editData.primaryMemberMobile}
-                        onChange={(e) => setEditData({ ...editData, primaryMemberMobile: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            primaryMemberMobile: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                       />
                     ) : (
@@ -689,189 +735,231 @@ export default function NominationDetailPage() {
               </div>
             </div>
 
-             {/* Nominees */}
-             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-               <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between">
-                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                   <Users className="h-5 w-5 text-purple-600" />
-                   Nominees ({nomination.nominees?.length || 0})
-                 </h3>
-                 {isEditMode && (
-                     <Button
-                       onClick={handleAddNominee}
-                       size="sm"
-                       className="gap-2"
-                     >
-                       <Plus className="h-4 w-4" />
-                       Add Nominee
-                     </Button>
-                 )}
-               </div>
-               <div className="px-8 py-6 space-y-6">
-                 {isEditMode
-                   ? (editData.nominees || []).map((nominee: Nominee, index: number) => (
-                       <div
-                         key={index}
-                         className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200"
-                       >
-                         <div className="flex justify-between items-start mb-4">
-                           <h4 className="text-lg font-bold text-slate-900">
-                             Nominee {index + 1}
-                           </h4>
-                           <div className="flex items-center gap-2">
-                             <span className="px-3 py-1 ${theme.button.primary.bg} text-white rounded-lg text-sm font-bold">
-                               {nominee.sharePercentage || 0}% Share
-                             </span>
-                             <button
-                               onClick={() => handleRemoveNominee(index)}
-                               className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                               title="Remove nominee"
-                             >
-                               <X className="h-4 w-4" />
-                             </button>
-                           </div>
-                         </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Name
-                             </label>
-                             <input
-                               type="text"
-                               value={nominee.name || ""}
-                               onChange={(e) => handleUpdateNominee(index, "name", e.target.value)}
-                               className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                               placeholder="Enter nominee name"
-                             />
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Relationship
-                             </label>
-                             <input
-                               type="text"
-                               value={nominee.relationship || ""}
-                               onChange={(e) => handleUpdateNominee(index, "relationship", e.target.value)}
-                               className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                               placeholder="e.g., Son, Daughter, Spouse"
-                             />
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Date of Birth
-                             </label>
-                             <input
-                               type="date"
-                               value={nominee.dateOfBirth || ""}
-                               onChange={(e) => handleUpdateNominee(index, "dateOfBirth", e.target.value)}
-                               className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                             />
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Aadhaar Number
-                             </label>
-                             <input
-                               type="text"
-                               value={nominee.aadhaarNumber || ""}
-                               onChange={(e) => handleUpdateNominee(index, "aadhaarNumber", e.target.value.replace(/\D/g, "").slice(0, 12))}
-                               className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                               placeholder="123456789012"
-                               maxLength={12}
-                             />
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Share Percentage
-                             </label>
-                             <input
-                               type="number"
-                               min="0"
-                               max="100"
-                               value={nominee.sharePercentage || 0}
-                               onChange={(e) => handleUpdateNominee(index, "sharePercentage", parseInt(e.target.value) || 0)}
-                               className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                             />
-                           </div>
-                           <div className="md:col-span-2">
-                             <label className="text-sm font-medium text-slate-600">
-                               Address (Optional)
-                             </label>
-                             <textarea
-                               value={nominee.address || ""}
-                               onChange={(e) => handleUpdateNominee(index, "address", e.target.value)}
-                               rows={2}
-                               className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
-                               placeholder="Enter address"
-                             />
-                           </div>
-                         </div>
-                       </div>
-                     ))
-                   : nomination.nominees?.map((nominee: Nominee, index: number) => (
-                       <div
-                         key={index}
-                         className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200"
-                       >
-                         <div className="flex justify-between items-start mb-4">
-                           <h4 className="text-lg font-bold text-slate-900">
-                             Nominee {index + 1}
-                           </h4>
-                           <span className="px-3 py-1 ${theme.button.primary.bg} text-white rounded-lg text-sm font-bold">
-                             {nominee.sharePercentage}% Share
-                           </span>
-                         </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Name
-                             </label>
-                             <p className="text-base font-semibold text-slate-900 mt-1">
-                               {nominee.name}
-                             </p>
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Relationship
-                             </label>
-                             <p className="text-base text-slate-900 mt-1">
-                               {nominee.relationship}
-                             </p>
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Date of Birth
-                             </label>
-                             <p className="text-base text-slate-900 mt-1">
-                               {new Date(nominee.dateOfBirth).toLocaleDateString(
-                                 "en-IN"
-                               )}
-                             </p>
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium text-slate-600">
-                               Aadhaar Number
-                             </label>
-                             <p className="text-base text-slate-900 mt-1 font-mono">
-                               {nominee.aadhaarNumber.replace(
-                                 /(\d{4})(\d{4})(\d{4})/,
-                                 "$1 $2 $3"
-                               )}
-                             </p>
-                           </div>
-                           {nominee.address && (
-                             <div className="md:col-span-2">
-                               <label className="text-sm font-medium text-slate-600">
-                                 Address
-                               </label>
-                               <p className="text-base text-slate-900 mt-1">
-                                 {nominee.address}
-                               </p>
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                     ))}
+            {/* Nominees */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-purple-600" />
+                  Nominees ({nomination.nominees?.length || 0})
+                </h3>
+                {isEditMode && (
+                  <Button
+                    onClick={handleAddNominee}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Nominee
+                  </Button>
+                )}
+              </div>
+              <div className="px-8 py-6 space-y-6">
+                {isEditMode
+                  ? (editData.nominees || []).map(
+                      (nominee: Nominee, index: number) => (
+                        <div
+                          key={index}
+                          className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <h4 className="text-lg font-bold text-slate-900">
+                              Nominee {index + 1}
+                            </h4>
+                            <div className="flex items-center gap-2">
+                              <span className="px-3 py-1 ${theme.button.primary.bg} text-white rounded-lg text-sm font-bold">
+                                {nominee.sharePercentage || 0}% Share
+                              </span>
+                              <button
+                                onClick={() => handleRemoveNominee(index)}
+                                className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove nominee"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Name
+                              </label>
+                              <input
+                                type="text"
+                                value={nominee.name || ""}
+                                onChange={(e) =>
+                                  handleUpdateNominee(
+                                    index,
+                                    "name",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                placeholder="Enter nominee name"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Relationship
+                              </label>
+                              <input
+                                type="text"
+                                value={nominee.relationship || ""}
+                                onChange={(e) =>
+                                  handleUpdateNominee(
+                                    index,
+                                    "relationship",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                placeholder="e.g., Son, Daughter, Spouse"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Date of Birth
+                              </label>
+                              <input
+                                type="date"
+                                value={nominee.dateOfBirth || ""}
+                                onChange={(e) =>
+                                  handleUpdateNominee(
+                                    index,
+                                    "dateOfBirth",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Aadhaar Number
+                              </label>
+                              <input
+                                type="text"
+                                value={nominee.aadhaarNumber || ""}
+                                onChange={(e) =>
+                                  handleUpdateNominee(
+                                    index,
+                                    "aadhaarNumber",
+                                    e.target.value
+                                      .replace(/\D/g, "")
+                                      .slice(0, 12)
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                placeholder="123456789012"
+                                maxLength={12}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Share Percentage
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={nominee.sharePercentage || 0}
+                                onChange={(e) =>
+                                  handleUpdateNominee(
+                                    index,
+                                    "sharePercentage",
+                                    parseInt(e.target.value) || 0
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="text-sm font-medium text-slate-600">
+                                Address (Optional)
+                              </label>
+                              <textarea
+                                value={nominee.address || ""}
+                                onChange={(e) =>
+                                  handleUpdateNominee(
+                                    index,
+                                    "address",
+                                    e.target.value
+                                  )
+                                }
+                                rows={2}
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
+                                placeholder="Enter address"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    )
+                  : nomination.nominees?.map(
+                      (nominee: Nominee, index: number) => (
+                        <div
+                          key={index}
+                          className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border-2 border-purple-200"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <h4 className="text-lg font-bold text-slate-900">
+                              Nominee {index + 1}
+                            </h4>
+                            <span className="px-3 py-1 ${theme.button.primary.bg} text-white rounded-lg text-sm font-bold">
+                              {nominee.sharePercentage}% Share
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Name
+                              </label>
+                              <p className="text-base font-semibold text-slate-900 mt-1">
+                                {nominee.name}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Relationship
+                              </label>
+                              <p className="text-base text-slate-900 mt-1">
+                                {nominee.relationship}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Date of Birth
+                              </label>
+                              <p className="text-base text-slate-900 mt-1">
+                                {new Date(
+                                  nominee.dateOfBirth
+                                ).toLocaleDateString("en-IN")}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Aadhaar Number
+                              </label>
+                              <p className="text-base text-slate-900 mt-1 font-mono">
+                                {nominee.aadhaarNumber.replace(
+                                  /(\d{4})(\d{4})(\d{4})/,
+                                  "$1 $2 $3"
+                                )}
+                              </p>
+                            </div>
+                            {nominee.address && (
+                              <div className="md:col-span-2">
+                                <label className="text-sm font-medium text-slate-600">
+                                  Address
+                                </label>
+                                <p className="text-base text-slate-900 mt-1">
+                                  {nominee.address}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    )}
               </div>
             </div>
 
@@ -892,99 +980,121 @@ export default function NominationDetailPage() {
               </div>
               <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {isEditMode
-                  ? (editData.witnesses || []).map((witness: Witness, index: number) => (
-                      <div
-                        key={index}
-                        className="p-5 bg-slate-50 rounded-xl border border-slate-200"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="text-base font-bold text-slate-900">
+                  ? (editData.witnesses || []).map(
+                      (witness: Witness, index: number) => (
+                        <div
+                          key={index}
+                          className="p-5 bg-slate-50 rounded-xl border border-slate-200"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <h4 className="text-base font-bold text-slate-900">
+                              Witness {index + 1}
+                            </h4>
+                            <button
+                              onClick={() => handleRemoveWitness(index)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove witness"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Name
+                              </label>
+                              <input
+                                type="text"
+                                value={witness.name || ""}
+                                onChange={(e) =>
+                                  handleUpdateWitness(
+                                    index,
+                                    "name",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500"
+                                placeholder="Enter witness name"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Address
+                              </label>
+                              <textarea
+                                value={witness.address || ""}
+                                onChange={(e) =>
+                                  handleUpdateWitness(
+                                    index,
+                                    "address",
+                                    e.target.value
+                                  )
+                                }
+                                rows={3}
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500 resize-none"
+                                placeholder="Enter witness address"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Signature
+                              </label>
+                              <input
+                                type="text"
+                                value={witness.signature || ""}
+                                onChange={(e) =>
+                                  handleUpdateWitness(
+                                    index,
+                                    "signature",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500"
+                                placeholder="Enter signature"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    )
+                  : nomination.witnesses?.map(
+                      (witness: Witness, index: number) => (
+                        <div
+                          key={index}
+                          className="p-5 bg-slate-50 rounded-xl border border-slate-200"
+                        >
+                          <h4 className="text-base font-bold text-slate-900 mb-3">
                             Witness {index + 1}
                           </h4>
-                          <button
-                            onClick={() => handleRemoveWitness(index)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Remove witness"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-sm font-medium text-slate-600">
-                              Name
-                            </label>
-                            <input
-                              type="text"
-                              value={witness.name || ""}
-                              onChange={(e) => handleUpdateWitness(index, "name", e.target.value)}
-                              className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500"
-                              placeholder="Enter witness name"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-slate-600">
-                              Address
-                            </label>
-                            <textarea
-                              value={witness.address || ""}
-                              onChange={(e) => handleUpdateWitness(index, "address", e.target.value)}
-                              rows={3}
-                              className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500 resize-none"
-                              placeholder="Enter witness address"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-slate-600">
-                              Signature
-                            </label>
-                            <input
-                              type="text"
-                              value={witness.signature || ""}
-                              onChange={(e) => handleUpdateWitness(index, "signature", e.target.value)}
-                              className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500"
-                              placeholder="Enter signature"
-                            />
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Name
+                              </label>
+                              <p className="text-base text-slate-900 mt-1">
+                                {witness.name}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Address
+                              </label>
+                              <p className="text-base text-slate-900 mt-1">
+                                {witness.address}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600">
+                                Signature
+                              </label>
+                              <p className="text-base italic text-slate-900 mt-1">
+                                {witness.signature}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  : nomination.witnesses?.map((witness: Witness, index: number) => (
-                      <div
-                        key={index}
-                        className="p-5 bg-slate-50 rounded-xl border border-slate-200"
-                      >
-                        <h4 className="text-base font-bold text-slate-900 mb-3">
-                          Witness {index + 1}
-                        </h4>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-sm font-medium text-slate-600">
-                              Name
-                            </label>
-                            <p className="text-base text-slate-900 mt-1">
-                              {witness.name}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-slate-600">
-                              Address
-                            </label>
-                            <p className="text-base text-slate-900 mt-1">
-                              {witness.address}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-slate-600">
-                              Signature
-                            </label>
-                            <p className="text-base italic text-slate-900 mt-1">
-                              {witness.signature}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    )}
               </div>
             </div>
           </div>
@@ -1003,16 +1113,16 @@ export default function NominationDetailPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Change Status
                   </label>
-                   <select
-                     value={selectedStatus}
-                     onChange={(e) => {
-                       const newStatus = e.target.value as Status;
-                       setSelectedStatus(newStatus);
-                       // Auto-populate admin remarks with predefined message
-                       if (nomination) {
-                         setAdminRemarks(getPredefinedRemarks(newStatus, nomination));
-                       }
-                     }}
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => {
+                      const newStatus = e.target.value as Status;
+                      setSelectedStatus(newStatus);
+                      // Auto-populate admin remarks with predefined message
+                      if (nomination) {
+                        setAdminRemarks(getPredefinedRemarks(newStatus));
+                      }
+                    }}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                     disabled={updatingStatus}
                   >
@@ -1030,14 +1140,15 @@ export default function NominationDetailPage() {
                   <textarea
                     value={adminRemarks}
                     onChange={(e) => setAdminRemarks(e.target.value)}
-                     placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
-                     rows={4}
-                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
-                     disabled={updatingStatus}
-                   />
-                   <p className="text-xs text-slate-500 mt-1">
-                     Remarks are auto-populated based on status. Customize as needed. These will be included in the exported Excel file.
-                   </p>
+                    placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
+                    rows={4}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
+                    disabled={updatingStatus}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Remarks are auto-populated based on status. Customize as
+                    needed. These will be included in the exported Excel file.
+                  </p>
                 </div>
                 <Button
                   onClick={handleStatusUpdate}
@@ -1073,7 +1184,9 @@ export default function NominationDetailPage() {
                         {nomination.index2Document!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1093,12 +1206,17 @@ export default function NominationDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('index2', nomination.index2Document!.s3Key)}
-                          disabled={deletingDocument === 'index2'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "index2",
+                              nomination.index2Document!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "index2"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'index2' ? (
+                          {deletingDocument === "index2" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1110,7 +1228,7 @@ export default function NominationDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'index2')}
+                        onChange={(e) => handleFileUpload(e, "index2")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -1137,7 +1255,9 @@ export default function NominationDetailPage() {
                         {nomination.possessionLetterDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1157,12 +1277,17 @@ export default function NominationDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('possessionLetter', nomination.possessionLetterDocument!.s3Key)}
-                          disabled={deletingDocument === 'possessionLetter'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "possessionLetter",
+                              nomination.possessionLetterDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "possessionLetter"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'possessionLetter' ? (
+                          {deletingDocument === "possessionLetter" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1174,7 +1299,9 @@ export default function NominationDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'possessionLetter')}
+                        onChange={(e) =>
+                          handleFileUpload(e, "possessionLetter")
+                        }
                         disabled={uploadingDocument}
                         className="hidden"
                       />
@@ -1201,7 +1328,9 @@ export default function NominationDetailPage() {
                         {nomination.aadhaarCardDocument!.fileName}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500">No document uploaded</p>
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -1221,12 +1350,17 @@ export default function NominationDetailPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteDocument('aadhaarCard', nomination.aadhaarCardDocument!.s3Key)}
-                          disabled={deletingDocument === 'aadhaarCard'}
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "aadhaarCard",
+                              nomination.aadhaarCardDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "aadhaarCard"}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Delete document"
                         >
-                          {deletingDocument === 'aadhaarCard' ? (
+                          {deletingDocument === "aadhaarCard" ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -1238,7 +1372,7 @@ export default function NominationDetailPage() {
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(e, 'aadhaarCard')}
+                        onChange={(e) => handleFileUpload(e, "aadhaarCard")}
                         disabled={uploadingDocument}
                         className="hidden"
                       />
