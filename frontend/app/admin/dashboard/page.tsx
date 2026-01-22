@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import {
   adminAPI,
@@ -1141,6 +1142,30 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="mt-12 py-8 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm text-slate-600">
+            © 2026 Citron Documents App. All rights reserved.
+          </p>
+          <div className="mt-2 flex items-center justify-center gap-6 text-sm">
+            <Link
+              href="/privacy"
+              className="text-slate-600 hover:text-[#175a00] transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link
+              href="/terms"
+              className="text-slate-600 hover:text-[#175a00] transition-colors"
+            >
+              Terms of Service
+            </Link>
+          </div>
+        </div>
+      </footer>
 
       {/* Document Viewer Popup */}
       {documentPopup && documentPopup.isOpen && (

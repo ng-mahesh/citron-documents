@@ -336,7 +336,10 @@ export default function ShareCertificateDetailPage() {
       setToast({ message: "Document uploaded successfully", type: "success" });
     } catch (error: unknown) {
       console.error("Failed to upload document:", error);
-      const errorMessage = error instanceof AxiosError ? error.response?.data?.message : "Failed to upload document. Please try again.";
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message
+          : "Failed to upload document. Please try again.";
       setToast({
         message: errorMessage,
         type: "error",

@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { adminAPI } from "@/lib/api";
-import { Shield } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -87,9 +89,13 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-[#175a00] to-[#185900] rounded-full flex items-center justify-center mb-4 shadow-lg shadow-green-200">
-            <Shield className="h-10 w-10 text-white" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Citron Documents Logo"
+            width={128}
+            height={128}
+            className="h-20 w-30 md:h-25 md:w-45 mx-auto mb-4 shadow-lg"
+          />
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
             Admin Login
           </h1>
@@ -106,15 +112,29 @@ export default function AdminLoginPage() {
               autoComplete="username"
               required
             />
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              autoComplete="current-password"
-              required
-            />
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                autoComplete="current-password"
+                className="pr-10"
+                required
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center top-8"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-slate-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-slate-400" />
+                )}
+              </button>
+            </div>
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
