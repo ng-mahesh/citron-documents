@@ -31,6 +31,7 @@ import {
   ChevronRight,
   FileSignature,
   Home,
+  Filter,
 } from "lucide-react";
 import { theme } from "@/lib/theme";
 import { Loader } from "@/components/ui/Loader";
@@ -70,16 +71,19 @@ export default function AdminDashboard() {
 
   // Pagination and search states for certificates
   const [certSearchQuery, setCertSearchQuery] = useState("");
+  const [certStatusFilter, setCertStatusFilter] = useState<Status | "">("");
   const [certCurrentPage, setCertCurrentPage] = useState(1);
   const certItemsPerPage = 10;
 
   // Pagination and search states for nominations
   const [nomSearchQuery, setNomSearchQuery] = useState("");
+  const [nomStatusFilter, setNomStatusFilter] = useState<Status | "">("");
   const [nomCurrentPage, setNomCurrentPage] = useState(1);
   const nomItemsPerPage = 10;
 
   // Pagination and search states for NOC requests
   const [nocSearchQuery, setNocSearchQuery] = useState("");
+  const [nocStatusFilter, setNocStatusFilter] = useState<Status | "">("");
   const [nocCurrentPage, setNocCurrentPage] = useState(1);
   const nocItemsPerPage = 10;
 
@@ -267,15 +271,19 @@ export default function AdminDashboard() {
   const filteredCertificates = useMemo(() => {
     return shareCertificates.filter((cert) => {
       const searchLower = certSearchQuery.toLowerCase();
-      return (
+      const matchesSearch =
         cert.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
         cert.fullName?.toLowerCase().includes(searchLower) ||
         cert.flatNumber?.toLowerCase().includes(searchLower) ||
         cert.email?.toLowerCase().includes(searchLower) ||
-        cert.wing?.toLowerCase().includes(searchLower)
-      );
+        cert.wing?.toLowerCase().includes(searchLower);
+
+      const matchesStatus =
+        certStatusFilter === "" || cert.status === certStatusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [shareCertificates, certSearchQuery]);
+  }, [shareCertificates, certSearchQuery, certStatusFilter]);
 
   const paginatedCertificates = useMemo(() => {
     const startIndex = (certCurrentPage - 1) * certItemsPerPage;
@@ -293,15 +301,19 @@ export default function AdminDashboard() {
       const searchLower = nomSearchQuery.toLowerCase();
       const memberName = nom.primaryMemberName || nom.memberFullName || "";
       const memberEmail = nom.primaryMemberEmail || nom.email || "";
-      return (
+      const matchesSearch =
         nom.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
         memberName.toLowerCase().includes(searchLower) ||
         nom.flatNumber?.toLowerCase().includes(searchLower) ||
         memberEmail.toLowerCase().includes(searchLower) ||
-        nom.wing?.toLowerCase().includes(searchLower)
-      );
+        nom.wing?.toLowerCase().includes(searchLower);
+
+      const matchesStatus =
+        nomStatusFilter === "" || nom.status === nomStatusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [nominations, nomSearchQuery]);
+  }, [nominations, nomSearchQuery, nomStatusFilter]);
 
   const paginatedNominations = useMemo(() => {
     const startIndex = (nomCurrentPage - 1) * nomItemsPerPage;
@@ -315,17 +327,21 @@ export default function AdminDashboard() {
   const filteredNocRequests = useMemo(() => {
     return nocRequests.filter((noc) => {
       const searchLower = nocSearchQuery.toLowerCase();
-      return (
+      const matchesSearch =
         noc.acknowledgementNumber?.toLowerCase().includes(searchLower) ||
         noc.sellerName?.toLowerCase().includes(searchLower) ||
         noc.buyerName?.toLowerCase().includes(searchLower) ||
         noc.flatNumber?.toLowerCase().includes(searchLower) ||
         noc.sellerEmail?.toLowerCase().includes(searchLower) ||
         noc.wing?.toLowerCase().includes(searchLower) ||
-        noc.reason?.toLowerCase().includes(searchLower)
-      );
+        noc.reason?.toLowerCase().includes(searchLower);
+
+      const matchesStatus =
+        nocStatusFilter === "" || noc.status === nocStatusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [nocRequests, nocSearchQuery]);
+  }, [nocRequests, nocSearchQuery, nocStatusFilter]);
 
   const paginatedNocRequests = useMemo(() => {
     const startIndex = (nocCurrentPage - 1) * nocItemsPerPage;
@@ -335,18 +351,18 @@ export default function AdminDashboard() {
 
   const nocTotalPages = Math.ceil(filteredNocRequests.length / nocItemsPerPage);
 
-  // Reset to page 1 when search query changes
+  // Reset to page 1 when search query or status filter changes
   useEffect(() => {
     setCertCurrentPage(1);
-  }, [certSearchQuery]);
+  }, [certSearchQuery, certStatusFilter]);
 
   useEffect(() => {
     setNomCurrentPage(1);
-  }, [nomSearchQuery]);
+  }, [nomSearchQuery, nomStatusFilter]);
 
   useEffect(() => {
     setNocCurrentPage(1);
-  }, [nocSearchQuery]);
+  }, [nocSearchQuery, nocStatusFilter]);
 
   if (loading) {
     return (
@@ -537,17 +553,37 @@ export default function AdminDashboard() {
         {/* Share Certificates Table */}
         {activeTab === "certificates" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            {/* Search Bar */}
+            {/* Search and Filter Bar */}
             <div className="p-4 border-b border-slate-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by name, ack no, flat, email, wing..."
-                  value={certSearchQuery}
-                  onChange={(e) => setCertSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, ack no, flat, email, wing..."
+                    value={certSearchQuery}
+                    onChange={(e) => setCertSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  />
+                </div>
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <select
+                    value={certStatusFilter}
+                    onChange={(e) =>
+                      setCertStatusFilter(e.target.value as Status | "")
+                    }
+                    className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Document Required">Document Required</option>
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
+                </div>
               </div>
             </div>
 
@@ -700,17 +736,37 @@ export default function AdminDashboard() {
         {/* Nominations Table */}
         {activeTab === "nominations" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            {/* Search Bar */}
+            {/* Search and Filter Bar */}
             <div className="p-4 border-b border-slate-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by name, ack no, flat, email, wing..."
-                  value={nomSearchQuery}
-                  onChange={(e) => setNomSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, ack no, flat, email, wing..."
+                    value={nomSearchQuery}
+                    onChange={(e) => setNomSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  />
+                </div>
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <select
+                    value={nomStatusFilter}
+                    onChange={(e) =>
+                      setNomStatusFilter(e.target.value as Status | "")
+                    }
+                    className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Document Required">Document Required</option>
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
+                </div>
               </div>
             </div>
 
@@ -880,17 +936,37 @@ export default function AdminDashboard() {
         {/* NOC Requests Table */}
         {activeTab === "noc-requests" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            {/* Search Bar */}
+            {/* Search and Filter Bar */}
             <div className="p-4 border-b border-slate-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by name, ack no, flat, email, wing..."
-                  value={nocSearchQuery}
-                  onChange={(e) => setNocSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, ack no, flat, email, wing..."
+                    value={nocSearchQuery}
+                    onChange={(e) => setNocSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  />
+                </div>
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <select
+                    value={nocStatusFilter}
+                    onChange={(e) =>
+                      setNocStatusFilter(e.target.value as Status | "")
+                    }
+                    className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Document Required">Document Required</option>
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
+                </div>
               </div>
             </div>
 
@@ -950,14 +1026,18 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
                           <span className="text-sm font-medium text-slate-700">
-                            {noc.nocType || noc.reason || 'N/A'}
+                            {noc.nocType || noc.reason || "N/A"}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">
                           {noc.totalAmount && noc.totalAmount > 0 ? (
-                            <span className="font-medium">₹{noc.totalAmount.toLocaleString()}</span>
+                            <span className="font-medium">
+                              ₹{noc.totalAmount.toLocaleString()}
+                            </span>
                           ) : (
-                            <span className="text-green-600 font-semibold">FREE</span>
+                            <span className="text-green-600 font-semibold">
+                              FREE
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

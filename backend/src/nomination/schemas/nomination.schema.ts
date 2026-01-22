@@ -79,14 +79,14 @@ export class Nomination extends Document {
   nominees: Nominee[];
 
   // Documents
-  @Prop({ type: Object, required: true })
-  index2Document: UploadedDocument;
+  @Prop({ type: Object })
+  index2Document?: UploadedDocument;
 
-  @Prop({ type: Object, required: true })
-  possessionLetterDocument: UploadedDocument;
+  @Prop({ type: Object })
+  possessionLetterDocument?: UploadedDocument;
 
-  @Prop({ type: Object, required: true })
-  primaryMemberAadhaar: UploadedDocument;
+  @Prop({ type: Object })
+  aadhaarCardDocument?: UploadedDocument;
 
   @Prop({ type: Object })
   jointMemberAadhaar: UploadedDocument;

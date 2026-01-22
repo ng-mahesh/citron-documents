@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/Button";
-import { shareCertificateAPI, adminAPI } from "@/lib/api";
+import { shareCertificateAPI, adminAPI, api, uploadApi } from "@/lib/api";
 import { Status } from "@/lib/types";
 import { ToastContainer, ToastType } from "@/components/ui/Toast";
 import {
@@ -21,6 +22,9 @@ import {
   Save,
   Home,
   Ruler,
+  Edit,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
 import { theme } from "@/lib/theme";
@@ -77,6 +81,21 @@ export default function ShareCertificateDetailPage() {
   } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
+  // Edit mode states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editData, setEditData] = useState({
+    fullName: "",
+    flatNumber: "",
+    wing: "C" as "C" | "D",
+    email: "",
+    mobileNumber: "",
+    membershipType: "",
+    digitalSignature: "",
+  });
+  const [updatingDetails, setUpdatingDetails] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
+
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -90,9 +109,20 @@ export default function ShareCertificateDetailPage() {
   const fetchCertificateDetails = async () => {
     try {
       const response = await shareCertificateAPI.getByAckNumber(ackNo);
-      setCertificate(response.data.data);
-      setSelectedStatus(response.data.data.status);
-      setAdminRemarks(response.data.data.adminRemarks || "");
+      const certData = response.data.data;
+      setCertificate(certData);
+      setSelectedStatus(certData.status);
+      setAdminRemarks(certData.adminRemarks || "");
+      // Initialize edit data
+      setEditData({
+        fullName: certData.fullName || "",
+        flatNumber: certData.flatNumber || "",
+        wing: (certData.wing as "C" | "D") || "C",
+        email: certData.email || "",
+        mobileNumber: certData.mobileNumber || "",
+        membershipType: certData.membershipType || "",
+        digitalSignature: certData.digitalSignature || "",
+      });
     } catch (error) {
       console.error("Failed to fetch certificate details:", error);
       setToast({
@@ -202,6 +232,149 @@ export default function ShareCertificateDetailPage() {
     }
   };
 
+  const handleEditToggle = () => {
+    if (isEditMode) {
+      // Cancel edit - reset to original values
+      if (certificate) {
+        setEditData({
+          fullName: certificate.fullName || "",
+          flatNumber: certificate.flatNumber || "",
+          wing: (certificate.wing as "C" | "D") || "C",
+          email: certificate.email || "",
+          mobileNumber: certificate.mobileNumber || "",
+          membershipType: certificate.membershipType || "",
+          digitalSignature: certificate.digitalSignature || "",
+        });
+      }
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  const handleUpdateDetails = async () => {
+    if (!certificate) return;
+
+    setUpdatingDetails(true);
+    try {
+      await shareCertificateAPI.update(certificate._id, editData);
+      setCertificate({
+        ...certificate,
+        ...editData,
+      });
+      setIsEditMode(false);
+      setToast({
+        message: "Certificate details updated successfully",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Failed to update certificate details:", error);
+      setToast({
+        message: "Failed to update certificate details. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setUpdatingDetails(false);
+    }
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    documentType: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !certificate) return;
+
+    // Validate required certificate data
+    if (!certificate.flatNumber || !certificate.fullName) {
+      setToast({
+        message: "Certificate data is incomplete. Please refresh the page.",
+        type: "error",
+      });
+      return;
+    }
+
+    setUploadingDocument(true);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("flatNumber", certificate.flatNumber);
+      formData.append("documentType", documentType);
+      formData.append("fullName", certificate.fullName);
+
+      console.log("Uploading document:", {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        flatNumber: certificate.flatNumber,
+        documentType,
+        fullName: certificate.fullName,
+      });
+
+      // Upload file
+      const uploadResponse = await uploadApi.post("/upload", formData);
+
+      const documentData = {
+        documentType,
+        s3Key: uploadResponse.data.data.s3Key,
+        fileName: uploadResponse.data.data.fileName,
+        fileType: uploadResponse.data.data.fileType,
+        fileSize: uploadResponse.data.data.fileSize,
+        uploadedAt: uploadResponse.data.data.uploadedAt,
+      };
+
+      // Add document to certificate
+      if (!certificate._id) {
+        throw new Error("Certificate ID is missing");
+      }
+      await api.post(
+        `/share-certificate/${certificate._id}/documents`,
+        documentData
+      );
+
+      // Refresh certificate data
+      await fetchCertificateDetails();
+      setToast({ message: "Document uploaded successfully", type: "success" });
+    } catch (error: unknown) {
+      console.error("Failed to upload document:", error);
+      const errorMessage = error instanceof AxiosError ? error.response?.data?.message : "Failed to upload document. Please try again.";
+      setToast({
+        message: errorMessage,
+        type: "error",
+      });
+    } finally {
+      setUploadingDocument(false);
+      // Reset file input
+      event.target.value = "";
+    }
+  };
+
+  const handleDeleteDocument = async (documentType: string, s3Key: string) => {
+    if (!certificate) return;
+
+    setDeletingDocument(documentType);
+    try {
+      // Remove document from certificate
+      await api.delete(
+        `/share-certificate/${certificate._id}/documents/${documentType}`
+      );
+
+      // Delete file from S3
+      await uploadApi.delete("/upload", { data: { key: s3Key } });
+
+      // Refresh certificate data
+      await fetchCertificateDetails();
+      setToast({ message: "Document deleted successfully", type: "success" });
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      setToast({
+        message: "Failed to delete document. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setDeletingDocument(null);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
       Pending: `${theme.status.pending.bg} ${theme.status.pending.text} border ${theme.status.pending.border}`,
@@ -230,6 +403,18 @@ export default function ShareCertificateDetailPage() {
       "Legal Heir": "Legal Heir",
     };
     return labels[type] || type;
+  };
+
+  const getPredefinedRemarks = (status: Status) => {
+    const baseRemarks = {
+      Pending: `Application marked as pending. Awaiting further review and required documents.`,
+      "Under Review": `Application is currently under review. All submitted documents are being verified.`,
+      Approved: `Application has been approved. Share certificate will be issued shortly.`,
+      Rejected: `Application has been rejected. Please check the requirements and resubmit.`,
+      "Document Required": `Additional documents are required. Please upload the missing documents to proceed.`,
+    };
+
+    return baseRemarks[status] || "";
   };
 
   if (loading) {
@@ -288,8 +473,17 @@ export default function ShareCertificateDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="self-end sm:self-auto">
+            <div className="flex items-center gap-3 self-end sm:self-auto">
               {getStatusBadge(certificate.status)}
+              <Button
+                onClick={handleEditToggle}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                {isEditMode ? "Cancel Edit" : "Edit Details"}
+              </Button>
             </div>
           </div>
         </div>
@@ -301,11 +495,34 @@ export default function ShareCertificateDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Member Information */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-              <div className="px-8 py-5 border-b border-slate-200">
+              <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                   <User className="h-5 w-5 text-green-600" />
                   Member Information
                 </h3>
+                {isEditMode && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleUpdateDetails}
+                      disabled={updatingDetails}
+                      isLoading={updatingDetails}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      Save Changes
+                    </Button>
+                    <Button
+                      onClick={handleEditToggle}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="px-8 py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -313,18 +530,59 @@ export default function ShareCertificateDetailPage() {
                     <label className="text-sm font-medium text-slate-500">
                       Full Name
                     </label>
-                    <p className="text-base font-semibold text-slate-900 mt-1">
-                      {certificate.fullName}
-                    </p>
+                    {isEditMode ? (
+                      <input
+                        type="text"
+                        value={editData.fullName}
+                        onChange={(e) =>
+                          setEditData({ ...editData, fullName: e.target.value })
+                        }
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                      />
+                    ) : (
+                      <p className="text-base font-semibold text-slate-900 mt-1">
+                        {certificate.fullName}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
                       Flat & Wing
                     </label>
-                    <p className="text-base font-semibold text-slate-900 mt-1">
-                      {certificate.flatNumber} - Wing {certificate.wing}
-                    </p>
+                    {isEditMode ? (
+                      <div className="flex gap-2 mt-1">
+                        <input
+                          type="text"
+                          value={editData.flatNumber}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              flatNumber: e.target.value,
+                            })
+                          }
+                          placeholder="Flat Number"
+                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                        />
+                        <select
+                          value={editData.wing}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              wing: e.target.value as "C" | "D",
+                            })
+                          }
+                          className="px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                        >
+                          <option value="C">Wing C</option>
+                          <option value="D">Wing D</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <p className="text-base font-semibold text-slate-900 mt-1">
+                        {certificate.flatNumber} - Wing {certificate.wing}
+                      </p>
+                    )}
                   </div>
                   {certificate.index2ApplicantNames &&
                     certificate.index2ApplicantNames.length > 0 && (
@@ -357,27 +615,71 @@ export default function ShareCertificateDetailPage() {
                       <Mail className="h-4 w-4" />
                       Email
                     </label>
-                    <p className="text-base text-slate-900 mt-1">
-                      {certificate.email}
-                    </p>
+                    {isEditMode ? (
+                      <input
+                        type="email"
+                        value={editData.email}
+                        onChange={(e) =>
+                          setEditData({ ...editData, email: e.target.value })
+                        }
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                      />
+                    ) : (
+                      <p className="text-base text-slate-900 mt-1">
+                        {certificate.email}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <Phone className="h-4 w-4" />
                       Mobile
                     </label>
-                    <p className="text-base text-slate-900 mt-1">
-                      {certificate.mobileNumber}
-                    </p>
+                    {isEditMode ? (
+                      <input
+                        type="tel"
+                        value={editData.mobileNumber}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            mobileNumber: e.target.value,
+                          })
+                        }
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                      />
+                    ) : (
+                      <p className="text-base text-slate-900 mt-1">
+                        {certificate.mobileNumber}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
                       <User className="h-4 w-4" />
                       Membership Type
                     </label>
-                    <p className="text-base font-semibold text-slate-900 mt-1">
-                      {getMembershipTypeLabel(certificate.membershipType)}
-                    </p>
+                    {isEditMode ? (
+                      <select
+                        value={editData.membershipType}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            membershipType: e.target.value,
+                          })
+                        }
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                      >
+                        <option value="Primary">Primary Member</option>
+                        <option value="Spouse">Spouse</option>
+                        <option value="Son">Son</option>
+                        <option value="Daughter">Daughter</option>
+                        <option value="Legal Heir">Legal Heir</option>
+                      </select>
+                    ) : (
+                      <p className="text-base font-semibold text-slate-900 mt-1">
+                        {getMembershipTypeLabel(certificate.membershipType)}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-500 flex items-center gap-1">
@@ -395,13 +697,28 @@ export default function ShareCertificateDetailPage() {
                       )}
                     </p>
                   </div>
-                  <div>
+                  <div className={isEditMode ? "md:col-span-2" : ""}>
                     <label className="text-sm font-medium text-slate-500">
                       Digital Signature
                     </label>
-                    <p className="text-base italic text-slate-900 mt-1">
-                      {certificate.digitalSignature}
-                    </p>
+                    {isEditMode ? (
+                      <input
+                        type="text"
+                        value={editData.digitalSignature}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            digitalSignature: e.target.value,
+                          })
+                        }
+                        placeholder="Enter digital signature"
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                      />
+                    ) : (
+                      <p className="text-base italic text-slate-900 mt-1">
+                        {certificate.digitalSignature}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -464,9 +781,14 @@ export default function ShareCertificateDetailPage() {
                   </label>
                   <select
                     value={selectedStatus}
-                    onChange={(e) =>
-                      setSelectedStatus(e.target.value as Status)
-                    }
+                    onChange={(e) => {
+                      const newStatus = e.target.value as Status;
+                      setSelectedStatus(newStatus);
+                      // Auto-populate admin remarks with predefined message
+                      if (certificate) {
+                        setAdminRemarks(getPredefinedRemarks(newStatus));
+                      }
+                    }}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                     disabled={updatingStatus}
                   >
@@ -484,13 +806,14 @@ export default function ShareCertificateDetailPage() {
                   <textarea
                     value={adminRemarks}
                     onChange={(e) => setAdminRemarks(e.target.value)}
-                    placeholder="Add notes or reasons for status change..."
+                    placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
                     rows={4}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
                     disabled={updatingStatus}
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    These remarks will be included in the exported Excel file
+                    Remarks are auto-populated based on status. Customize as
+                    needed. These will be included in the exported Excel file.
                   </p>
                 </div>
                 <Button
@@ -516,79 +839,219 @@ export default function ShareCertificateDetailPage() {
               </div>
               <div className="px-6 py-4 space-y-3">
                 {/* Index-2 */}
-                {certificate.index2Document && (
-                  <button
-                    onClick={() =>
-                      openDocumentPopup(
-                        certificate.index2Document!.s3Key,
-                        certificate.index2Document!.fileName,
-                        certificate.index2Document!.fileType
-                      )
-                    }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-                  >
-                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">
-                        Index-2 Document
-                      </p>
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Index-2 Document
+                    </p>
+                    {certificate.index2Document ? (
                       <p className="text-xs text-slate-600 truncate">
                         {certificate.index2Document!.fileName}
                       </p>
-                    </div>
-                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
-                  </button>
-                )}
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {certificate.index2Document && (
+                      <>
+                        <button
+                          onClick={() =>
+                            openDocumentPopup(
+                              certificate.index2Document!.s3Key,
+                              certificate.index2Document!.fileName,
+                              certificate.index2Document!.fileType
+                            )
+                          }
+                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "index2",
+                              certificate.index2Document!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "index2"}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingDocument === "index2" ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileUpload(e, "index2")}
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                        {uploadingDocument ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
 
                 {/* Possession Letter */}
-                {certificate.possessionLetterDocument && (
-                  <button
-                    onClick={() =>
-                      openDocumentPopup(
-                        certificate.possessionLetterDocument!.s3Key,
-                        certificate.possessionLetterDocument!.fileName,
-                        certificate.possessionLetterDocument!.fileType
-                      )
-                    }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-                  >
-                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">
-                        Possession Letter
-                      </p>
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Possession Letter
+                    </p>
+                    {certificate.possessionLetterDocument ? (
                       <p className="text-xs text-slate-600 truncate">
                         {certificate.possessionLetterDocument!.fileName}
                       </p>
-                    </div>
-                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
-                  </button>
-                )}
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {certificate.possessionLetterDocument && (
+                      <>
+                        <button
+                          onClick={() =>
+                            openDocumentPopup(
+                              certificate.possessionLetterDocument!.s3Key,
+                              certificate.possessionLetterDocument!.fileName,
+                              certificate.possessionLetterDocument!.fileType
+                            )
+                          }
+                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "possessionLetter",
+                              certificate.possessionLetterDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "possessionLetter"}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingDocument === "possessionLetter" ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleFileUpload(e, "possessionLetter")
+                        }
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                        {uploadingDocument ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
 
                 {/* Aadhaar Card */}
-                {certificate.aadhaarCardDocument && (
-                  <button
-                    onClick={() =>
-                      openDocumentPopup(
-                        certificate.aadhaarCardDocument!.s3Key,
-                        certificate.aadhaarCardDocument!.fileName,
-                        certificate.aadhaarCardDocument!.fileType
-                      )
-                    }
-                    className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-                  >
-                    <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">
-                        Aadhaar Card
-                      </p>
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Aadhaar Card
+                    </p>
+                    {certificate.aadhaarCardDocument ? (
                       <p className="text-xs text-slate-600 truncate">
                         {certificate.aadhaarCardDocument!.fileName}
                       </p>
-                    </div>
-                    <Eye className="h-5 w-5 text-slate-600 flex-shrink-0" />
-                  </button>
-                )}
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {certificate.aadhaarCardDocument && (
+                      <>
+                        <button
+                          onClick={() =>
+                            openDocumentPopup(
+                              certificate.aadhaarCardDocument!.s3Key,
+                              certificate.aadhaarCardDocument!.fileName,
+                              certificate.aadhaarCardDocument!.fileType
+                            )
+                          }
+                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "aadhaarCard",
+                              certificate.aadhaarCardDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "aadhaarCard"}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingDocument === "aadhaarCard" ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileUpload(e, "aadhaarCard")}
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                        {uploadingDocument ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 

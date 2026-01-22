@@ -50,14 +50,14 @@ export class ShareCertificate extends Document {
   @Prop()
   jointMemberMobile: string;
 
-  @Prop({ type: Object, required: true })
-  index2Document: UploadedDocument;
+  @Prop({ type: Object })
+  index2Document?: UploadedDocument;
 
-  @Prop({ type: Object, required: true })
-  possessionLetterDocument: UploadedDocument;
+  @Prop({ type: Object })
+  possessionLetterDocument?: UploadedDocument;
 
-  @Prop({ type: Object, required: true })
-  aadhaarCardDocument: UploadedDocument;
+  @Prop({ type: Object })
+  aadhaarCardDocument?: UploadedDocument;
 
   @Prop({ required: true })
   digitalSignature: string;

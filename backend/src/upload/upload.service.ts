@@ -35,15 +35,10 @@ export class UploadService {
    * - Allowed types: PDF, JPEG
    */
   private validateFile(file: Express.Multer.File): void {
-    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
-    const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/jpg'];
-
-    if (file.size > maxSize) {
-      throw new BadRequestException('File size exceeds 2MB limit');
-    }
+    const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException('Only PDF and JPEG files are allowed');
+      throw new BadRequestException('Only PDF, JPEG, and PNG files are allowed');
     }
   }
 

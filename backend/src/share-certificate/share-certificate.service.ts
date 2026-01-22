@@ -165,6 +165,89 @@ export class ShareCertificateService {
   }
 
   /**
+   * Add document to share certificate (Admin)
+   */
+  async addDocument(
+    id: string,
+    documentData: {
+      documentType: string;
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ): Promise<ShareCertificate> {
+    const certificate = await this.shareCertificateModel.findById(id).exec();
+
+    if (!certificate) {
+      throw new NotFoundException(`Share certificate with ID ${id} not found`);
+    }
+
+    const { documentType, ...documentInfo } = documentData;
+
+    // Update the appropriate document field based on documentType
+    if (documentType === 'index2') {
+      certificate.index2Document = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'possessionLetter') {
+      certificate.possessionLetterDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'aadhaarCard') {
+      certificate.aadhaarCardDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    }
+
+    certificate.updatedAt = new Date();
+    await certificate.save();
+
+    return certificate;
+  }
+
+  /**
+   * Remove document from share certificate (Admin)
+   */
+  async removeDocument(id: string, documentType: string): Promise<ShareCertificate> {
+    const certificate = await this.shareCertificateModel.findById(id).exec();
+
+    if (!certificate) {
+      throw new NotFoundException(`Share certificate with ID ${id} not found`);
+    }
+
+    // Clear the appropriate document field based on documentType
+    if (documentType === 'index2') {
+      certificate.index2Document = undefined;
+    } else if (documentType === 'possessionLetter') {
+      certificate.possessionLetterDocument = undefined;
+    } else if (documentType === 'aadhaarCard') {
+      certificate.aadhaarCardDocument = undefined;
+    }
+
+    certificate.updatedAt = new Date();
+    await certificate.save();
+
+    return certificate;
+  }
+
+  /**
    * Delete share certificate (Admin)
    */
   async delete(id: string): Promise<void> {

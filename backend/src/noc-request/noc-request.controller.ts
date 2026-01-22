@@ -166,7 +166,7 @@ export class NocRequestController {
   }
 
   /**
-   * Update NOC request status (Admin only)
+   * Update NOC request details (Admin only)
    * PUT /api/noc-request/:id
    */
   @Put(':id')
@@ -176,6 +176,47 @@ export class NocRequestController {
     return {
       success: true,
       message: 'NOC request updated successfully',
+      data: request,
+    };
+  }
+
+  /**
+   * Add document to NOC request (Admin only)
+   * POST /api/noc-request/:id/documents
+   */
+  @Post(':id/documents')
+  @UseGuards(JwtAuthGuard)
+  async addDocument(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      documentType: string;
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ) {
+    const request = await this.nocRequestService.addDocument(id, body);
+    return {
+      success: true,
+      message: 'Document added successfully',
+      data: request,
+    };
+  }
+
+  /**
+   * Remove document from NOC request (Admin only)
+   * DELETE /api/noc-request/:id/documents/:documentType
+   */
+  @Delete(':id/documents/:documentType')
+  @UseGuards(JwtAuthGuard)
+  async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
+    const request = await this.nocRequestService.removeDocument(id, documentType);
+    return {
+      success: true,
+      message: 'Document removed successfully',
       data: request,
     };
   }

@@ -83,7 +83,7 @@ export class NocRequest extends Document {
   // Document Uploads (type-specific - validation handled in DTO)
   // Flat Transfer documents
   @Prop({ type: Object })
-  agreementDocument: UploadedDocument;
+  agreementDocument?: UploadedDocument;
 
   @Prop({ type: Object })
   shareCertificateDocument: UploadedDocument;

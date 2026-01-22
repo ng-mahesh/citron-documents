@@ -143,7 +143,7 @@ export class NominationController {
   }
 
   /**
-   * Update nomination status (Admin only)
+   * Update nomination details (Admin only)
    * PUT /api/nomination/:id
    */
   @Put(':id')
@@ -153,6 +153,47 @@ export class NominationController {
     return {
       success: true,
       message: 'Nomination updated successfully',
+      data: nomination,
+    };
+  }
+
+  /**
+   * Add document to nomination (Admin only)
+   * POST /api/nomination/:id/documents
+   */
+  @Post(':id/documents')
+  @UseGuards(JwtAuthGuard)
+  async addDocument(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      documentType: string;
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ) {
+    const nomination = await this.nominationService.addDocument(id, body);
+    return {
+      success: true,
+      message: 'Document added successfully',
+      data: nomination,
+    };
+  }
+
+  /**
+   * Remove document from nomination (Admin only)
+   * DELETE /api/nomination/:id/documents/:documentType
+   */
+  @Delete(':id/documents/:documentType')
+  @UseGuards(JwtAuthGuard)
+  async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
+    const nomination = await this.nominationService.removeDocument(id, documentType);
+    return {
+      success: true,
+      message: 'Document removed successfully',
       data: nomination,
     };
   }

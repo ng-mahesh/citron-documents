@@ -188,6 +188,100 @@ export class NocRequestService {
   }
 
   /**
+   * Add document to NOC request (Admin)
+   */
+  async addDocument(
+    id: string,
+    documentData: {
+      documentType: string;
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ): Promise<NocRequest> {
+    const request = await this.nocRequestModel.findById(id).exec();
+
+    if (!request) {
+      throw new NotFoundException(`NOC request with ID ${id} not found`);
+    }
+
+    const { documentType, ...documentInfo } = documentData;
+
+    // Update the appropriate document field based on documentType
+    if (documentType === 'agreement') {
+      request.agreementDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'shareCertificate') {
+      request.shareCertificateDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'buyerAadhaar') {
+      request.buyerAadhaarDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'buyerPan') {
+      request.buyerPanDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    }
+
+    request.updatedAt = new Date();
+    await request.save();
+
+    return request;
+  }
+
+  /**
+   * Remove document from NOC request (Admin)
+   */
+  async removeDocument(id: string, documentType: string): Promise<NocRequest> {
+    const request = await this.nocRequestModel.findById(id).exec();
+
+    if (!request) {
+      throw new NotFoundException(`NOC request with ID ${id} not found`);
+    }
+
+    // Clear the appropriate document field based on documentType
+    if (documentType === 'agreement') {
+      request.agreementDocument = undefined;
+    } else if (documentType === 'shareCertificate') {
+      request.shareCertificateDocument = undefined;
+    } else if (documentType === 'buyerAadhaar') {
+      request.buyerAadhaarDocument = undefined;
+    } else if (documentType === 'buyerPan') {
+      request.buyerPanDocument = undefined;
+    }
+
+    request.updatedAt = new Date();
+    await request.save();
+
+    return request;
+  }
+
+  /**
    * Update payment status (for payment integration)
    */
   async updatePaymentStatus(

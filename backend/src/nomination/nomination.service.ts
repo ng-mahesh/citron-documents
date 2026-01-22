@@ -179,6 +179,89 @@ export class NominationService {
   }
 
   /**
+   * Add document to nomination (Admin)
+   */
+  async addDocument(
+    id: string,
+    documentData: {
+      documentType: string;
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ): Promise<Nomination> {
+    const nomination = await this.nominationModel.findById(id).exec();
+
+    if (!nomination) {
+      throw new NotFoundException(`Nomination with ID ${id} not found`);
+    }
+
+    const { documentType, ...documentInfo } = documentData;
+
+    // Update the appropriate document field based on documentType
+    if (documentType === 'index2') {
+      nomination.index2Document = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'possessionLetter') {
+      nomination.possessionLetterDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'aadhaarCard') {
+      nomination.aadhaarCardDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '', // Will be set when generating presigned URL
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    }
+
+    nomination.updatedAt = new Date();
+    await nomination.save();
+
+    return nomination;
+  }
+
+  /**
+   * Remove document from nomination (Admin)
+   */
+  async removeDocument(id: string, documentType: string): Promise<Nomination> {
+    const nomination = await this.nominationModel.findById(id).exec();
+
+    if (!nomination) {
+      throw new NotFoundException(`Nomination with ID ${id} not found`);
+    }
+
+    // Clear the appropriate document field based on documentType
+    if (documentType === 'index2') {
+      nomination.index2Document = undefined;
+    } else if (documentType === 'possessionLetter') {
+      nomination.possessionLetterDocument = undefined;
+    } else if (documentType === 'aadhaarCard') {
+      nomination.aadhaarCardDocument = undefined;
+    }
+
+    nomination.updatedAt = new Date();
+    await nomination.save();
+
+    return nomination;
+  }
+
+  /**
    * Delete nomination (Admin)
    */
   async delete(id: string): Promise<void> {
