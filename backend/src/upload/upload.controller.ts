@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
+import multer from 'multer';
 
 /**
  * Controller for handling file upload requests
@@ -22,7 +23,22 @@ export class UploadController {
    * POST /api/upload
    */
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: multer.memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      },
+      fileFilter: (req, file, cb) => {
+        const allowedMimes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new Error('Invalid file type'), false);
+        }
+      },
+    }),
+  )
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body('flatNumber') flatNumber: string,
@@ -31,6 +47,10 @@ export class UploadController {
   ) {
     if (!file) {
       throw new BadRequestException('No file provided');
+    }
+
+    if (!file.buffer) {
+      throw new BadRequestException('File buffer not available');
     }
 
     if (!flatNumber || !documentType || !fullName) {

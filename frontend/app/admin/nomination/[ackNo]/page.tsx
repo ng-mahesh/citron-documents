@@ -220,6 +220,18 @@ export default function NominationDetailPage() {
     );
   };
 
+  const getPredefinedRemarks = (status: Status, nomination: any) => {
+    const baseRemarks = {
+      Pending: `Nomination application marked as pending. Awaiting further review and required documents.`,
+      "Under Review": `Nomination application is currently under review. All submitted documents are being verified.`,
+      Approved: `Nomination application has been approved. Nomination certificate will be issued shortly.`,
+      Rejected: `Nomination application has been rejected. Please check the requirements and resubmit.`,
+      "Document Required": `Additional documents are required for nomination. Please upload the missing documents to proceed.`
+    };
+
+    return baseRemarks[status] || "";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
@@ -498,11 +510,16 @@ export default function NominationDetailPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Change Status
                   </label>
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) =>
-                      setSelectedStatus(e.target.value as Status)
-                    }
+                   <select
+                     value={selectedStatus}
+                     onChange={(e) => {
+                       const newStatus = e.target.value as Status;
+                       setSelectedStatus(newStatus);
+                       // Auto-populate admin remarks with predefined message
+                       if (nomination) {
+                         setAdminRemarks(getPredefinedRemarks(newStatus, nomination));
+                       }
+                     }}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                     disabled={updatingStatus}
                   >
@@ -520,14 +537,14 @@ export default function NominationDetailPage() {
                   <textarea
                     value={adminRemarks}
                     onChange={(e) => setAdminRemarks(e.target.value)}
-                    placeholder="Add notes or reasons for status change..."
-                    rows={4}
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
-                    disabled={updatingStatus}
-                  />
-                  <p className="text-xs text-slate-500 mt-1">
-                    These remarks will be included in the exported Excel file
-                  </p>
+                     placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
+                     rows={4}
+                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
+                     disabled={updatingStatus}
+                   />
+                   <p className="text-xs text-slate-500 mt-1">
+                     Remarks are auto-populated based on status. Customize as needed. These will be included in the exported Excel file.
+                   </p>
                 </div>
                 <Button
                   onClick={handleStatusUpdate}

@@ -9,6 +9,22 @@ export const api = axios.create({
   },
 });
 
+// Create a separate instance for file uploads without default content-type
+export const uploadApi = axios.create({
+  baseURL: API_URL,
+});
+
+// Add token to upload requests if available
+uploadApi.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 // Add token to requests if available
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {

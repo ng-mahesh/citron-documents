@@ -281,6 +281,18 @@ export default function NocRequestDetailPage() {
     );
   };
 
+  const getPredefinedRemarks = (status: Status, nocRequest: any) => {
+    const baseRemarks = {
+      Pending: `NOC request marked as pending. Awaiting further review and required documents.`,
+      "Under Review": `NOC request is currently under review. All submitted documents are being verified.`,
+      Approved: `NOC request has been approved. NOC certificate will be issued shortly.`,
+      Rejected: `NOC request has been rejected. Please check the requirements and resubmit.`,
+      "Document Required": `Additional documents are required for NOC. Please upload the missing documents to proceed.`
+    };
+
+    return baseRemarks[status] || "";
+  };
+
   // Reserved for future use
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getPaymentStatusBadgeColor = (paymentStatus: string) => {
@@ -655,11 +667,16 @@ export default function NocRequestDetailPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Status
                   </label>
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) =>
-                      setSelectedStatus(e.target.value as Status)
-                    }
+                   <select
+                     value={selectedStatus}
+                     onChange={(e) => {
+                       const newStatus = e.target.value as Status;
+                       setSelectedStatus(newStatus);
+                       // Auto-populate admin remarks with predefined message
+                       if (nocRequest) {
+                         setAdminRemarks(getPredefinedRemarks(newStatus, nocRequest));
+                       }
+                     }}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                     disabled={updatingStatus}
                   >
@@ -677,14 +694,14 @@ export default function NocRequestDetailPage() {
                   <textarea
                     value={adminRemarks}
                     onChange={(e) => setAdminRemarks(e.target.value)}
-                    placeholder="Add notes or reasons for status change..."
-                    rows={4}
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
-                    disabled={updatingStatus}
-                  />
-                  <p className="text-xs text-slate-500 mt-1">
-                    These remarks will be included in the exported Excel file
-                  </p>
+                     placeholder="Predefined remarks are auto-populated. You can customize them if needed..."
+                     rows={4}
+                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 resize-none"
+                     disabled={updatingStatus}
+                   />
+                   <p className="text-xs text-slate-500 mt-1">
+                     Remarks are auto-populated based on status. Customize as needed. These will be included in the exported Excel file.
+                   </p>
                 </div>
                 <Button
                   onClick={handleStatusUpdate}

@@ -143,7 +143,7 @@ export class ShareCertificateController {
   }
 
   /**
-   * Update share certificate status (Admin only)
+   * Update share certificate details (Admin only)
    * PUT /api/share-certificate/:id
    */
   @Put(':id')
@@ -153,6 +153,47 @@ export class ShareCertificateController {
     return {
       success: true,
       message: 'Share certificate updated successfully',
+      data: certificate,
+    };
+  }
+
+  /**
+   * Add document to share certificate (Admin only)
+   * POST /api/share-certificate/:id/documents
+   */
+  @Post(':id/documents')
+  @UseGuards(JwtAuthGuard)
+  async addDocument(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      documentType: string;
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ) {
+    const certificate = await this.shareCertificateService.addDocument(id, body);
+    return {
+      success: true,
+      message: 'Document added successfully',
+      data: certificate,
+    };
+  }
+
+  /**
+   * Remove document from share certificate (Admin only)
+   * DELETE /api/share-certificate/:id/documents/:documentType
+   */
+  @Delete(':id/documents/:documentType')
+  @UseGuards(JwtAuthGuard)
+  async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
+    const certificate = await this.shareCertificateService.removeDocument(id, documentType);
+    return {
+      success: true,
+      message: 'Document removed successfully',
       data: certificate,
     };
   }
