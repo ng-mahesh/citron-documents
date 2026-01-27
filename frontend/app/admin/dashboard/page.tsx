@@ -72,19 +72,25 @@ export default function AdminDashboard() {
 
   // Pagination and search states for certificates
   const [certSearchQuery, setCertSearchQuery] = useState("");
-  const [certStatusFilter, setCertStatusFilter] = useState<Status | "">("");
+  const [certStatusFilter, setCertStatusFilter] = useState<Status | "">(
+    "Pending"
+  );
   const [certCurrentPage, setCertCurrentPage] = useState(1);
   const certItemsPerPage = 10;
 
   // Pagination and search states for nominations
   const [nomSearchQuery, setNomSearchQuery] = useState("");
-  const [nomStatusFilter, setNomStatusFilter] = useState<Status | "">("");
+  const [nomStatusFilter, setNomStatusFilter] = useState<Status | "">(
+    "Pending"
+  );
   const [nomCurrentPage, setNomCurrentPage] = useState(1);
   const nomItemsPerPage = 10;
 
   // Pagination and search states for NOC requests
   const [nocSearchQuery, setNocSearchQuery] = useState("");
-  const [nocStatusFilter, setNocStatusFilter] = useState<Status | "">("");
+  const [nocStatusFilter, setNocStatusFilter] = useState<Status | "">(
+    "Pending"
+  );
   const [nocCurrentPage, setNocCurrentPage] = useState(1);
   const nocItemsPerPage = 10;
 

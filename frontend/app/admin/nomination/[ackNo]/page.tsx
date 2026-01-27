@@ -25,6 +25,8 @@ import {
   Trash2,
   Upload,
   Plus,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
 import { theme } from "@/lib/theme";
@@ -98,6 +100,12 @@ export default function NominationDetailPage() {
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
 
+  // Navigation state
+  const [allNominations, setAllNominations] = useState<
+    Array<{ acknowledgementNumber: string; status: Status }>
+  >([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
   const [toast, setToast] = useState<{
     message: string;
     type: ToastType;
@@ -118,8 +126,29 @@ export default function NominationDetailPage() {
       return;
     }
     fetchNominationDetails();
+    fetchAllNominations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ackNo]);
+
+  const fetchAllNominations = async () => {
+    try {
+      const response = await nominationAPI.getAll();
+      const noms = response.data.data.map(
+        (nom: { acknowledgementNumber: string; status: Status }) => ({
+          acknowledgementNumber: nom.acknowledgementNumber,
+          status: nom.status,
+        })
+      );
+      setAllNominations(noms);
+      const index = noms.findIndex(
+        (nom: { acknowledgementNumber: string }) =>
+          nom.acknowledgementNumber === ackNo
+      );
+      setCurrentIndex(index);
+    } catch (error) {
+      console.error("Failed to fetch all nominations:", error);
+    }
+  };
 
   const fetchNominationDetails = async () => {
     try {
@@ -551,6 +580,43 @@ export default function NominationDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto">
+              {/* Next/Prev Navigation */}
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    if (currentIndex > 0) {
+                      router.push(
+                        `/admin/nomination/${allNominations[currentIndex - 1].acknowledgementNumber}`
+                      );
+                    }
+                  }}
+                  disabled={currentIndex <= 0}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  title="Previous application"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Prev
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (currentIndex < allNominations.length - 1) {
+                      router.push(
+                        `/admin/nomination/${allNominations[currentIndex + 1].acknowledgementNumber}`
+                      );
+                    }
+                  }}
+                  disabled={currentIndex >= allNominations.length - 1}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  title="Next application"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
               {getStatusBadge(nomination.status)}
               <Button
                 onClick={handleEditToggle}

@@ -25,6 +25,8 @@ import {
   Edit,
   Trash2,
   Upload,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
 import { theme } from "@/lib/theme";
@@ -96,6 +98,12 @@ export default function ShareCertificateDetailPage() {
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
 
+  // Navigation state
+  const [allCertificates, setAllCertificates] = useState<
+    Array<{ acknowledgementNumber: string; status: Status }>
+  >([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -103,8 +111,29 @@ export default function ShareCertificateDetailPage() {
       return;
     }
     fetchCertificateDetails();
+    fetchAllCertificates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ackNo]);
+
+  const fetchAllCertificates = async () => {
+    try {
+      const response = await shareCertificateAPI.getAll();
+      const certs = response.data.data.map(
+        (cert: { acknowledgementNumber: string; status: Status }) => ({
+          acknowledgementNumber: cert.acknowledgementNumber,
+          status: cert.status,
+        })
+      );
+      setAllCertificates(certs);
+      const index = certs.findIndex(
+        (cert: { acknowledgementNumber: string }) =>
+          cert.acknowledgementNumber === ackNo
+      );
+      setCurrentIndex(index);
+    } catch (error) {
+      console.error("Failed to fetch all certificates:", error);
+    }
+  };
 
   const fetchCertificateDetails = async () => {
     try {
@@ -477,6 +506,43 @@ export default function ShareCertificateDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto">
+              {/* Next/Prev Navigation */}
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    if (currentIndex > 0) {
+                      router.push(
+                        `/admin/share-certificate/${allCertificates[currentIndex - 1].acknowledgementNumber}`
+                      );
+                    }
+                  }}
+                  disabled={currentIndex <= 0}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  title="Previous application"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Prev
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (currentIndex < allCertificates.length - 1) {
+                      router.push(
+                        `/admin/share-certificate/${allCertificates[currentIndex + 1].acknowledgementNumber}`
+                      );
+                    }
+                  }}
+                  disabled={currentIndex >= allCertificates.length - 1}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  title="Next application"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
               {getStatusBadge(certificate.status)}
               <Button
                 onClick={handleEditToggle}

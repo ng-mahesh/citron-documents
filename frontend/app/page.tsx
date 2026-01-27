@@ -93,29 +93,52 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/nomination" className="group h-full">
-            <div
-              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
-            >
+          {process.env.NEXT_PUBLIC_FEATURE_NOMINATION === "true" ? (
+            <Link href="/nomination" className="group h-full">
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+                className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
               >
-                <Users className="h-7 w-7 text-white" />
+                <div
+                  className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+                >
+                  <Users className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                  Nomination Form
+                </h3>
+                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+                  Register your nominees for share certificate inheritance
+                </p>
+                <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
+                  Submit Form
+                  <span className="inline-block group-hover:translate-x-1 transition-transform">
+                    →
+                  </span>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">
-                Nomination Form
-              </h3>
-              <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
-                Register your nominees for share certificate inheritance
-              </p>
-              <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
-                Submit Form
-                <span className="inline-block group-hover:translate-x-1 transition-transform">
-                  →
-                </span>
+            </Link>
+          ) : (
+            <div className="h-full cursor-not-allowed">
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left opacity-50 pointer-events-none relative">
+                <div className="absolute top-4 right-4 bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+                  Announcing Soon
+                </div>
+                <div className="h-14 w-14 bg-slate-400 rounded-xl flex items-center justify-center mb-5">
+                  <Users className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                  Nomination Form
+                </h3>
+                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+                  Register your nominees for share certificate inheritance
+                </p>
+                <div className="flex items-center text-slate-500 font-medium text-sm">
+                  Submit Form
+                  <span className="inline-block">→</span>
+                </div>
               </div>
             </div>
-          </Link>
+          )}
 
           <Link href="/noc-request" className="group h-full">
             <div

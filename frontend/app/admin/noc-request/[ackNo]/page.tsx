@@ -26,6 +26,8 @@ import {
   IndianRupee,
   CreditCard,
   Upload,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
 import { theme } from "@/lib/theme";
@@ -130,6 +132,12 @@ export default function NocRequestDetailPage() {
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [deletingDocument, setDeletingDocument] = useState<string | null>(null);
 
+  // Navigation state
+  const [allNocRequests, setAllNocRequests] = useState<
+    Array<{ acknowledgementNumber: string; status: Status }>
+  >([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -137,8 +145,29 @@ export default function NocRequestDetailPage() {
       return;
     }
     fetchNocRequestDetails();
+    fetchAllNocRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ackNo]);
+
+  const fetchAllNocRequests = async () => {
+    try {
+      const response = await nocRequestAPI.getAll();
+      const nocs = response.data.data.map(
+        (noc: { acknowledgementNumber: string; status: Status }) => ({
+          acknowledgementNumber: noc.acknowledgementNumber,
+          status: noc.status,
+        })
+      );
+      setAllNocRequests(nocs);
+      const index = nocs.findIndex(
+        (noc: { acknowledgementNumber: string }) =>
+          noc.acknowledgementNumber === ackNo
+      );
+      setCurrentIndex(index);
+    } catch (error) {
+      console.error("Failed to fetch all NOC requests:", error);
+    }
+  };
 
   const fetchNocRequestDetails = async () => {
     try {
@@ -537,6 +566,43 @@ export default function NocRequestDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto">
+              {/* Next/Prev Navigation */}
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    if (currentIndex > 0) {
+                      router.push(
+                        `/admin/noc-request/${allNocRequests[currentIndex - 1].acknowledgementNumber}`
+                      );
+                    }
+                  }}
+                  disabled={currentIndex <= 0}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  title="Previous application"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Prev
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (currentIndex < allNocRequests.length - 1) {
+                      router.push(
+                        `/admin/noc-request/${allNocRequests[currentIndex + 1].acknowledgementNumber}`
+                      );
+                    }
+                  }}
+                  disabled={currentIndex >= allNocRequests.length - 1}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  title="Next application"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
               {getStatusBadge(nocRequest.status)}
               <Button
                 onClick={handleEditToggle}
