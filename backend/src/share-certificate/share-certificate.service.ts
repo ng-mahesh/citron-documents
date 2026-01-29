@@ -22,72 +22,102 @@ export class ShareCertificateService {
   /**
    * Generate unique acknowledgement number
    * Format: SC-YYYYMMDD-XXXXX
+   * Uses the last sequence number from the database to avoid race conditions
    */
   private async generateAcknowledgementNumber(): Promise<string> {
     const date = new Date();
     const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+    const prefix = `SC-${dateStr}-`;
 
-    // Count today's submissions
-    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    // Find the last acknowledgement number for today to get the sequence
+    const lastCertificate = await this.shareCertificateModel
+      .findOne({
+        acknowledgementNumber: { $regex: `^${prefix}` },
+      })
+      .sort({ acknowledgementNumber: -1 })
+      .select('acknowledgementNumber')
+      .exec();
 
-    const count = await this.shareCertificateModel.countDocuments({
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
-    });
+    let nextSequence = 1;
+    if (lastCertificate) {
+      // Extract the sequence number from the last acknowledgement number
+      const lastSequence = parseInt(
+        lastCertificate.acknowledgementNumber.replace(prefix, ''),
+        10,
+      );
+      nextSequence = lastSequence + 1;
+    }
 
-    const sequenceNumber = String(count + 1).padStart(5, '0');
-    return `SC-${dateStr}-${sequenceNumber}`;
+    const sequenceNumber = String(nextSequence).padStart(5, '0');
+    return `${prefix}${sequenceNumber}`;
   }
 
   /**
    * Create a new share certificate submission
+   * Includes retry logic to handle race conditions with acknowledgement number generation
    */
   async create(createDto: CreateShareCertificateDto): Promise<ShareCertificate> {
-    try {
-      // Check for duplicate flat number and wing combination
-      const existingCertificate = await this.shareCertificateModel
-        .findOne({
-          flatNumber: createDto.flatNumber,
-          wing: createDto.wing,
-        })
-        .exec();
+    const maxRetries = 3;
+    let lastError: Error;
 
-      if (existingCertificate) {
-        const statusMessage =
-          existingCertificate.status === 'Approved' ? 'completed' : 'already requested';
-        throw new BadRequestException(
-          `Flat ${createDto.flatNumber} Wing ${createDto.wing} has ${statusMessage} for share certificate.`,
-        );
-      }
+    // Check for duplicate flat number and wing combination first
+    const existingCertificate = await this.shareCertificateModel
+      .findOne({
+        flatNumber: createDto.flatNumber,
+        wing: createDto.wing,
+      })
+      .exec();
 
-      const acknowledgementNumber = await this.generateAcknowledgementNumber();
-
-      const shareCertificate = new this.shareCertificateModel({
-        ...createDto,
-        acknowledgementNumber,
-      });
-
-      const saved = await shareCertificate.save();
-
-      // Send acknowledgement email to requestor and CC to chairman, secretary, and treasurer
-      const ccEmails = [
-        this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
-        this.configService.get<string>('CC_SECRETARY_EMAIL'),
-        this.configService.get<string>('CC_TREASURER_EMAIL'),
-      ].filter((email) => email); // Filter out any undefined emails
-
-      await this.emailService.sendAcknowledgementEmail({
-        email: saved.email,
-        name: saved.fullName,
-        acknowledgementNumber: saved.acknowledgementNumber,
-        type: 'Share Certificate',
-        ccEmails,
-      });
-
-      return saved;
-    } catch (error) {
-      throw new BadRequestException(`Failed to create share certificate: ${error.message}`);
+    if (existingCertificate) {
+      const statusMessage =
+        existingCertificate.status === 'Approved' ? 'completed' : 'already requested';
+      throw new BadRequestException(
+        `Flat ${createDto.flatNumber} Wing ${createDto.wing} has ${statusMessage} for share certificate.`,
+      );
     }
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const acknowledgementNumber = await this.generateAcknowledgementNumber();
+
+        const shareCertificate = new this.shareCertificateModel({
+          ...createDto,
+          acknowledgementNumber,
+        });
+
+        const saved = await shareCertificate.save();
+
+        // Send acknowledgement email to requestor and CC to chairman, secretary, and treasurer
+        const ccEmails = [
+          this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
+          this.configService.get<string>('CC_SECRETARY_EMAIL'),
+          this.configService.get<string>('CC_TREASURER_EMAIL'),
+        ].filter((email) => email); // Filter out any undefined emails
+
+        await this.emailService.sendAcknowledgementEmail({
+          email: saved.email,
+          name: saved.fullName,
+          acknowledgementNumber: saved.acknowledgementNumber,
+          type: 'Share Certificate',
+          ccEmails,
+        });
+
+        return saved;
+      } catch (error) {
+        lastError = error;
+        // Check if this is a duplicate key error (MongoDB error code 11000)
+        if (error.code === 11000 && error.message?.includes('acknowledgementNumber')) {
+          // Retry with a new acknowledgement number
+          continue;
+        }
+        // For other errors, throw immediately
+        throw new BadRequestException(`Failed to create share certificate: ${error.message}`);
+      }
+    }
+
+    throw new BadRequestException(
+      `Failed to create share certificate after ${maxRetries} attempts: ${lastError.message}`,
+    );
   }
 
   /**
