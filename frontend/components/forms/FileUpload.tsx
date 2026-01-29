@@ -75,7 +75,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       await uploadAPI.delete(value.s3Key);
-      onUploadSuccess({} as DocumentMetadata);
+      onUploadSuccess(undefined as unknown as DocumentMetadata);
     } catch (err) {
       console.error("Failed to delete file:", err);
     }
