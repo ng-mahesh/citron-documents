@@ -22,21 +22,34 @@ export class NominationService {
   /**
    * Generate unique acknowledgement number
    * Format: NOM-YYYYMMDD-XXXXX
+   * Uses the last sequence number from the database to avoid race conditions
    */
   private async generateAcknowledgementNumber(): Promise<string> {
     const date = new Date();
     const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+    const prefix = `NOM-${dateStr}-`;
 
-    // Count today's submissions
-    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    // Find the last acknowledgement number for today to get the sequence
+    const lastNomination = await this.nominationModel
+      .findOne({
+        acknowledgementNumber: { $regex: `^${prefix}` },
+      })
+      .sort({ acknowledgementNumber: -1 })
+      .select('acknowledgementNumber')
+      .exec();
 
-    const count = await this.nominationModel.countDocuments({
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
-    });
+    let nextSequence = 1;
+    if (lastNomination) {
+      // Extract the sequence number from the last acknowledgement number
+      const lastSequence = parseInt(
+        lastNomination.acknowledgementNumber.replace(prefix, ''),
+        10,
+      );
+      nextSequence = lastSequence + 1;
+    }
 
-    const sequenceNumber = String(count + 1).padStart(5, '0');
-    return `NOM-${dateStr}-${sequenceNumber}`;
+    const sequenceNumber = String(nextSequence).padStart(5, '0');
+    return `${prefix}${sequenceNumber}`;
   }
 
   /**
@@ -52,56 +65,73 @@ export class NominationService {
 
   /**
    * Create a new nomination submission
+   * Includes retry logic to handle race conditions with acknowledgement number generation
    */
   async create(createDto: CreateNominationDto): Promise<Nomination> {
-    try {
-      // Validate share percentages
-      this.validateSharePercentages(createDto.nominees);
+    const maxRetries = 3;
+    let lastError: Error;
 
-      // Check for duplicate flat number and wing combination
-      const existingNomination = await this.nominationModel
-        .findOne({
-          flatNumber: createDto.flatNumber,
-          wing: createDto.wing,
-        })
-        .exec();
+    // Validate share percentages first
+    this.validateSharePercentages(createDto.nominees);
 
-      if (existingNomination) {
-        const statusMessage =
-          existingNomination.status === 'Approved' ? 'completed' : 'already requested';
-        throw new BadRequestException(
-          `Flat ${createDto.flatNumber} Wing ${createDto.wing} has ${statusMessage} for nomination.`,
-        );
-      }
+    // Check for duplicate flat number and wing combination
+    const existingNomination = await this.nominationModel
+      .findOne({
+        flatNumber: createDto.flatNumber,
+        wing: createDto.wing,
+      })
+      .exec();
 
-      const acknowledgementNumber = await this.generateAcknowledgementNumber();
-
-      const nomination = new this.nominationModel({
-        ...createDto,
-        acknowledgementNumber,
-      });
-
-      const saved = await nomination.save();
-
-      // Send acknowledgement email to requestor and CC to chairman, secretary, and treasurer
-      const ccEmails = [
-        this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
-        this.configService.get<string>('CC_SECRETARY_EMAIL'),
-        this.configService.get<string>('CC_TREASURER_EMAIL'),
-      ].filter((email) => email); // Filter out any undefined emails
-
-      await this.emailService.sendAcknowledgementEmail({
-        email: saved.primaryMemberEmail,
-        name: saved.primaryMemberName,
-        acknowledgementNumber: saved.acknowledgementNumber,
-        type: 'Nomination',
-        ccEmails,
-      });
-
-      return saved;
-    } catch (error) {
-      throw new BadRequestException(`Failed to create nomination: ${error.message}`);
+    if (existingNomination) {
+      const statusMessage =
+        existingNomination.status === 'Approved' ? 'completed' : 'already requested';
+      throw new BadRequestException(
+        `Flat ${createDto.flatNumber} Wing ${createDto.wing} has ${statusMessage} for nomination.`,
+      );
     }
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const acknowledgementNumber = await this.generateAcknowledgementNumber();
+
+        const nomination = new this.nominationModel({
+          ...createDto,
+          acknowledgementNumber,
+        });
+
+        const saved = await nomination.save();
+
+        // Send acknowledgement email to requestor and CC to chairman, secretary, and treasurer
+        const ccEmails = [
+          this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
+          this.configService.get<string>('CC_SECRETARY_EMAIL'),
+          this.configService.get<string>('CC_TREASURER_EMAIL'),
+        ].filter((email) => email); // Filter out any undefined emails
+
+        await this.emailService.sendAcknowledgementEmail({
+          email: saved.primaryMemberEmail,
+          name: saved.primaryMemberName,
+          acknowledgementNumber: saved.acknowledgementNumber,
+          type: 'Nomination',
+          ccEmails,
+        });
+
+        return saved;
+      } catch (error) {
+        lastError = error;
+        // Check if this is a duplicate key error (MongoDB error code 11000)
+        if (error.code === 11000 && error.message?.includes('acknowledgementNumber')) {
+          // Retry with a new acknowledgement number
+          continue;
+        }
+        // For other errors, throw immediately
+        throw new BadRequestException(`Failed to create nomination: ${error.message}`);
+      }
+    }
+
+    throw new BadRequestException(
+      `Failed to create nomination after ${maxRetries} attempts: ${lastError.message}`,
+    );
   }
 
   /**

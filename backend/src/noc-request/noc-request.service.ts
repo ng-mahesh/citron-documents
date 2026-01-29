@@ -23,78 +23,108 @@ export class NocRequestService {
   /**
    * Generate unique acknowledgement number
    * Format: NOC-YYYYMMDD-XXXXX
+   * Uses the last sequence number from the database to avoid race conditions
    */
   private async generateAcknowledgementNumber(): Promise<string> {
     const date = new Date();
     const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+    const prefix = `NOC-${dateStr}-`;
 
-    // Count today's submissions
-    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    // Find the last acknowledgement number for today to get the sequence
+    const lastNocRequest = await this.nocRequestModel
+      .findOne({
+        acknowledgementNumber: { $regex: `^${prefix}` },
+      })
+      .sort({ acknowledgementNumber: -1 })
+      .select('acknowledgementNumber')
+      .exec();
 
-    const count = await this.nocRequestModel.countDocuments({
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
-    });
+    let nextSequence = 1;
+    if (lastNocRequest) {
+      // Extract the sequence number from the last acknowledgement number
+      const lastSequence = parseInt(
+        lastNocRequest.acknowledgementNumber.replace(prefix, ''),
+        10,
+      );
+      nextSequence = lastSequence + 1;
+    }
 
-    const sequenceNumber = String(count + 1).padStart(5, '0');
-    return `NOC-${dateStr}-${sequenceNumber}`;
+    const sequenceNumber = String(nextSequence).padStart(5, '0');
+    return `${prefix}${sequenceNumber}`;
   }
 
   /**
    * Create a new NOC request submission
+   * Includes retry logic to handle race conditions with acknowledgement number generation
    */
   async create(createDto: CreateNocRequestDto): Promise<NocRequest> {
-    try {
-      const acknowledgementNumber = await this.generateAcknowledgementNumber();
+    const maxRetries = 3;
+    let lastError: Error;
 
-      // Get fees based on NOC type
-      const typeConfig = NOC_TYPE_CONFIGS[createDto.nocType];
-      const nocFees = typeConfig.nocFees;
-      const transferFees = typeConfig.transferFees;
-      const totalAmount = nocFees + transferFees;
+    // Get fees based on NOC type
+    const typeConfig = NOC_TYPE_CONFIGS[createDto.nocType];
+    const nocFees = typeConfig.nocFees;
+    const transferFees = typeConfig.transferFees;
+    const totalAmount = nocFees + transferFees;
 
-      const nocRequest = new this.nocRequestModel({
-        ...createDto,
-        acknowledgementNumber,
-        nocFees,
-        transferFees,
-        totalAmount,
-        paymentStatus: totalAmount > 0 ? PaymentStatus.PENDING : PaymentStatus.PAID,
-      });
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const acknowledgementNumber = await this.generateAcknowledgementNumber();
 
-      const saved = await nocRequest.save();
-
-      // Send acknowledgement email - conditional based on NOC type
-      const ccEmails = [
-        this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
-        this.configService.get<string>('CC_SECRETARY_EMAIL'),
-        this.configService.get<string>('CC_TREASURER_EMAIL'),
-      ].filter((email) => email); // Filter out any undefined emails
-
-      // For Flat Transfer, send to both seller and buyer
-      if (createDto.nocType === NocType.FLAT_TRANSFER) {
-        await this.emailService.sendAcknowledgementEmail({
-          email: [saved.sellerEmail, saved.buyerEmail], // Send to both seller and buyer
-          name: `${saved.sellerName} and ${saved.buyerName}`,
-          acknowledgementNumber: saved.acknowledgementNumber,
-          type: 'NOC Request - Flat Transfer',
-          ccEmails,
+        const nocRequest = new this.nocRequestModel({
+          ...createDto,
+          acknowledgementNumber,
+          nocFees,
+          transferFees,
+          totalAmount,
+          paymentStatus: totalAmount > 0 ? PaymentStatus.PENDING : PaymentStatus.PAID,
         });
-      } else {
-        // For other types, send only to seller
-        await this.emailService.sendAcknowledgementEmail({
-          email: [saved.sellerEmail],
-          name: saved.sellerName,
-          acknowledgementNumber: saved.acknowledgementNumber,
-          type: `NOC Request - ${saved.nocType}`,
-          ccEmails,
-        });
+
+        const saved = await nocRequest.save();
+
+        // Send acknowledgement email - conditional based on NOC type
+        const ccEmails = [
+          this.configService.get<string>('CC_CHAIRMAN_EMAIL'),
+          this.configService.get<string>('CC_SECRETARY_EMAIL'),
+          this.configService.get<string>('CC_TREASURER_EMAIL'),
+        ].filter((email) => email); // Filter out any undefined emails
+
+        // For Flat Transfer, send to both seller and buyer
+        if (createDto.nocType === NocType.FLAT_TRANSFER) {
+          await this.emailService.sendAcknowledgementEmail({
+            email: [saved.sellerEmail, saved.buyerEmail], // Send to both seller and buyer
+            name: `${saved.sellerName} and ${saved.buyerName}`,
+            acknowledgementNumber: saved.acknowledgementNumber,
+            type: 'NOC Request - Flat Transfer',
+            ccEmails,
+          });
+        } else {
+          // For other types, send only to seller
+          await this.emailService.sendAcknowledgementEmail({
+            email: [saved.sellerEmail],
+            name: saved.sellerName,
+            acknowledgementNumber: saved.acknowledgementNumber,
+            type: `NOC Request - ${saved.nocType}`,
+            ccEmails,
+          });
+        }
+
+        return saved;
+      } catch (error) {
+        lastError = error;
+        // Check if this is a duplicate key error (MongoDB error code 11000)
+        if (error.code === 11000 && error.message?.includes('acknowledgementNumber')) {
+          // Retry with a new acknowledgement number
+          continue;
+        }
+        // For other errors, throw immediately
+        throw new BadRequestException(`Failed to create NOC request: ${error.message}`);
       }
-
-      return saved;
-    } catch (error) {
-      throw new BadRequestException(`Failed to create NOC request: ${error.message}`);
     }
+
+    throw new BadRequestException(
+      `Failed to create NOC request after ${maxRetries} attempts: ${lastError.message}`,
+    );
   }
 
   /**
