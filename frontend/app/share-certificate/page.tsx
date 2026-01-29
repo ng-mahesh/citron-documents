@@ -75,7 +75,11 @@ export default function ShareCertificatePage() {
     }));
 
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
 
@@ -129,10 +133,11 @@ export default function ShareCertificatePage() {
           wing: response.data.data.message,
         }));
       } else {
-        // Clear error if no duplicate
+        // Clear wing and flatNumber errors if no duplicate
         setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.wing;
+          delete newErrors.flatNumber;
           return newErrors;
         });
       }
@@ -147,6 +152,17 @@ export default function ShareCertificatePage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
+    else if (formData.fullName.length > 100)
+      newErrors.fullName = "Full name must be at most 100 characters";
+
+    // Validate co-applicant names length
+    formData.index2ApplicantNames.forEach((name, index) => {
+      if (name.trim() && name.length > 100) {
+        newErrors[`coApplicant${index}`] =
+          `Co-applicant ${index + 1} name must be at most 100 characters`;
+      }
+    });
+
     if (!formData.flatNumber.trim())
       newErrors.flatNumber = "Flat number is required";
     else if (!/^\d+$/.test(formData.flatNumber))
@@ -174,9 +190,9 @@ export default function ShareCertificatePage() {
     else if (formData.digitalSignature.length < 3)
       newErrors.digitalSignature =
         "Digital signature must be at least 3 characters";
-    else if (formData.digitalSignature.length > 25)
+    else if (formData.digitalSignature.length > 100)
       newErrors.digitalSignature =
-        "Digital signature must be at most 25 characters";
+        "Digital signature must be at most 100 characters";
     if (!formData.declarationAccepted)
       newErrors.declarationAccepted = "You must accept the declaration";
 
@@ -192,11 +208,22 @@ export default function ShareCertificatePage() {
   };
 
   const isFormValid = () => {
-    // Check if there are any errors
-    if (Object.keys(errors).length > 0) return false;
+    // Check if there are any non-empty errors
+    const hasErrors = Object.values(errors).some(
+      (error) => error && error.trim() !== ""
+    );
+    if (hasErrors) return false;
 
     // Check required fields
-    if (!formData.fullName.trim()) return false;
+    if (!formData.fullName.trim() || formData.fullName.length > 100)
+      return false;
+
+    // Check co-applicant names length
+    const hasInvalidCoApplicantName = formData.index2ApplicantNames.some(
+      (name) => name.trim() && name.length > 100
+    );
+    if (hasInvalidCoApplicantName) return false;
+
     if (
       !formData.flatNumber.trim() ||
       !/^\d+$/.test(formData.flatNumber) ||
@@ -216,13 +243,26 @@ export default function ShareCertificatePage() {
     if (
       !formData.digitalSignature.trim() ||
       formData.digitalSignature.length < 3 ||
-      formData.digitalSignature.length > 25
+      formData.digitalSignature.length > 100
     )
       return false;
     if (!formData.declarationAccepted) return false;
-    if (!documents.index2Document?.fileName) return false;
-    if (!documents.possessionLetterDocument?.fileName) return false;
-    if (!documents.aadhaarCardDocument?.fileName) return false;
+
+    // Check documents - ensure they exist and have fileName
+    const hasIndex2 =
+      documents.index2Document &&
+      documents.index2Document.fileName &&
+      documents.index2Document.fileName.trim() !== "";
+    const hasPossession =
+      documents.possessionLetterDocument &&
+      documents.possessionLetterDocument.fileName &&
+      documents.possessionLetterDocument.fileName.trim() !== "";
+    const hasAadhaar =
+      documents.aadhaarCardDocument &&
+      documents.aadhaarCardDocument.fileName &&
+      documents.aadhaarCardDocument.fileName.trim() !== "";
+
+    if (!hasIndex2 || !hasPossession || !hasAadhaar) return false;
 
     return true;
   };
@@ -408,7 +448,8 @@ export default function ShareCertificatePage() {
                   onChange={handleInputChange}
                   error={errors.fullName}
                   placeholder="Enter full name"
-                  helperText="As per Index - 2 document"
+                  helperText="As per Index - 2 document (max 100 characters)"
+                  maxLength={100}
                   required
                 />
               </div>
@@ -447,7 +488,8 @@ export default function ShareCertificatePage() {
                               handleApplicantNameChange(index, e.target.value)
                             }
                             placeholder="Enter co-applicant name"
-                            helperText="As listed in Index-2"
+                            helperText="As listed in Index-2 (max 100 characters)"
+                            maxLength={100}
                           />
                         </div>
                         <button
@@ -613,12 +655,19 @@ export default function ShareCertificatePage() {
                   flatNumber={formData.flatNumber}
                   documentType="INDEX2"
                   fullName={formData.fullName}
-                  onUploadSuccess={(metadata) =>
+                  onUploadSuccess={(metadata) => {
                     setDocuments((prev) => ({
                       ...prev,
                       index2Document: metadata,
-                    }))
-                  }
+                    }));
+                    if (metadata?.fileName) {
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.index2Document;
+                        return newErrors;
+                      });
+                    }
+                  }}
                   value={documents.index2Document}
                   error={errors.index2Document}
                 />
@@ -628,12 +677,19 @@ export default function ShareCertificatePage() {
                   flatNumber={formData.flatNumber}
                   documentType="POSSESSION_LETTER"
                   fullName={formData.fullName}
-                  onUploadSuccess={(metadata) =>
+                  onUploadSuccess={(metadata) => {
                     setDocuments((prev) => ({
                       ...prev,
                       possessionLetterDocument: metadata,
-                    }))
-                  }
+                    }));
+                    if (metadata?.fileName) {
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.possessionLetterDocument;
+                        return newErrors;
+                      });
+                    }
+                  }}
                   value={documents.possessionLetterDocument}
                   error={errors.possessionLetterDocument}
                 />
@@ -643,12 +699,19 @@ export default function ShareCertificatePage() {
                   flatNumber={formData.flatNumber}
                   documentType="AADHAAR"
                   fullName={formData.fullName}
-                  onUploadSuccess={(metadata) =>
+                  onUploadSuccess={(metadata) => {
                     setDocuments((prev) => ({
                       ...prev,
                       aadhaarCardDocument: metadata,
-                    }))
-                  }
+                    }));
+                    if (metadata?.fileName) {
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.aadhaarCardDocument;
+                        return newErrors;
+                      });
+                    }
+                  }}
                   value={documents.aadhaarCardDocument}
                   error={errors.aadhaarCardDocument}
                 />
@@ -673,7 +736,8 @@ export default function ShareCertificatePage() {
                   onChange={handleInputChange}
                   error={errors.digitalSignature}
                   placeholder="Type your full name"
-                  helperText="Type your full name to sign digitally"
+                  helperText="Type your full name to sign digitally (max 100 characters)"
+                  maxLength={100}
                   required
                 />
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
