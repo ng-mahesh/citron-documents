@@ -45,3 +45,5 @@ temp/
 
 # Claude artifacts
 .claude/
+
+test/

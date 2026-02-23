@@ -106,9 +106,58 @@ export default function NocRequestPage() {
       [name]: type === "checkbox" ? checked : value,
     }));
 
+    // Remove the error key entirely so isFormValid() doesn't see ghost empty-string errors
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => {
+        const { [name]: _, ...rest } = prev;
+        return rest;
+      });
     }
+  };
+
+  // Real-time validation on field blur — shows errors immediately so users know what to fix
+  const handleFieldBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    let msg = "";
+
+    switch (name) {
+      case "sellerEmail":
+        if (!value.trim()) msg = "Seller email is required";
+        else if (!/^\S+@\S+\.\S+$/.test(value))
+          msg = "Please enter a valid email";
+        break;
+      case "sellerMobileNumber":
+        if (!value.trim()) msg = "Mobile number is required";
+        else if (!/^[6-9]\d{9}$/.test(value))
+          msg = "Please enter a valid 10-digit mobile number";
+        break;
+      case "sellerAlternateMobile":
+        if (value.trim() && !/^[6-9]\d{9}$/.test(value))
+          msg = "Please enter a valid 10-digit mobile number";
+        break;
+      case "buyerEmail":
+        if (requiresBuyerInfo) {
+          if (!value.trim()) msg = "Buyer email is required";
+          else if (!/^\S+@\S+\.\S+$/.test(value))
+            msg = "Please enter a valid buyer email";
+        }
+        break;
+      case "buyerMobileNumber":
+        if (requiresBuyerInfo) {
+          if (!value.trim()) msg = "Buyer mobile number is required";
+          else if (!/^[6-9]\d{9}$/.test(value))
+            msg = "Please enter a valid 10-digit buyer mobile number";
+        }
+        break;
+    }
+
+    setErrors((prev) => {
+      if (msg) return { ...prev, [name]: msg };
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const checkPendingRequest = async () => {
@@ -223,7 +272,8 @@ export default function NocRequestPage() {
   };
 
   const isFormValid = () => {
-    if (Object.keys(errors).length > 0) return false;
+    // Use .some(Boolean) so ghost empty-string error keys don't block submission
+    if (Object.values(errors).some(Boolean)) return false;
 
     // Seller information (always required)
     if (!formData.sellerName.trim()) return false;
@@ -489,6 +539,7 @@ export default function NocRequestPage() {
                 type="email"
                 value={formData.sellerEmail}
                 onChange={handleInputChange}
+                onBlur={handleFieldBlur}
                 error={errors.sellerEmail}
                 placeholder="Enter email address"
                 required
@@ -498,6 +549,7 @@ export default function NocRequestPage() {
                 name="sellerMobileNumber"
                 value={formData.sellerMobileNumber}
                 onChange={handleInputChange}
+                onBlur={handleFieldBlur}
                 error={errors.sellerMobileNumber}
                 placeholder="9876543210"
                 required
@@ -507,6 +559,7 @@ export default function NocRequestPage() {
                 name="sellerAlternateMobile"
                 value={formData.sellerAlternateMobile}
                 onChange={handleInputChange}
+                onBlur={handleFieldBlur}
                 error={errors.sellerAlternateMobile}
                 placeholder="9876543210"
               />
@@ -624,6 +677,7 @@ export default function NocRequestPage() {
                   name="buyerMobileNumber"
                   value={formData.buyerMobileNumber}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   error={errors.buyerMobileNumber}
                   placeholder="9876543210"
                   required
@@ -634,6 +688,7 @@ export default function NocRequestPage() {
                   type="email"
                   value={formData.buyerEmail}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   error={errors.buyerEmail}
                   placeholder="Enter buyer email address"
                   required

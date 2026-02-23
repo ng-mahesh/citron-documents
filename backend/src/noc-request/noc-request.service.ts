@@ -42,10 +42,7 @@ export class NocRequestService {
     let nextSequence = 1;
     if (lastNocRequest) {
       // Extract the sequence number from the last acknowledgement number
-      const lastSequence = parseInt(
-        lastNocRequest.acknowledgementNumber.replace(prefix, ''),
-        10,
-      );
+      const lastSequence = parseInt(lastNocRequest.acknowledgementNumber.replace(prefix, ''), 10);
       nextSequence = lastSequence + 1;
     }
 
@@ -351,6 +348,42 @@ export class NocRequestService {
         console.error('Error sending payment confirmation email:', error);
       }
     }
+
+    return request;
+  }
+
+  /**
+   * Upload payment receipt screenshot by acknowledgement number (public - called by applicant)
+   */
+  async addPaymentReceiptByAckNumber(
+    acknowledgementNumber: string,
+    documentData: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ): Promise<NocRequest> {
+    const request = await this.nocRequestModel.findOne({ acknowledgementNumber }).exec();
+
+    if (!request) {
+      throw new NotFoundException(
+        `NOC request with acknowledgement number ${acknowledgementNumber} not found`,
+      );
+    }
+
+    request.paymentReceiptDocument = {
+      fileName: documentData.fileName,
+      fileUrl: '',
+      fileSize: documentData.fileSize,
+      fileType: documentData.fileType,
+      uploadedAt: new Date(documentData.uploadedAt),
+      s3Key: documentData.s3Key,
+    };
+
+    request.updatedAt = new Date();
+    await request.save();
 
     return request;
   }
