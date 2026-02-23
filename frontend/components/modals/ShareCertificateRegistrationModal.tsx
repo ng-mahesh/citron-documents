@@ -7,14 +7,30 @@ import { Button } from "@/components/ui/Button";
 import { AlertCircle, Calendar } from "lucide-react";
 import Link from "next/link";
 import { theme } from "@/lib/theme";
+import { formatDeadline } from "@/lib/featureFlags";
+
+// Deadline and modal-enable flag come from env variables.
+// NEXT_PUBLIC_FEATURE_SHARE_CERT_MODAL=true  → show popup
+// NEXT_PUBLIC_FEATURE_SHARE_CERT_DEADLINE=ISO → deadline date (popup hides once passed)
+const deadlineStr = process.env.NEXT_PUBLIC_FEATURE_SHARE_CERT_DEADLINE ?? "";
+const modalEnabled =
+  process.env.NEXT_PUBLIC_FEATURE_SHARE_CERT_MODAL === "true";
+
+function shouldShowModal(): boolean {
+  if (!modalEnabled) return false;
+  if (!deadlineStr) return false;
+  const deadline = new Date(deadlineStr);
+  if (isNaN(deadline.getTime())) return false;
+  return new Date() <= deadline;
+}
 
 export const ShareCertificateRegistrationModal: React.FC = () => {
-  const targetDate = new Date("2026-01-31T23:59:59");
-  const currentDate = new Date();
+  const [isOpen, setIsOpen] = useState(() => shouldShowModal());
 
-  const [isOpen, setIsOpen] = useState(() => {
-    return currentDate <= targetDate;
-  });
+  if (!isOpen) return null;
+
+  const targetDate = new Date(deadlineStr);
+  const deadlineLabel = formatDeadline(deadlineStr);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -53,7 +69,10 @@ export const ShareCertificateRegistrationModal: React.FC = () => {
               </p>
               <p className="text-sm">
                 Complete your share certificate registration/application before{" "}
-                <span className="font-bold text-amber-700">31 Jan 2026</span>.
+                <span className="font-bold text-amber-700">
+                  {deadlineLabel}
+                </span>
+                .
               </p>
             </div>
           </div>

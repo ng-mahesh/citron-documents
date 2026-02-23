@@ -41,10 +41,7 @@ export class NominationService {
     let nextSequence = 1;
     if (lastNomination) {
       // Extract the sequence number from the last acknowledgement number
-      const lastSequence = parseInt(
-        lastNomination.acknowledgementNumber.replace(prefix, ''),
-        10,
-      );
+      const lastSequence = parseInt(lastNomination.acknowledgementNumber.replace(prefix, ''), 10);
       nextSequence = lastSequence + 1;
     }
 

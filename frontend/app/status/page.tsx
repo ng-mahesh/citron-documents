@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { shareCertificateAPI, nominationAPI, nocRequestAPI } from "@/lib/api";
+import {
+  shareCertificateAPI,
+  nominationAPI,
+  nocRequestAPI,
+  uploadAPI,
+} from "@/lib/api";
 import {
   Search,
   CheckCircle,
@@ -12,6 +17,8 @@ import {
   XCircle,
   AlertCircle,
   FileText,
+  Upload,
+  IndianRupee,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { theme } from "@/lib/theme";
@@ -30,13 +37,19 @@ export default function StatusPage() {
     flatNumber: string;
     wing: string;
     email: string;
+    nocType?: string;
     paymentStatus?: string;
     paymentAmount?: number;
+    paymentReceiptUploaded?: boolean;
     submittedAt: string;
     updatedAt: string;
     adminNotes?: string;
   } | null>(null);
   const [error, setError] = useState("");
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [receiptUploaded, setReceiptUploaded] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -107,6 +120,8 @@ export default function StatusPage() {
     setError("");
     setLoading(true);
     setResult(null);
+    setReceiptUploaded(false);
+    setUploadError("");
 
     try {
       let response;
@@ -135,6 +150,47 @@ export default function StatusPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReceiptUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !result) return;
+
+    setUploadError("");
+    setUploadingReceipt(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("flatNumber", result.flatNumber);
+      formData.append("documentType", "payment-receipt");
+      formData.append(
+        "fullName",
+        result.sellerName || result.fullName || result.memberFullName || ""
+      );
+
+      const uploadResponse = await uploadAPI.upload(formData);
+      const { s3Key, fileName, fileType, fileSize, uploadedAt } =
+        uploadResponse.data.data;
+
+      await nocRequestAPI.uploadPaymentReceipt(result.acknowledgementNumber, {
+        s3Key,
+        fileName,
+        fileType,
+        fileSize,
+        uploadedAt,
+      });
+
+      setReceiptUploaded(true);
+      setResult({ ...result, paymentReceiptUploaded: true });
+    } catch {
+      setUploadError("Failed to upload screenshot. Please try again.");
+    } finally {
+      setUploadingReceipt(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -278,46 +334,161 @@ export default function StatusPage() {
                 {/* NOC Specific Fields */}
                 {result.type === "noc-request" && (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <dt className="text-sm font-semibold text-slate-600 mb-2">
-                          Buyer Name
-                        </dt>
-                        <dd className="text-base text-slate-900">
-                          {result.buyerName}
-                        </dd>
+                    {result.buyerName && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <dt className="text-sm font-semibold text-slate-600 mb-2">
+                            Buyer Name
+                          </dt>
+                          <dd className="text-base text-slate-900">
+                            {result.buyerName}
+                          </dd>
+                        </div>
                       </div>
-                      <div>
-                        <dt className="text-sm font-semibold text-slate-600 mb-2">
-                          Payment Status
-                        </dt>
-                        <dd className="text-base">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-lg font-semibold ${
-                              result.paymentStatus === "Paid"
-                                ? "bg-green-100 text-green-800"
-                                : result.paymentStatus === "Pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {result.paymentStatus}
-                          </span>
-                        </dd>
-                      </div>
-                    </div>
-                    <div
-                      className={`p-4 ${theme.status.pending.bg} rounded-xl border ${theme.status.pending.border}`}
-                    >
-                      <dt className="text-sm font-semibold text-slate-600 mb-2">
-                        Payment Amount
-                      </dt>
-                      <dd
-                        className={`text-2xl font-bold ${theme.status.pending.text}`}
-                      >
-                        ₹{result.paymentAmount || "26,000"}
-                      </dd>
-                    </div>
+                    )}
+
+                    {/* Payment section — only for Flat Transfer/Sale/Purchase */}
+                    {result.nocType === "Flat Transfer/Sale/Purchase" && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <dt className="text-sm font-semibold text-slate-600 mb-2">
+                              Payment Status
+                            </dt>
+                            <dd className="text-base">
+                              <span
+                                className={`inline-flex items-center px-3 py-1 rounded-lg font-semibold ${
+                                  result.paymentStatus === "Paid"
+                                    ? "bg-green-100 text-green-800"
+                                    : result.paymentStatus === "Pending"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {result.paymentStatus}
+                              </span>
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1">
+                              <IndianRupee className="h-4 w-4" />
+                              Total Amount Due
+                            </dt>
+                            <dd
+                              className={`text-2xl font-bold ${theme.status.pending.text}`}
+                            >
+                              ₹
+                              {(result.paymentAmount || 26000).toLocaleString(
+                                "en-IN"
+                              )}
+                            </dd>
+                          </div>
+                        </div>
+
+                        {/* Payment Screenshot Upload */}
+                        {result.paymentStatus !== "Paid" && (
+                          <div className="border-2 border-dashed border-amber-300 rounded-xl p-5 bg-amber-50">
+                            <div className="flex items-start gap-3 mb-4">
+                              <div className="h-9 w-9 bg-amber-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Upload className="h-5 w-5 text-white" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-900 text-sm">
+                                  Upload Payment Screenshot
+                                </h4>
+                                <p className="text-xs text-slate-600 mt-0.5">
+                                  Please make the payment of{" "}
+                                  <strong>
+                                    ₹
+                                    {(
+                                      result.paymentAmount || 26000
+                                    ).toLocaleString("en-IN")}
+                                  </strong>{" "}
+                                  and upload a screenshot/receipt here. The
+                                  admin will verify and update your payment
+                                  status.
+                                </p>
+                              </div>
+                            </div>
+
+                            {result.paymentReceiptUploaded ||
+                            receiptUploaded ? (
+                              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-300 rounded-lg">
+                                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm font-semibold text-green-800">
+                                    Screenshot submitted successfully
+                                  </p>
+                                  <p className="text-xs text-green-700">
+                                    The admin will verify your payment and
+                                    update the status shortly.
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept=".jpg,.jpeg,.png,.pdf"
+                                  onChange={handleReceiptUpload}
+                                  disabled={uploadingReceipt}
+                                  className="hidden"
+                                  id="payment-receipt-input"
+                                />
+                                <label htmlFor="payment-receipt-input">
+                                  <div
+                                    className={`flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg font-semibold text-sm cursor-pointer transition-colors ${
+                                      uploadingReceipt
+                                        ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                                        : "bg-amber-500 hover:bg-amber-600 text-white"
+                                    }`}
+                                  >
+                                    {uploadingReceipt ? (
+                                      <>
+                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                        Uploading...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Upload className="h-4 w-4" />
+                                        Choose Screenshot / Receipt
+                                      </>
+                                    )}
+                                  </div>
+                                </label>
+                                <p className="text-xs text-slate-500 text-center">
+                                  Supported: JPG, PNG, PDF (max 2MB)
+                                </p>
+                                {uploadError && (
+                                  <p className="text-xs text-red-600 font-medium">
+                                    {uploadError}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {result.paymentStatus === "Paid" && (
+                          <div className="flex items-center gap-3 p-4 bg-green-50 border-2 border-green-300 rounded-xl">
+                            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                            <div>
+                              <p className="font-bold text-green-800 text-sm">
+                                Payment Confirmed
+                              </p>
+                              <p className="text-xs text-green-700">
+                                Your payment of ₹
+                                {(result.paymentAmount || 26000).toLocaleString(
+                                  "en-IN"
+                                )}{" "}
+                                has been verified by the admin.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </>
                 )}
 

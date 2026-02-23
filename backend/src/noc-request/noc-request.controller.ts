@@ -112,14 +112,44 @@ export class NocRequestController {
         flatNumber: request.flatNumber,
         wing: request.wing,
         email: request.sellerEmail,
+        nocType: request.nocType,
         status: request.status,
         paymentStatus: request.paymentStatus,
         paymentAmount: request.totalAmount,
+        paymentReceiptUploaded: !!request.paymentReceiptDocument?.s3Key,
         submittedAt: request.createdAt,
         updatedAt: request.updatedAt,
         adminNotes: request.adminRemarks,
         nocIssuedDate: request.nocIssuedDate,
       },
+    };
+  }
+
+  /**
+   * Upload payment receipt screenshot by applicant (Public)
+   * POST /api/noc-request/payment-receipt/:acknowledgementNumber
+   */
+  @Post('payment-receipt/:acknowledgementNumber')
+  @HttpCode(HttpStatus.OK)
+  async uploadPaymentReceipt(
+    @Param('acknowledgementNumber') acknowledgementNumber: string,
+    @Body()
+    body: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+      fileSize: number;
+      uploadedAt: string;
+    },
+  ) {
+    const request = await this.nocRequestService.addPaymentReceiptByAckNumber(
+      acknowledgementNumber,
+      body,
+    );
+    return {
+      success: true,
+      message: 'Payment screenshot uploaded successfully',
+      data: { acknowledgementNumber: request.acknowledgementNumber },
     };
   }
 

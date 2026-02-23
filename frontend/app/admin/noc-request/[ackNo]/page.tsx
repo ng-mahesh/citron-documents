@@ -95,6 +95,11 @@ export default function NocRequestDetailPage() {
       fileType: string;
     };
     supportingDocuments?: { s3Key: string; fileName: string; fileType: string };
+    paymentReceiptDocument?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
@@ -1442,6 +1447,53 @@ export default function NocRequestDetailPage() {
                       </div>
                     </label>
                   </div>
+                </div>
+
+                {/* Payment Receipt (uploaded by applicant) */}
+                <div
+                  className={`flex items-center gap-3 p-3 rounded-lg border ${
+                    nocRequest.paymentReceiptDocument
+                      ? "bg-amber-50 border-amber-300"
+                      : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <IndianRupee
+                    className={`h-8 w-8 flex-shrink-0 ${
+                      nocRequest.paymentReceiptDocument
+                        ? "text-amber-600"
+                        : "text-slate-400"
+                    }`}
+                  />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Payment Receipt{" "}
+                      <span className="text-xs font-normal text-slate-500">
+                        (by applicant)
+                      </span>
+                    </p>
+                    {nocRequest.paymentReceiptDocument ? (
+                      <p className="text-xs text-amber-700 truncate font-medium">
+                        {nocRequest.paymentReceiptDocument.fileName}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500">Not yet uploaded</p>
+                    )}
+                  </div>
+                  {nocRequest.paymentReceiptDocument && (
+                    <button
+                      onClick={() =>
+                        openDocumentPopup(
+                          nocRequest.paymentReceiptDocument!.s3Key,
+                          nocRequest.paymentReceiptDocument!.fileName,
+                          nocRequest.paymentReceiptDocument!.fileType
+                        )
+                      }
+                      className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
+                      title="View payment receipt"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

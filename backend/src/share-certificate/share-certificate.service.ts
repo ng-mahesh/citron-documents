@@ -41,10 +41,7 @@ export class ShareCertificateService {
     let nextSequence = 1;
     if (lastCertificate) {
       // Extract the sequence number from the last acknowledgement number
-      const lastSequence = parseInt(
-        lastCertificate.acknowledgementNumber.replace(prefix, ''),
-        10,
-      );
+      const lastSequence = parseInt(lastCertificate.acknowledgementNumber.replace(prefix, ''), 10);
       nextSequence = lastSequence + 1;
     }
 

@@ -87,6 +87,8 @@ export const nocRequestAPI = {
     api.put(`/noc-request/${id}`, data),
   updatePayment: (ackNo: string, data: Record<string, unknown>) =>
     api.put(`/noc-request/payment/${ackNo}`, data),
+  uploadPaymentReceipt: (ackNo: string, data: Record<string, unknown>) =>
+    api.post(`/noc-request/payment-receipt/${ackNo}`, data),
   verifyDues: (flatNumber: string, wing: string) =>
     api.get(`/noc-request/verify-dues/${flatNumber}/${wing}`),
   delete: (id: string) => api.delete(`/noc-request/${id}`),
