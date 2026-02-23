@@ -249,23 +249,22 @@ export default function NominationDetailPage() {
 
     setGeneratingPdf(true);
     try {
-      const response = await nominationAPI.downloadPdf(
+      const response = await nominationAPI.printOfficialForm(
         nomination.acknowledgementNumber
       );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Nomination_${nomination.acknowledgementNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      setToast({ message: "PDF generated successfully", type: "success" });
-    } catch (error) {
-      console.error("Failed to generate PDF:", error);
+      // Open in new tab for print dialog
+      window.open(url, "_blank");
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
       setToast({
-        message: "Failed to generate PDF. Please try again.",
+        message: "Official form opened for printing",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Failed to generate official form:", error);
+      setToast({
+        message: "Failed to generate form. Please try again.",
         type: "error",
       });
     } finally {
@@ -1481,17 +1480,18 @@ export default function NominationDetailPage() {
               </div>
             </div>
 
-            {/* Generate Form */}
+            {/* Print Official Form */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="px-6 py-4 border-b border-slate-200">
                 <h3 className="text-lg font-bold text-slate-900">
-                  Generate Form
+                  Print Official Form
                 </h3>
               </div>
               <div className="px-6 py-4">
                 <p className="text-sm text-slate-600 mb-4">
-                  Download the official nomination form PDF with all submitted
-                  details.
+                  Print the official Form No. 14 in triplicate (legal size) with
+                  data pre-filled. Print and stamp physically before
+                  distribution.
                 </p>
                 <Button
                   onClick={handleGeneratePdf}
@@ -1500,7 +1500,9 @@ export default function NominationDetailPage() {
                   className="w-full gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  {generatingPdf ? "Generating..." : "Generate PDF Form"}
+                  {generatingPdf
+                    ? "Generating..."
+                    : "Print Official Form (3 Copies)"}
                 </Button>
               </div>
             </div>

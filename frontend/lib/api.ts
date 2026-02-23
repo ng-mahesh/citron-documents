@@ -73,6 +73,8 @@ export const nominationAPI = {
   delete: (id: string) => api.delete(`/nomination/${id}`),
   downloadPdf: (ackNo: string) =>
     api.get(`/nomination/download-pdf/${ackNo}`, { responseType: "blob" }),
+  printOfficialForm: (ackNo: string) =>
+    api.get(`/nomination/print-form/${ackNo}`, { responseType: "blob" }),
 };
 
 export const nocRequestAPI = {

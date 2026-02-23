@@ -374,7 +374,7 @@ export default function NominationPage() {
         nominees: nominees,
         index2Document,
         possessionLetterDocument,
-        primaryMemberAadhaar,
+        aadhaarCardDocument: primaryMemberAadhaar,
         jointMemberAadhaar,
         nomineeAadhaars,
         witnesses: [witness1, witness2],

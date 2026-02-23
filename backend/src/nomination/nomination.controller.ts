@@ -210,7 +210,7 @@ export class NominationController {
   }
 
   /**
-   * Download nomination PDF by acknowledgement number (Public)
+   * Download nomination acknowledgement receipt PDF (Public)
    * GET /api/nomination/download-pdf/:acknowledgementNumber
    */
   @Get('download-pdf/:acknowledgementNumber')
@@ -224,7 +224,30 @@ export class NominationController {
 
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="Nomination_${acknowledgementNumber}.pdf"`,
+      'Content-Disposition': `attachment; filename="Nomination_Acknowledgement_${acknowledgementNumber}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+
+    res.send(pdfBuffer);
+  }
+
+  /**
+   * Print official Form No. 14 in triplicate (Admin only)
+   * GET /api/nomination/print-form/:acknowledgementNumber
+   */
+  @Get('print-form/:acknowledgementNumber')
+  @UseGuards(JwtAuthGuard)
+  async printOfficialForm(
+    @Param('acknowledgementNumber') acknowledgementNumber: string,
+    @Res() res: Response,
+  ) {
+    const nomination =
+      await this.nominationService.findByAcknowledgementNumber(acknowledgementNumber);
+    const pdfBuffer = await this.pdfService.generateOfficialFormPdf(nomination);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="NominationForm14_${acknowledgementNumber}.pdf"`,
       'Content-Length': pdfBuffer.length,
     });
 
