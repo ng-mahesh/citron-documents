@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
-import puppeteer from 'puppeteer';
+import type { Browser } from 'puppeteer-core';
 import { Nomination } from './schemas/nomination.schema';
 
 @Injectable()
@@ -407,10 +407,7 @@ export class NominationPdfService {
   // ─────────────────────────────────────────────────────────────────────────────
   async generateOfficialFormPdf(nomination: Nomination): Promise<Buffer> {
     const html = this.buildOfficialFormHtml(nomination);
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
+    const browser = await this.launchBrowser();
     try {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'networkidle0' });
@@ -424,6 +421,32 @@ export class NominationPdfService {
     } finally {
       await browser.close();
     }
+  }
+
+  private async launchBrowser(): Promise<Browser> {
+    const isServerless =
+      process.env.VERCEL === '1' ||
+      !!process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      !!process.env.AWS_EXECUTION_ENV;
+
+    if (isServerless) {
+      const [{ default: puppeteer }, { default: chromium }] = await Promise.all([
+        import('puppeteer-core'),
+        import('@sparticuz/chromium'),
+      ]);
+
+      return puppeteer.launch({
+        args: [...chromium.args, '--disable-dev-shm-usage'],
+        executablePath: await chromium.executablePath(),
+        headless: true,
+      });
+    }
+
+    const { default: puppeteer } = await import('puppeteer');
+    return puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
