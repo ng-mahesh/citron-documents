@@ -410,7 +410,7 @@ export class NominationPdfService {
     const browser = await this.launchBrowser();
     try {
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.setContent(html, { waitUntil: 'domcontentloaded' });
       const pdf = await page.pdf({
         width: '8.5in',
         height: '14in',
