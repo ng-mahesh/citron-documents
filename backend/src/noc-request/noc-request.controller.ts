@@ -17,7 +17,7 @@ import { NocRequestService } from './noc-request.service';
 import { NocRequestPdfService } from './noc-request-pdf.service';
 import { CreateNocRequestDto } from './dto/create-noc-request.dto';
 import { UpdateNocRequestDto } from './dto/update-noc-request.dto';
-import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
+import { SocietyAdminGuard } from '../admin/guards/society-admin.guard';
 
 /**
  * Controller handling NOC Request HTTP endpoints
@@ -59,7 +59,7 @@ export class NocRequestController {
    * GET /api/noc-request
    */
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async findAll() {
     const requests = await this.nocRequestService.findAll();
     return {
@@ -86,7 +86,7 @@ export class NocRequestController {
    * GET /api/noc-request/statistics
    */
   @Get('statistics')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getStatistics() {
     const stats = await this.nocRequestService.getStatistics();
     return {
@@ -158,7 +158,7 @@ export class NocRequestController {
    * GET /api/noc-request/details/:acknowledgementNumber
    */
   @Get('details/:acknowledgementNumber')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getDetailsByAckNumber(@Param('acknowledgementNumber') acknowledgementNumber: string) {
     const request = await this.nocRequestService.findByAcknowledgementNumber(acknowledgementNumber);
     return {
@@ -172,7 +172,7 @@ export class NocRequestController {
    * GET /api/noc-request/verify-dues/:flatNumber/:wing
    */
   @Get('verify-dues/:flatNumber/:wing')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async verifyDues(@Param('flatNumber') flatNumber: string, @Param('wing') wing: string) {
     const result = await this.nocRequestService.verifyMaintenanceDues(flatNumber, wing);
     return {
@@ -186,7 +186,7 @@ export class NocRequestController {
    * GET /api/noc-request/:id
    */
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async findOne(@Param('id') id: string) {
     const request = await this.nocRequestService.findById(id);
     return {
@@ -200,7 +200,7 @@ export class NocRequestController {
    * PUT /api/noc-request/:id
    */
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async update(@Param('id') id: string, @Body() updateDto: UpdateNocRequestDto) {
     const request = await this.nocRequestService.update(id, updateDto);
     return {
@@ -215,7 +215,7 @@ export class NocRequestController {
    * POST /api/noc-request/:id/documents
    */
   @Post(':id/documents')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async addDocument(
     @Param('id') id: string,
     @Body()
@@ -241,7 +241,7 @@ export class NocRequestController {
    * DELETE /api/noc-request/:id/documents/:documentType
    */
   @Delete(':id/documents/:documentType')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
     const request = await this.nocRequestService.removeDocument(id, documentType);
     return {
@@ -277,7 +277,7 @@ export class NocRequestController {
    * DELETE /api/noc-request/:id
    */
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
     await this.nocRequestService.delete(id);

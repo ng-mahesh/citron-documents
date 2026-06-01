@@ -17,7 +17,7 @@ import { ShareCertificateService } from './share-certificate.service';
 import { ShareCertificatePdfService } from './share-certificate-pdf.service';
 import { CreateShareCertificateDto } from './dto/create-share-certificate.dto';
 import { UpdateShareCertificateDto } from './dto/update-share-certificate.dto';
-import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
+import { SocietyAdminGuard } from '../admin/guards/society-admin.guard';
 
 /**
  * Controller handling Share Certificate HTTP endpoints
@@ -52,7 +52,7 @@ export class ShareCertificateController {
    * GET /api/share-certificate
    */
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async findAll() {
     const certificates = await this.shareCertificateService.findAll();
     return {
@@ -79,7 +79,7 @@ export class ShareCertificateController {
    * GET /api/share-certificate/statistics
    */
   @Get('statistics')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getStatistics() {
     const stats = await this.shareCertificateService.getStatistics();
     return {
@@ -118,7 +118,7 @@ export class ShareCertificateController {
    * GET /api/share-certificate/details/:acknowledgementNumber
    */
   @Get('details/:acknowledgementNumber')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getDetailsByAckNumber(@Param('acknowledgementNumber') acknowledgementNumber: string) {
     const certificate =
       await this.shareCertificateService.findByAcknowledgementNumber(acknowledgementNumber);
@@ -133,7 +133,7 @@ export class ShareCertificateController {
    * GET /api/share-certificate/:id
    */
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async findOne(@Param('id') id: string) {
     const certificate = await this.shareCertificateService.findById(id);
     return {
@@ -147,7 +147,7 @@ export class ShareCertificateController {
    * PUT /api/share-certificate/:id
    */
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async update(@Param('id') id: string, @Body() updateDto: UpdateShareCertificateDto) {
     const certificate = await this.shareCertificateService.update(id, updateDto);
     return {
@@ -162,7 +162,7 @@ export class ShareCertificateController {
    * POST /api/share-certificate/:id/documents
    */
   @Post(':id/documents')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async addDocument(
     @Param('id') id: string,
     @Body()
@@ -188,7 +188,7 @@ export class ShareCertificateController {
    * DELETE /api/share-certificate/:id/documents/:documentType
    */
   @Delete(':id/documents/:documentType')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
     const certificate = await this.shareCertificateService.removeDocument(id, documentType);
     return {
@@ -203,7 +203,7 @@ export class ShareCertificateController {
    * DELETE /api/share-certificate/:id
    */
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
     await this.shareCertificateService.delete(id);

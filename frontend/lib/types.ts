@@ -35,6 +35,8 @@ export interface ShareCertificate {
   index2Document: DocumentMetadata;
   possessionLetterDocument: DocumentMetadata;
   aadhaarCardDocument: DocumentMetadata;
+  maintenanceReceiptsDocuments?: DocumentMetadata[];
+  isResaleProperty?: boolean;
   digitalSignature: string;
   declarationAccepted: boolean;
   status?: Status;
@@ -76,7 +78,9 @@ export interface Nomination {
   witness2?: Witness;
   witnesses?: Witness[];
   memberSignature?: string;
+  isResaleProperty?: boolean;
   declarationAccepted: boolean;
+  maintenanceReceiptsDocuments?: DocumentMetadata[];
   status?: Status;
   submittedAt?: Date;
   updatedAt?: Date;
@@ -156,6 +160,8 @@ export interface NocRequest {
   identityProofDocument?: DocumentMetadata;
   currentElectricityBillDocument?: DocumentMetadata;
   supportingDocuments?: DocumentMetadata;
+  maintenanceReceipt2Document?: DocumentMetadata;
+  maintenanceReceipt3Document?: DocumentMetadata;
 
   // Payment (type-specific fees)
   nocFees?: number;
@@ -167,6 +173,7 @@ export interface NocRequest {
   paymentMethod?: string;
 
   // Digital Signature & Declaration
+  isResaleProperty?: boolean;
   digitalSignature?: string;
   declarationAccepted?: boolean;
 

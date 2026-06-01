@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import {
@@ -21,6 +20,7 @@ import {
   IndianRupee,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { theme } from "@/lib/theme";
 
 export default function StatusPage() {
@@ -205,16 +205,16 @@ export default function StatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <Header />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Page Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">
             Track Application Status
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm text-slate-500 mt-0.5">
             Enter your acknowledgement number to check your application status
           </p>
         </div>
@@ -663,7 +663,6 @@ export default function StatusPage() {
           </div>
         )}
 
-        {/* Footer */}
         {result && (
           <div className="flex justify-center mb-8">
             <Button
@@ -675,30 +674,8 @@ export default function StatusPage() {
             </Button>
           </div>
         )}
-        <div className="text-center">
-          <p className="text-sm text-slate-600 mb-2">
-            Need help? We&apos;re here for you
-          </p>
-          <p className="text-sm font-medium text-slate-900">
-            office@citronsociety.in • +91 9673639643
-          </p>
-          <div className="mt-4 flex items-center justify-center gap-6 text-sm">
-            <Link
-              href="/privacy"
-              className="text-slate-600 hover:text-[#175a00] transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <span className="text-slate-300">|</span>
-            <Link
-              href="/terms"
-              className="text-slate-600 hover:text-[#175a00] transition-colors"
-            >
-              Terms of Service
-            </Link>
-          </div>
-        </div>
       </div>
+      <Footer />
     </div>
   );
 }

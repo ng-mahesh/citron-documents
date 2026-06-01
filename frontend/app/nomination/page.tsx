@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getSocietyUser } from "@/lib/auth";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { FileUpload } from "@/components/forms/FileUpload";
-import { nominationAPI } from "@/lib/api";
-import { DocumentMetadata, Nominee, Witness } from "@/lib/types";
+import { nominationAPI, uploadAPI } from "@/lib/api";
+import { Nominee, Witness } from "@/lib/types";
 import { CheckCircle, Plus, Trash2, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { theme } from "@/lib/theme";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { ToastType } from "@/components/ui/Toast";
@@ -26,17 +28,18 @@ export default function NominationPage() {
     declarationAccepted: false,
   });
 
-  // Document states
-  const [index2Document, setIndex2Document] = useState<DocumentMetadata>();
-  const [possessionLetterDocument, setPossessionLetterDocument] =
-    useState<DocumentMetadata>();
-  const [primaryMemberAadhaar, setPrimaryMemberAadhaar] =
-    useState<DocumentMetadata>();
-  const [jointMemberAadhaar, setJointMemberAadhaar] =
-    useState<DocumentMetadata>();
-  const [nomineeAadhaars, setNomineeAadhaars] = useState<DocumentMetadata[]>(
-    []
-  );
+  const [files, setFiles] = useState<{
+    index2File?: File;
+    possessionFile?: File;
+    primaryAadhaarFile?: File;
+    jointAadhaarFile?: File;
+    receipt1File?: File;
+    receipt2File?: File;
+    receipt3File?: File;
+  }>({});
+  const [nomineeAadhaarFiles, setNomineeAadhaarFiles] = useState<
+    (File | undefined)[]
+  >([]);
 
   const [nominees, setNominees] = useState<Nominee[]>([
     {
@@ -72,47 +75,51 @@ export default function NominationPage() {
     type: ToastType;
   } | null>(null);
 
+  useEffect(() => {
+    if (getSocietyUser()) return;
+    const base =
+      process.env.NEXT_PUBLIC_SOCIETY_APP_URL ?? "http://localhost:3002";
+    window.location.href = `${base}/documents?returnUrl=/nomination`;
+  }, []);
+
+  useEffect(() => {
+    const user = getSocietyUser();
+    if (!user) return;
+    const mobile = user.phone?.replace(/^\+?91/, "") ?? "";
+    setFormData((prev) => ({
+      ...prev,
+      primaryMemberName: prev.primaryMemberName || user.fullName || "",
+      primaryMemberEmail: prev.primaryMemberEmail || user.email || "",
+      primaryMemberMobile:
+        prev.primaryMemberMobile || (/^[6-9]\d{9}$/.test(mobile) ? mobile : ""),
+      flatNumber: prev.flatNumber || user.unitNumber || "",
+      wing: prev.wing || (user.wing as "C" | "D" | "") || "",
+    }));
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-
-    // For flat number, only allow integer numbers
-    if (name === "flatNumber") {
-      if (value !== "" && !/^\d+$/.test(value)) {
-        return; // Don't update if not a valid integer
-      }
-    }
-
+    if (name === "flatNumber" && value !== "" && !/^\d+$/.test(value)) return;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const checkDuplicate = async () => {
-    // Only check if both flatNumber and wing are provided
-    if (!formData.flatNumber || !formData.wing) {
+    if (
+      !formData.flatNumber ||
+      !formData.wing ||
+      !/^\d+$/.test(formData.flatNumber)
+    )
       return;
-    }
-
-    // Validate flat number format first
-    if (!/^\d+$/.test(formData.flatNumber)) {
-      return;
-    }
-
     setCheckingDuplicate(true);
     try {
       const response = await nominationAPI.checkDuplicate(
@@ -120,16 +127,12 @@ export default function NominationPage() {
         formData.wing
       );
       if (response.data.data.exists) {
-        setErrors((prev) => ({
-          ...prev,
-          wing: response.data.data.message,
-        }));
+        setErrors((prev) => ({ ...prev, wing: response.data.data.message }));
       } else {
-        // Clear error if no duplicate
         setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.wing;
-          return newErrors;
+          const e = { ...prev };
+          delete e.wing;
+          return e;
         });
       }
     } catch (error) {
@@ -139,24 +142,15 @@ export default function NominationPage() {
     }
   };
 
-  // Format Aadhaar number as XXXX-XXXX-XXXX
   const formatAadhaar = (value: string): string => {
-    // Remove all non-digits
-    const digits = value.replace(/\D/g, "");
-    // Limit to 12 digits
-    const limited = digits.slice(0, 12);
-    // Add hyphens after every 4 digits
+    const digits = value.replace(/\D/g, "").slice(0, 12);
     const parts = [];
-    for (let i = 0; i < limited.length; i += 4) {
-      parts.push(limited.slice(i, i + 4));
-    }
+    for (let i = 0; i < digits.length; i += 4)
+      parts.push(digits.slice(i, i + 4));
     return parts.join("-");
   };
 
-  // Get raw Aadhaar number (remove hyphens)
-  const getRawAadhaar = (value: string): string => {
-    return value.replace(/\D/g, "");
-  };
+  const getRawAadhaar = (value: string): string => value.replace(/\D/g, "");
 
   const handleNomineeChange = (
     index: number,
@@ -168,9 +162,8 @@ export default function NominationPage() {
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
-    if (errors[`nominee${index}_${field}`]) {
+    if (errors[`nominee${index}_${field}`])
       setErrors((prev) => ({ ...prev, [`nominee${index}_${field}`]: "" }));
-    }
   };
 
   const handleWitnessChange = (
@@ -178,14 +171,10 @@ export default function NominationPage() {
     field: keyof Witness,
     value: string
   ) => {
-    if (witnessNum === 1) {
-      setWitness1((prev) => ({ ...prev, [field]: value }));
-    } else {
-      setWitness2((prev) => ({ ...prev, [field]: value }));
-    }
-    if (errors[`witness${witnessNum}_${field}`]) {
+    if (witnessNum === 1) setWitness1((prev) => ({ ...prev, [field]: value }));
+    else setWitness2((prev) => ({ ...prev, [field]: value }));
+    if (errors[`witness${witnessNum}_${field}`])
       setErrors((prev) => ({ ...prev, [`witness${witnessNum}_${field}`]: "" }));
-    }
   };
 
   const addNominee = () => {
@@ -205,15 +194,13 @@ export default function NominationPage() {
   };
 
   const removeNominee = (index: number) => {
-    if (nominees.length > 1) {
+    if (nominees.length > 1)
       setNominees((prev) => prev.filter((_, i) => i !== index));
-    }
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    // Member Information validation
     if (!formData.primaryMemberName.trim())
       newErrors.primaryMemberName = "Member name is required";
     if (!formData.flatNumber.trim())
@@ -229,15 +216,16 @@ export default function NominationPage() {
       newErrors.primaryMemberMobile =
         "Mobile number must be a valid 10-digit Indian phone number";
 
-    // Document validation
-    if (!index2Document?.fileName)
+    if (!files.index2File)
       newErrors.index2Document = "Index II document is required";
-    if (!possessionLetterDocument?.fileName)
+    if (!files.possessionFile)
       newErrors.possessionLetterDocument = "Possession Letter is required";
-    if (!primaryMemberAadhaar?.fileName)
+    if (!files.primaryAadhaarFile)
       newErrors.primaryMemberAadhaar = "Primary Member Aadhaar is required";
+    if (!files.receipt1File)
+      newErrors.maintenanceReceipt1Document =
+        "At least 1 maintenance receipt is required";
 
-    // Nominee validation
     let totalPercentage = 0;
     nominees.forEach((nominee, index) => {
       if (!nominee.name.trim())
@@ -254,17 +242,14 @@ export default function NominationPage() {
       if (!nominee.sharePercentage || nominee.sharePercentage <= 0)
         newErrors[`nominee${index}_sharePercentage`] =
           "Share percentage must be greater than 0";
-      if (!nomineeAadhaars[index]?.fileName)
+      if (!nomineeAadhaarFiles[index])
         newErrors[`nominee${index}_aadhaar`] =
           "Nominee Aadhaar document is required";
       totalPercentage += Number(nominee.sharePercentage);
     });
-
-    if (totalPercentage !== 100) {
+    if (totalPercentage !== 100)
       newErrors.totalPercentage = "Total share percentage must equal 100%";
-    }
 
-    // Witness validation
     if (!witness1.name.trim())
       newErrors.witness1_name = "Witness 1 name is required";
     if (!witness1.address.trim())
@@ -277,12 +262,8 @@ export default function NominationPage() {
       newErrors.witness2_address = "Witness 2 address is required";
     if (!witness2.signature.trim())
       newErrors.witness2_signature = "Witness 2 signature is required";
-
-    // Member signature validation
     if (!memberSignature.trim())
       newErrors.memberSignature = "Member signature is required";
-
-    // Declaration validation
     if (!formData.declarationAccepted)
       newErrors.declarationAccepted = "You must accept the declaration";
 
@@ -291,10 +272,7 @@ export default function NominationPage() {
   };
 
   const isFormValid = () => {
-    // Check if there are any errors
     if (Object.keys(errors).length > 0) return false;
-
-    // Check required fields
     if (!formData.primaryMemberName.trim()) return false;
     if (!formData.flatNumber.trim()) return false;
     if (!formData.wing) return false;
@@ -309,32 +287,26 @@ export default function NominationPage() {
     )
       return false;
     if (!formData.declarationAccepted) return false;
+    if (
+      !files.index2File ||
+      !files.possessionFile ||
+      !files.primaryAadhaarFile ||
+      !files.receipt1File
+    )
+      return false;
 
-    // Check documents
-    if (!index2Document?.fileName) return false;
-    if (!possessionLetterDocument?.fileName) return false;
-    if (!primaryMemberAadhaar?.fileName) return false;
-
-    // Check nominees
     let totalPercentage = 0;
     for (let i = 0; i < nominees.length; i++) {
-      const nominee = nominees[i];
-      if (!nominee.name.trim()) return false;
-      if (!nominee.relationship.trim()) return false;
-      if (!nominee.dateOfBirth.trim()) return false;
-      if (
-        !nominee.aadhaarNumber.trim() ||
-        !/^\d{12}$/.test(nominee.aadhaarNumber)
-      )
+      const n = nominees[i];
+      if (!n.name.trim() || !n.relationship.trim() || !n.dateOfBirth.trim())
         return false;
-      if (!nominee.sharePercentage || nominee.sharePercentage <= 0)
+      if (!n.aadhaarNumber.trim() || !/^\d{12}$/.test(n.aadhaarNumber))
         return false;
-      if (!nomineeAadhaars[i]?.fileName) return false;
-      totalPercentage += Number(nominee.sharePercentage);
+      if (!n.sharePercentage || n.sharePercentage <= 0) return false;
+      if (!nomineeAadhaarFiles[i]) return false;
+      totalPercentage += Number(n.sharePercentage);
     }
     if (totalPercentage !== 100) return false;
-
-    // Check witnesses
     if (
       !witness1.name.trim() ||
       !witness1.address.trim() ||
@@ -347,43 +319,98 @@ export default function NominationPage() {
       !witness2.signature.trim()
     )
       return false;
-
-    // Check member signature
     if (!memberSignature.trim()) return false;
-
     return true;
+  };
+
+  const uploadFile = async (
+    file: File,
+    documentType: string,
+    fullName: string
+  ) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("flatNumber", formData.flatNumber);
+    fd.append("documentType", documentType);
+    fd.append("fullName", fullName);
+    const response = await uploadAPI.upload(fd);
+    return response.data.data || response.data;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     setSubmitting(true);
-
     try {
+      const name = formData.primaryMemberName;
+
+      const [
+        index2Meta,
+        possessionMeta,
+        primaryAadhaarMeta,
+        jointAadhaarMeta,
+        receipt1Meta,
+        receipt2Meta,
+        receipt3Meta,
+      ] = await Promise.all([
+        uploadFile(files.index2File!, "INDEX_2", name),
+        uploadFile(files.possessionFile!, "POSSESSION_LETTER", name),
+        uploadFile(files.primaryAadhaarFile!, "PRIMARY_MEMBER_AADHAAR", name),
+        files.jointAadhaarFile
+          ? uploadFile(
+              files.jointAadhaarFile,
+              "JOINT_MEMBER_AADHAAR",
+              "Joint Member"
+            )
+          : Promise.resolve(undefined),
+        uploadFile(files.receipt1File!, "MAINTENANCE_RECEIPT_1", name),
+        files.receipt2File
+          ? uploadFile(files.receipt2File, "MAINTENANCE_RECEIPT_2", name)
+          : Promise.resolve(undefined),
+        files.receipt3File
+          ? uploadFile(files.receipt3File, "MAINTENANCE_RECEIPT_3", name)
+          : Promise.resolve(undefined),
+      ]);
+
+      const nomineeAadhaarMetas = await Promise.all(
+        nominees.map((nominee, i) =>
+          nomineeAadhaarFiles[i]
+            ? uploadFile(
+                nomineeAadhaarFiles[i]!,
+                `NOMINEE${i + 1}_AADHAAR`,
+                nominee.name || "Nominee"
+              )
+            : Promise.resolve(undefined)
+        )
+      );
+
       const payload = {
         primaryMemberName: formData.primaryMemberName,
         primaryMemberEmail: formData.primaryMemberEmail,
         primaryMemberMobile: formData.primaryMemberMobile,
         flatNumber: formData.flatNumber,
         wing: formData.wing,
-        nominees: nominees,
-        index2Document,
-        possessionLetterDocument,
-        aadhaarCardDocument: primaryMemberAadhaar,
-        jointMemberAadhaar,
-        nomineeAadhaars,
+        nominees,
+        index2Document: index2Meta,
+        possessionLetterDocument: possessionMeta,
+        aadhaarCardDocument: primaryAadhaarMeta,
+        jointMemberAadhaar: jointAadhaarMeta,
+        nomineeAadhaars: nomineeAadhaarMetas.filter(Boolean),
+        maintenanceReceiptsDocuments: [
+          receipt1Meta,
+          receipt2Meta,
+          receipt3Meta,
+        ].filter(Boolean),
         witnesses: [witness1, witness2],
         declarationAccepted: formData.declarationAccepted,
         memberSignature,
       };
 
       const response = await nominationAPI.create(payload);
-      // Backend returns { success, message, data: { acknowledgementNumber, email } }
       const ackNumber =
         response.data.data?.acknowledgementNumber ||
         response.data.acknowledgementNumber;
@@ -405,7 +432,6 @@ export default function NominationPage() {
 
   const handleDownloadPdf = async () => {
     if (!acknowledgementNumber) return;
-
     setDownloadingPdf(true);
     try {
       const response = await nominationAPI.downloadPdf(acknowledgementNumber);
@@ -433,7 +459,7 @@ export default function NominationPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#F8FAFC] py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
             <div
@@ -502,18 +528,16 @@ export default function NominationPage() {
     (sum, n) => sum + Number(n.sharePercentage || 0),
     0
   );
+  const fileDisabled = !formData.flatNumber || !formData.primaryMemberName;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <Header />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Page Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">
-            Nomination Form
-          </h1>
-          <p className="text-lg text-slate-600">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">Nomination Form</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
             Register your nominees for share certificate inheritance
           </p>
         </div>
@@ -605,7 +629,7 @@ export default function NominationPage() {
                 Required Documents
               </h3>
               <p className="text-sm text-slate-600 mt-1">
-                Upload clear copies in PDF or JPEG format (max 2MB each)
+                Select files — they will be uploaded when you submit the form
               </p>
             </div>
             <div className="px-8 py-6">
@@ -613,41 +637,174 @@ export default function NominationPage() {
                 <FileUpload
                   label="Index II Document"
                   required
-                  flatNumber={formData.flatNumber}
                   documentType="INDEX_2"
-                  fullName={formData.primaryMemberName}
-                  onUploadSuccess={setIndex2Document}
-                  value={index2Document}
+                  disabled={fileDisabled}
+                  onFileSelected={(file) => {
+                    setFiles((prev) => ({
+                      ...prev,
+                      index2File: file ?? undefined,
+                    }));
+                    if (file)
+                      setErrors((prev) => {
+                        const e = { ...prev };
+                        delete e.index2Document;
+                        return e;
+                      });
+                  }}
+                  selectedFile={files.index2File}
                   error={errors.index2Document}
                 />
                 <FileUpload
                   label="Possession Letter"
                   required
-                  flatNumber={formData.flatNumber}
                   documentType="POSSESSION_LETTER"
-                  fullName={formData.primaryMemberName}
-                  onUploadSuccess={setPossessionLetterDocument}
-                  value={possessionLetterDocument}
+                  disabled={fileDisabled}
+                  onFileSelected={(file) => {
+                    setFiles((prev) => ({
+                      ...prev,
+                      possessionFile: file ?? undefined,
+                    }));
+                    if (file)
+                      setErrors((prev) => {
+                        const e = { ...prev };
+                        delete e.possessionLetterDocument;
+                        return e;
+                      });
+                  }}
+                  selectedFile={files.possessionFile}
                   error={errors.possessionLetterDocument}
                 />
                 <FileUpload
                   label="Primary Member Aadhaar Card"
                   required
-                  flatNumber={formData.flatNumber}
                   documentType="PRIMARY_MEMBER_AADHAAR"
-                  fullName={formData.primaryMemberName}
-                  onUploadSuccess={setPrimaryMemberAadhaar}
-                  value={primaryMemberAadhaar}
+                  disabled={fileDisabled}
+                  onFileSelected={(file) => {
+                    setFiles((prev) => ({
+                      ...prev,
+                      primaryAadhaarFile: file ?? undefined,
+                    }));
+                    if (file)
+                      setErrors((prev) => {
+                        const e = { ...prev };
+                        delete e.primaryMemberAadhaar;
+                        return e;
+                      });
+                  }}
+                  selectedFile={files.primaryAadhaarFile}
                   error={errors.primaryMemberAadhaar}
                 />
                 <FileUpload
                   label="Joint Member Aadhaar Card (Optional)"
-                  flatNumber={formData.flatNumber}
                   documentType="JOINT_MEMBER_AADHAAR"
-                  fullName="Joint Member"
-                  onUploadSuccess={setJointMemberAadhaar}
-                  value={jointMemberAadhaar}
+                  disabled={fileDisabled}
+                  onFileSelected={(file) =>
+                    setFiles((prev) => ({
+                      ...prev,
+                      jointAadhaarFile: file ?? undefined,
+                    }))
+                  }
+                  selectedFile={files.jointAadhaarFile}
                 />
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <div className="flex items-start gap-3 mb-5">
+                  <div className="h-9 w-9 bg-green-50 border border-green-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-[#175a00]">3</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Last 3 Months Maintenance Receipts
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Upload paid maintenance receipts for the last 3 months —
+                      at least Month 1 is required
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#175a00] text-white text-xs font-bold flex-shrink-0">
+                        1
+                      </span>
+                      <span className="text-xs font-semibold text-slate-700">
+                        Month 1 <span className="text-red-500">*</span>
+                      </span>
+                    </div>
+                    <FileUpload
+                      label=""
+                      required
+                      documentType="MAINTENANCE_RECEIPT_1"
+                      disabled={fileDisabled}
+                      onFileSelected={(file) => {
+                        setFiles((prev) => ({
+                          ...prev,
+                          receipt1File: file ?? undefined,
+                        }));
+                        if (file)
+                          setErrors((prev) => {
+                            const e = { ...prev };
+                            delete e.maintenanceReceipt1Document;
+                            return e;
+                          });
+                      }}
+                      selectedFile={files.receipt1File}
+                      error={errors.maintenanceReceipt1Document}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex-shrink-0">
+                        2
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        Month 2{" "}
+                        <span className="text-slate-400 font-normal">
+                          (Optional)
+                        </span>
+                      </span>
+                    </div>
+                    <FileUpload
+                      label=""
+                      documentType="MAINTENANCE_RECEIPT_2"
+                      disabled={fileDisabled}
+                      onFileSelected={(file) =>
+                        setFiles((prev) => ({
+                          ...prev,
+                          receipt2File: file ?? undefined,
+                        }))
+                      }
+                      selectedFile={files.receipt2File}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex-shrink-0">
+                        3
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        Month 3{" "}
+                        <span className="text-slate-400 font-normal">
+                          (Optional)
+                        </span>
+                      </span>
+                    </div>
+                    <FileUpload
+                      label=""
+                      documentType="MAINTENANCE_RECEIPT_3"
+                      disabled={fileDisabled}
+                      onFileSelected={(file) =>
+                        setFiles((prev) => ({
+                          ...prev,
+                          receipt3File: file ?? undefined,
+                        }))
+                      }
+                      selectedFile={files.receipt3File}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -667,11 +824,7 @@ export default function NominationPage() {
                 <p className="text-sm font-medium text-slate-700">
                   Total Share Percentage:{" "}
                   <span
-                    className={`text-lg font-bold ${
-                      totalSharePercentage === 100
-                        ? theme.status.approved.text
-                        : "text-red-600"
-                    }`}
+                    className={`text-lg font-bold ${totalSharePercentage === 100 ? theme.status.approved.text : "text-red-600"}`}
                   >
                     {totalSharePercentage}%
                   </span>
@@ -762,10 +915,13 @@ export default function NominationPage() {
                     <Input
                       label="Aadhaar Number"
                       value={formatAadhaar(nominee.aadhaarNumber)}
-                      onChange={(e) => {
-                        const raw = getRawAadhaar(e.target.value);
-                        handleNomineeChange(index, "aadhaarNumber", raw);
-                      }}
+                      onChange={(e) =>
+                        handleNomineeChange(
+                          index,
+                          "aadhaarNumber",
+                          getRawAadhaar(e.target.value)
+                        )
+                      }
                       error={errors[`nominee${index}_aadhaarNumber`]}
                       placeholder="XXXX-XXXX-XXXX"
                       helperText="12-digit Aadhaar number"
@@ -801,17 +957,22 @@ export default function NominationPage() {
                   <FileUpload
                     label="Nominee Aadhaar Card"
                     required
-                    flatNumber={formData.flatNumber}
                     documentType={`NOMINEE${index + 1}_AADHAAR`}
-                    fullName={nominee.name || "Nominee"}
-                    onUploadSuccess={(metadata) => {
-                      setNomineeAadhaars((prev) => {
+                    disabled={!formData.flatNumber || !nominee.name}
+                    onFileSelected={(file) => {
+                      setNomineeAadhaarFiles((prev) => {
                         const updated = [...prev];
-                        updated[index] = metadata;
+                        updated[index] = file ?? undefined;
                         return updated;
                       });
+                      if (file)
+                        setErrors((prev) => {
+                          const e = { ...prev };
+                          delete e[`nominee${index}_aadhaar`];
+                          return e;
+                        });
                     }}
-                    value={nomineeAadhaars[index]}
+                    selectedFile={nomineeAadhaarFiles[index]}
                     error={errors[`nominee${index}_aadhaar`]}
                   />
                 </div>
@@ -841,87 +1002,62 @@ export default function NominationPage() {
             </div>
             <div className="px-8 py-6">
               <div className="space-y-8">
-                <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
-                  <h4 className="text-lg font-bold text-slate-900 mb-4">
-                    Witness 1
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Full Name"
-                      value={witness1.name}
-                      onChange={(e) =>
-                        handleWitnessChange(1, "name", e.target.value)
-                      }
-                      error={errors.witness1_name}
-                      placeholder="Enter witness 1 full name"
-                      required
-                    />
-                    <Input
-                      label="Digital Signature"
-                      value={witness1.signature}
-                      onChange={(e) =>
-                        handleWitnessChange(1, "signature", e.target.value)
-                      }
-                      error={errors.witness1_signature}
-                      placeholder="Type full name"
-                      helperText="Type full name as digital signature"
-                      required
-                    />
-                    <div className="md:col-span-2">
-                      <Input
-                        label="Address"
-                        value={witness1.address}
-                        onChange={(e) =>
-                          handleWitnessChange(1, "address", e.target.value)
-                        }
-                        error={errors.witness1_address}
-                        placeholder="Full address"
-                        required
-                      />
+                {([1, 2] as const).map((num) => {
+                  const w = num === 1 ? witness1 : witness2;
+                  return (
+                    <div
+                      key={num}
+                      className="p-5 bg-slate-50 rounded-xl border border-slate-200"
+                    >
+                      <h4 className="text-lg font-bold text-slate-900 mb-4">
+                        Witness {num}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Input
+                          label="Full Name"
+                          value={w.name}
+                          onChange={(e) =>
+                            handleWitnessChange(num, "name", e.target.value)
+                          }
+                          error={errors[`witness${num}_name`]}
+                          placeholder={`Enter witness ${num} full name`}
+                          required
+                        />
+                        <Input
+                          label="Digital Signature"
+                          value={w.signature}
+                          onChange={(e) =>
+                            handleWitnessChange(
+                              num,
+                              "signature",
+                              e.target.value
+                            )
+                          }
+                          error={errors[`witness${num}_signature`]}
+                          placeholder="Type full name"
+                          helperText="Type full name as digital signature"
+                          required
+                        />
+                        <div className="md:col-span-2">
+                          <Input
+                            label="Address"
+                            value={w.address}
+                            onChange={(e) =>
+                              handleWitnessChange(
+                                num,
+                                "address",
+                                e.target.value
+                              )
+                            }
+                            error={errors[`witness${num}_address`]}
+                            placeholder="Full address"
+                            required
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
-                  <h4 className="text-lg font-bold text-slate-900 mb-4">
-                    Witness 2
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Full Name"
-                      value={witness2.name}
-                      onChange={(e) =>
-                        handleWitnessChange(2, "name", e.target.value)
-                      }
-                      error={errors.witness2_name}
-                      placeholder="Enter witness 2 full name"
-                      required
-                    />
-                    <Input
-                      label="Digital Signature"
-                      value={witness2.signature}
-                      onChange={(e) =>
-                        handleWitnessChange(2, "signature", e.target.value)
-                      }
-                      error={errors.witness2_signature}
-                      placeholder="Type full name"
-                      helperText="Type full name as digital signature"
-                      required
-                    />
-                    <div className="md:col-span-2">
-                      <Input
-                        label="Address"
-                        value={witness2.address}
-                        onChange={(e) =>
-                          handleWitnessChange(2, "address", e.target.value)
-                        }
-                        error={errors.witness2_address}
-                        placeholder="Full address"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -991,14 +1127,14 @@ export default function NominationPage() {
               disabled={!isFormValid() || submitting}
               className="sm:w-auto"
             >
-              {submitting ? "Submitting..." : "Submit Nomination"}
+              {submitting ? "Uploading & Submitting..." : "Submit Nomination"}
             </Button>
           </div>
         </form>
       </div>
 
-      {/* Toast Notification */}
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
+      <Footer />
     </div>
   );
 }

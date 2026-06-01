@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SharedAuthModule } from './shared-auth/shared-auth.module';
 import { ShareCertificateModule } from './share-certificate/share-certificate.module';
 import { NominationModule } from './nomination/nomination.module';
 import { NocRequestModule } from './noc-request/noc-request.module';
 import { AdminModule } from './admin/admin.module';
 import { UploadModule } from './upload/upload.module';
 import { EmailModule } from './email/email.module';
+import { SsoModule } from './sso/sso.module';
 
 /**
  * Root application module
@@ -29,6 +31,9 @@ import { EmailModule } from './email/email.module';
       inject: [ConfigService],
     }),
 
+    // SharedAuthModule first — registers SocietyJwtStrategy with Passport before any controller loads
+    SharedAuthModule,
+
     // Feature modules
     ShareCertificateModule,
     NominationModule,
@@ -36,6 +41,7 @@ import { EmailModule } from './email/email.module';
     AdminModule,
     UploadModule,
     EmailModule,
+    SsoModule,
   ],
 })
 export class AppModule {}

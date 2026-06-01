@@ -1,19 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { FileUpload } from "@/components/forms/FileUpload";
-import { shareCertificateAPI } from "@/lib/api";
-import { DocumentMetadata, MembershipType } from "@/lib/types";
+import { shareCertificateAPI, uploadAPI } from "@/lib/api";
+import { MembershipType } from "@/lib/types";
 import { CheckCircle, Download } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { theme } from "@/lib/theme";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { ToastType } from "@/components/ui/Toast";
+import { getSocietyUser } from "@/lib/auth";
 
 export default function ShareCertificatePage() {
   const router = useRouter();
@@ -31,10 +33,13 @@ export default function ShareCertificatePage() {
     declarationAccepted: false,
   });
 
-  const [documents, setDocuments] = useState<{
-    index2Document?: DocumentMetadata;
-    possessionLetterDocument?: DocumentMetadata;
-    aadhaarCardDocument?: DocumentMetadata;
+  const [files, setFiles] = useState<{
+    index2File?: File;
+    possessionFile?: File;
+    aadhaarFile?: File;
+    receipt1File?: File;
+    receipt2File?: File;
+    receipt3File?: File;
   }>({});
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -47,6 +52,29 @@ export default function ShareCertificatePage() {
     message: string;
     type: ToastType;
   } | null>(null);
+
+  useEffect(() => {
+    if (getSocietyUser()) return;
+    const base =
+      process.env.NEXT_PUBLIC_SOCIETY_APP_URL ?? "http://localhost:3002";
+    window.location.href = `${base}/documents?returnUrl=/share-certificate`;
+  }, []);
+
+  useEffect(() => {
+    const user = getSocietyUser();
+    if (!user) return;
+    const mobile = user.phone?.replace(/^\+?91/, "") ?? "";
+    setFormData((prev) => ({
+      ...prev,
+      fullName: prev.fullName || user.fullName || "",
+      email: prev.email || user.email || "",
+      mobileNumber:
+        prev.mobileNumber || (/^[6-9]\d{9}$/.test(mobile) ? mobile : ""),
+      digitalSignature: prev.digitalSignature || user.fullName || "",
+      flatNumber: prev.flatNumber || user.unitNumber || "",
+      wing: prev.wing || (user.wing as "C" | "D" | "") || "",
+    }));
+  }, []);
 
   const membershipTypes = [
     { value: "Primary", label: "Primary Member" },
@@ -61,24 +89,16 @@ export default function ShareCertificatePage() {
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-
-    // For flat number, only allow integer numbers
-    if (name === "flatNumber") {
-      if (value !== "" && !/^\d+$/.test(value)) {
-        return; // Don't update if not a valid integer
-      }
-    }
-
+    if (name === "flatNumber" && value !== "" && !/^\d+$/.test(value)) return;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
     if (errors[name]) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
+        const e = { ...prev };
+        delete e[name];
+        return e;
       });
     }
   };
@@ -103,24 +123,17 @@ export default function ShareCertificatePage() {
     setFormData((prev) => {
       const updatedNames = [...prev.index2ApplicantNames];
       updatedNames[index] = value;
-      return {
-        ...prev,
-        index2ApplicantNames: updatedNames,
-      };
+      return { ...prev, index2ApplicantNames: updatedNames };
     });
   };
 
   const checkDuplicate = async () => {
-    // Only check if both flatNumber and wing are provided
-    if (!formData.flatNumber || !formData.wing) {
+    if (
+      !formData.flatNumber ||
+      !formData.wing ||
+      !/^\d+$/.test(formData.flatNumber)
+    )
       return;
-    }
-
-    // Validate flat number format first
-    if (!/^\d+$/.test(formData.flatNumber)) {
-      return;
-    }
-
     setCheckingDuplicate(true);
     try {
       const response = await shareCertificateAPI.checkDuplicate(
@@ -128,17 +141,13 @@ export default function ShareCertificatePage() {
         formData.wing
       );
       if (response.data.data.exists) {
-        setErrors((prev) => ({
-          ...prev,
-          wing: response.data.data.message,
-        }));
+        setErrors((prev) => ({ ...prev, wing: response.data.data.message }));
       } else {
-        // Clear wing and flatNumber errors if no duplicate
         setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.wing;
-          delete newErrors.flatNumber;
-          return newErrors;
+          const e = { ...prev };
+          delete e.wing;
+          delete e.flatNumber;
+          return e;
         });
       }
     } catch (error) {
@@ -155,12 +164,10 @@ export default function ShareCertificatePage() {
     else if (formData.fullName.length > 100)
       newErrors.fullName = "Full name must be at most 100 characters";
 
-    // Validate co-applicant names length
     formData.index2ApplicantNames.forEach((name, index) => {
-      if (name.trim() && name.length > 100) {
+      if (name.trim() && name.length > 100)
         newErrors[`coApplicant${index}`] =
           `Co-applicant ${index + 1} name must be at most 100 characters`;
-      }
     });
 
     if (!formData.flatNumber.trim())
@@ -178,7 +185,6 @@ export default function ShareCertificatePage() {
     else if (!/^[6-9]\d{9}$/.test(formData.mobileNumber))
       newErrors.mobileNumber =
         "Please enter a valid 10-digit mobile number with WhatsApp";
-    // Carpet area and built-up area are now optional
     if (formData.carpetArea && Number(formData.carpetArea) <= 0)
       newErrors.carpetArea = "Carpet area must be greater than 0";
     if (formData.builtUpArea && Number(formData.builtUpArea) <= 0)
@@ -196,34 +202,26 @@ export default function ShareCertificatePage() {
     if (!formData.declarationAccepted)
       newErrors.declarationAccepted = "You must accept the declaration";
 
-    if (!documents.index2Document?.fileName)
+    if (!files.index2File)
       newErrors.index2Document = "Index II document is required";
-    if (!documents.possessionLetterDocument?.fileName)
+    if (!files.possessionFile)
       newErrors.possessionLetterDocument = "Possession letter is required";
-    if (!documents.aadhaarCardDocument?.fileName)
+    if (!files.aadhaarFile)
       newErrors.aadhaarCardDocument = "Aadhaar card is required";
+    if (!files.receipt1File)
+      newErrors.maintenanceReceipt1Document =
+        "At least 1 maintenance receipt is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const isFormValid = () => {
-    // Check if there are any non-empty errors
-    const hasErrors = Object.values(errors).some(
-      (error) => error && error.trim() !== ""
-    );
-    if (hasErrors) return false;
-
-    // Check required fields
+    if (Object.values(errors).some((e) => e && e.trim() !== "")) return false;
     if (!formData.fullName.trim() || formData.fullName.length > 100)
       return false;
-
-    // Check co-applicant names length
-    const hasInvalidCoApplicantName = formData.index2ApplicantNames.some(
-      (name) => name.trim() && name.length > 100
-    );
-    if (hasInvalidCoApplicantName) return false;
-
+    if (formData.index2ApplicantNames.some((n) => n.trim() && n.length > 100))
+      return false;
     if (
       !formData.flatNumber.trim() ||
       !/^\d+$/.test(formData.flatNumber) ||
@@ -238,7 +236,6 @@ export default function ShareCertificatePage() {
       !/^[6-9]\d{9}$/.test(formData.mobileNumber)
     )
       return false;
-    if (formData.flatNumber.length > 5) return false;
     if (!formData.membershipType) return false;
     if (
       !formData.digitalSignature.trim() ||
@@ -247,29 +244,18 @@ export default function ShareCertificatePage() {
     )
       return false;
     if (!formData.declarationAccepted) return false;
-
-    // Check documents - ensure they exist and have fileName
-    const hasIndex2 =
-      documents.index2Document &&
-      documents.index2Document.fileName &&
-      documents.index2Document.fileName.trim() !== "";
-    const hasPossession =
-      documents.possessionLetterDocument &&
-      documents.possessionLetterDocument.fileName &&
-      documents.possessionLetterDocument.fileName.trim() !== "";
-    const hasAadhaar =
-      documents.aadhaarCardDocument &&
-      documents.aadhaarCardDocument.fileName &&
-      documents.aadhaarCardDocument.fileName.trim() !== "";
-
-    if (!hasIndex2 || !hasPossession || !hasAadhaar) return false;
-
+    if (
+      !files.index2File ||
+      !files.possessionFile ||
+      !files.aadhaarFile ||
+      !files.receipt1File
+    )
+      return false;
     return true;
   };
 
   const handleDownloadReceipt = async () => {
     if (!acknowledgementNumber) return;
-
     setDownloadingPdf(true);
     try {
       const response = await shareCertificateAPI.downloadPdf(
@@ -297,17 +283,45 @@ export default function ShareCertificatePage() {
     }
   };
 
+  const uploadFile = async (file: File, documentType: string) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("flatNumber", formData.flatNumber);
+    fd.append("documentType", documentType);
+    fd.append("fullName", formData.fullName);
+    const response = await uploadAPI.upload(fd);
+    return response.data.data || response.data;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     setSubmitting(true);
-
     try {
+      const [
+        index2Meta,
+        possessionMeta,
+        aadhaarMeta,
+        receipt1Meta,
+        receipt2Meta,
+        receipt3Meta,
+      ] = await Promise.all([
+        uploadFile(files.index2File!, "INDEX2"),
+        uploadFile(files.possessionFile!, "POSSESSION_LETTER"),
+        uploadFile(files.aadhaarFile!, "AADHAAR"),
+        uploadFile(files.receipt1File!, "MAINTENANCE_RECEIPT_1"),
+        files.receipt2File
+          ? uploadFile(files.receipt2File, "MAINTENANCE_RECEIPT_2")
+          : Promise.resolve(undefined),
+        files.receipt3File
+          ? uploadFile(files.receipt3File, "MAINTENANCE_RECEIPT_3")
+          : Promise.resolve(undefined),
+      ]);
+
       const payload = {
         ...formData,
         carpetArea: formData.carpetArea
@@ -317,15 +331,19 @@ export default function ShareCertificatePage() {
           ? Number(formData.builtUpArea)
           : undefined,
         index2ApplicantNames: formData.index2ApplicantNames.filter(
-          (name) => name.trim() !== ""
+          (n) => n.trim() !== ""
         ),
-        index2Document: documents.index2Document,
-        possessionLetterDocument: documents.possessionLetterDocument,
-        aadhaarCardDocument: documents.aadhaarCardDocument,
+        index2Document: index2Meta,
+        possessionLetterDocument: possessionMeta,
+        aadhaarCardDocument: aadhaarMeta,
+        maintenanceReceiptsDocuments: [
+          receipt1Meta,
+          receipt2Meta,
+          receipt3Meta,
+        ].filter(Boolean),
       };
 
       const response = await shareCertificateAPI.create(payload);
-      // Backend returns { success, message, data: { acknowledgementNumber, email } }
       const ackNumber =
         response.data.data?.acknowledgementNumber ||
         response.data.acknowledgementNumber;
@@ -347,7 +365,7 @@ export default function ShareCertificatePage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#F8FAFC] py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
             <div
@@ -412,17 +430,18 @@ export default function ShareCertificatePage() {
     );
   }
 
+  const fileDisabled = !formData.flatNumber || !formData.fullName;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <Header />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Page Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">
             Share Certificate Application
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm text-slate-500 mt-0.5">
             Complete the form below to apply for your share certificate
           </p>
         </div>
@@ -439,7 +458,6 @@ export default function ShareCertificatePage() {
               </p>
             </div>
             <div className="px-8 py-6">
-              {/* Primary Applicant Full Name - Full Width */}
               <div className="mb-6">
                 <Input
                   label="Primary Applicant Full Name"
@@ -454,7 +472,6 @@ export default function ShareCertificatePage() {
                 />
               </div>
 
-              {/* Index-2 Multiple Co-Applicant Names Section */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -475,8 +492,7 @@ export default function ShareCertificatePage() {
                     + Add Name
                   </Button>
                 </div>
-
-                {formData.index2ApplicantNames.length > 0 && (
+                {formData.index2ApplicantNames.length > 0 ? (
                   <div className="space-y-3">
                     {formData.index2ApplicantNames.map((name, index) => (
                       <div key={index} className="flex items-start gap-2">
@@ -496,7 +512,6 @@ export default function ShareCertificatePage() {
                           type="button"
                           onClick={() => handleRemoveApplicantName(index)}
                           className="mt-8 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remove applicant name"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -514,9 +529,7 @@ export default function ShareCertificatePage() {
                       </div>
                     ))}
                   </div>
-                )}
-
-                {formData.index2ApplicantNames.length === 0 && (
+                ) : (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
                     <p className="text-sm text-slate-600">
                       No additional applicant names added. Click &quot;Add
@@ -526,7 +539,6 @@ export default function ShareCertificatePage() {
                 )}
               </div>
 
-              {/* Flat Number and Wing */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Select
                   label="Wing"
@@ -562,7 +574,6 @@ export default function ShareCertificatePage() {
                 />
               </div>
 
-              {/* Email and Mobile Number */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Email Address"
@@ -644,7 +655,7 @@ export default function ShareCertificatePage() {
                 Required Documents
               </h3>
               <p className="text-sm text-slate-600 mt-1">
-                Upload clear copies in PDF or JPEG format (max 2MB each)
+                Select files — they will be uploaded when you submit the form
               </p>
             </div>
             <div className="px-8 py-6">
@@ -652,69 +663,165 @@ export default function ShareCertificatePage() {
                 <FileUpload
                   label="Index II Document"
                   required
-                  flatNumber={formData.flatNumber}
                   documentType="INDEX2"
-                  fullName={formData.fullName}
-                  onUploadSuccess={(metadata) => {
-                    setDocuments((prev) => ({
+                  disabled={fileDisabled}
+                  onFileSelected={(file) => {
+                    setFiles((prev) => ({
                       ...prev,
-                      index2Document: metadata,
+                      index2File: file ?? undefined,
                     }));
-                    if (metadata?.fileName) {
+                    if (file)
                       setErrors((prev) => {
-                        const newErrors = { ...prev };
-                        delete newErrors.index2Document;
-                        return newErrors;
+                        const e = { ...prev };
+                        delete e.index2Document;
+                        return e;
                       });
-                    }
                   }}
-                  value={documents.index2Document}
+                  selectedFile={files.index2File}
                   error={errors.index2Document}
                 />
                 <FileUpload
                   label="Possession Letter"
                   required
-                  flatNumber={formData.flatNumber}
                   documentType="POSSESSION_LETTER"
-                  fullName={formData.fullName}
-                  onUploadSuccess={(metadata) => {
-                    setDocuments((prev) => ({
+                  disabled={fileDisabled}
+                  onFileSelected={(file) => {
+                    setFiles((prev) => ({
                       ...prev,
-                      possessionLetterDocument: metadata,
+                      possessionFile: file ?? undefined,
                     }));
-                    if (metadata?.fileName) {
+                    if (file)
                       setErrors((prev) => {
-                        const newErrors = { ...prev };
-                        delete newErrors.possessionLetterDocument;
-                        return newErrors;
+                        const e = { ...prev };
+                        delete e.possessionLetterDocument;
+                        return e;
                       });
-                    }
                   }}
-                  value={documents.possessionLetterDocument}
+                  selectedFile={files.possessionFile}
                   error={errors.possessionLetterDocument}
                 />
                 <FileUpload
                   label="Aadhaar Card"
                   required
-                  flatNumber={formData.flatNumber}
                   documentType="AADHAAR"
-                  fullName={formData.fullName}
-                  onUploadSuccess={(metadata) => {
-                    setDocuments((prev) => ({
+                  disabled={fileDisabled}
+                  onFileSelected={(file) => {
+                    setFiles((prev) => ({
                       ...prev,
-                      aadhaarCardDocument: metadata,
+                      aadhaarFile: file ?? undefined,
                     }));
-                    if (metadata?.fileName) {
+                    if (file)
                       setErrors((prev) => {
-                        const newErrors = { ...prev };
-                        delete newErrors.aadhaarCardDocument;
-                        return newErrors;
+                        const e = { ...prev };
+                        delete e.aadhaarCardDocument;
+                        return e;
                       });
-                    }
                   }}
-                  value={documents.aadhaarCardDocument}
+                  selectedFile={files.aadhaarFile}
                   error={errors.aadhaarCardDocument}
                 />
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <div className="flex items-start gap-3 mb-5">
+                  <div className="h-9 w-9 bg-green-50 border border-green-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-[#175a00]">3</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Last 3 Months Maintenance Receipts
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Upload paid maintenance receipts for the last 3 months —
+                      at least Month 1 is required
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Month 1 — required */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#175a00] text-white text-xs font-bold flex-shrink-0">
+                        1
+                      </span>
+                      <span className="text-xs font-semibold text-slate-700">
+                        Month 1 <span className="text-red-500">*</span>
+                      </span>
+                    </div>
+                    <FileUpload
+                      label=""
+                      required
+                      documentType="MAINTENANCE_RECEIPT_1"
+                      disabled={fileDisabled}
+                      onFileSelected={(file) => {
+                        setFiles((prev) => ({
+                          ...prev,
+                          receipt1File: file ?? undefined,
+                        }));
+                        if (file)
+                          setErrors((prev) => {
+                            const e = { ...prev };
+                            delete e.maintenanceReceipt1Document;
+                            return e;
+                          });
+                      }}
+                      selectedFile={files.receipt1File}
+                      error={errors.maintenanceReceipt1Document}
+                    />
+                  </div>
+                  {/* Month 2 — optional */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex-shrink-0">
+                        2
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        Month 2{" "}
+                        <span className="text-slate-400 font-normal">
+                          (Optional)
+                        </span>
+                      </span>
+                    </div>
+                    <FileUpload
+                      label=""
+                      documentType="MAINTENANCE_RECEIPT_2"
+                      disabled={fileDisabled}
+                      onFileSelected={(file) =>
+                        setFiles((prev) => ({
+                          ...prev,
+                          receipt2File: file ?? undefined,
+                        }))
+                      }
+                      selectedFile={files.receipt2File}
+                    />
+                  </div>
+                  {/* Month 3 — optional */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex-shrink-0">
+                        3
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        Month 3{" "}
+                        <span className="text-slate-400 font-normal">
+                          (Optional)
+                        </span>
+                      </span>
+                    </div>
+                    <FileUpload
+                      label=""
+                      documentType="MAINTENANCE_RECEIPT_3"
+                      disabled={fileDisabled}
+                      onFileSelected={(file) =>
+                        setFiles((prev) => ({
+                          ...prev,
+                          receipt3File: file ?? undefined,
+                        }))
+                      }
+                      selectedFile={files.receipt3File}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -784,14 +891,14 @@ export default function ShareCertificatePage() {
               disabled={!isFormValid() || submitting}
               className="sm:w-auto"
             >
-              {submitting ? "Submitting..." : "Submit Application"}
+              {submitting ? "Uploading & Submitting..." : "Submit Application"}
             </Button>
           </div>
         </form>
       </div>
 
-      {/* Toast Notification */}
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
+      <Footer />
     </div>
   );
 }

@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getSocietyUser } from "@/lib/auth";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/forms/FileUpload";
-import { nocRequestAPI } from "@/lib/api";
-import { DocumentMetadata, NocType } from "@/lib/types";
+import { nocRequestAPI, uploadAPI } from "@/lib/api";
+import { NocType } from "@/lib/types";
 import { CheckCircle, Download, Info } from "lucide-react";
 import { InlineLoader } from "@/components/ui/Loader";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { theme } from "@/lib/theme";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { ToastType } from "@/components/ui/Toast";
@@ -47,18 +49,28 @@ export default function NocRequestPage() {
     declarationAccepted: false,
   });
 
-  const [documents, setDocuments] = useState<{
-    // Flat Transfer documents
-    agreementDocument?: DocumentMetadata;
-    shareCertificateDocument?: DocumentMetadata;
-    maintenanceReceiptDocument?: DocumentMetadata;
-    buyerAadhaarDocument?: DocumentMetadata;
-    buyerPanDocument?: DocumentMetadata;
-    // Other type documents
-    identityProofDocument?: DocumentMetadata;
-    currentElectricityBillDocument?: DocumentMetadata;
-    supportingDocuments?: DocumentMetadata;
+  const [nocFiles, setNocFiles] = useState<{
+    agreementFile?: File;
+    shareCertificateFile?: File;
+    maintenanceReceipt1File?: File;
+    maintenanceReceipt2File?: File;
+    maintenanceReceipt3File?: File;
+    buyerAadhaarFile?: File;
+    buyerPanFile?: File;
+    identityProofFile?: File;
+    currentElectricityBillFile?: File;
+    supportingDocsFile?: File;
   }>({});
+
+  const docFieldToFileKey: Record<string, keyof typeof nocFiles> = {
+    agreementDocument: "agreementFile",
+    shareCertificateDocument: "shareCertificateFile",
+    maintenanceReceiptDocument: "maintenanceReceipt1File",
+    buyerAadhaarDocument: "buyerAadhaarFile",
+    identityProofDocument: "identityProofFile",
+    currentElectricityBillDocument: "currentElectricityBillFile",
+    supportingDocuments: "supportingDocsFile",
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -74,6 +86,30 @@ export default function NocRequestPage() {
     message: string;
     type: ToastType;
   } | null>(null);
+
+  // Auth guard — redirect to society app if no valid session
+  useEffect(() => {
+    if (getSocietyUser()) return;
+    const base =
+      process.env.NEXT_PUBLIC_SOCIETY_APP_URL ?? "http://localhost:3002";
+    window.location.href = `${base}/documents?returnUrl=/noc-request`;
+  }, []);
+
+  // Pre-fill from society management SSO session
+  useEffect(() => {
+    const user = getSocietyUser();
+    if (!user) return;
+    const mobile = user.phone?.replace(/^\+?91/, "") ?? "";
+    setFormData((prev) => ({
+      ...prev,
+      sellerName: prev.sellerName || user.fullName || "",
+      sellerEmail: prev.sellerEmail || user.email || "",
+      sellerMobileNumber:
+        prev.sellerMobileNumber || (/^[6-9]\d{9}$/.test(mobile) ? mobile : ""),
+      flatNumber: prev.flatNumber || user.unitNumber || "",
+      wing: prev.wing || (user.wing as "C" | "D" | "") || "",
+    }));
+  }, []);
 
   // Computed values based on selected NOC type
   const currentTypeConfig = formData.nocType
@@ -255,7 +291,8 @@ export default function NocRequestPage() {
     // Type-specific document validation
     if (currentTypeConfig) {
       currentTypeConfig.requiredDocuments.forEach((docField) => {
-        if (!documents[docField as keyof typeof documents]?.fileName) {
+        const fileKey = docFieldToFileKey[docField];
+        if (!fileKey || !nocFiles[fileKey]) {
           newErrors[docField] = `${getDocumentLabel(docField)} is required`;
         }
       });
@@ -325,9 +362,8 @@ export default function NocRequestPage() {
     // Type-specific document validation
     if (currentTypeConfig) {
       for (const docField of currentTypeConfig.requiredDocuments) {
-        if (!documents[docField as keyof typeof documents]?.fileName) {
-          return false;
-        }
+        const fileKey = docFieldToFileKey[docField];
+        if (!fileKey || !nocFiles[fileKey]) return false;
       }
     }
 
@@ -336,6 +372,16 @@ export default function NocRequestPage() {
     if (!formData.declarationAccepted) return false;
 
     return true;
+  };
+
+  const uploadNocFile = async (file: File, documentType: string) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("flatNumber", formData.flatNumber);
+    fd.append("documentType", documentType);
+    fd.append("fullName", formData.sellerName);
+    const response = await uploadAPI.upload(fd);
+    return response.data.data || response.data;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -348,9 +394,74 @@ export default function NocRequestPage() {
     setSubmitting(true);
 
     try {
+      const [
+        agreementMeta,
+        shareCertMeta,
+        receipt1Meta,
+        receipt2Meta,
+        receipt3Meta,
+        buyerAadhaarMeta,
+        buyerPanMeta,
+        identityProofMeta,
+        electricityBillMeta,
+        supportingDocsMeta,
+      ] = await Promise.all([
+        nocFiles.agreementFile
+          ? uploadNocFile(nocFiles.agreementFile, "agreement")
+          : Promise.resolve(undefined),
+        nocFiles.shareCertificateFile
+          ? uploadNocFile(nocFiles.shareCertificateFile, "share-certificate")
+          : Promise.resolve(undefined),
+        nocFiles.maintenanceReceipt1File
+          ? uploadNocFile(
+              nocFiles.maintenanceReceipt1File,
+              "maintenance-receipt"
+            )
+          : Promise.resolve(undefined),
+        nocFiles.maintenanceReceipt2File
+          ? uploadNocFile(
+              nocFiles.maintenanceReceipt2File,
+              "maintenance-receipt-2"
+            )
+          : Promise.resolve(undefined),
+        nocFiles.maintenanceReceipt3File
+          ? uploadNocFile(
+              nocFiles.maintenanceReceipt3File,
+              "maintenance-receipt-3"
+            )
+          : Promise.resolve(undefined),
+        nocFiles.buyerAadhaarFile
+          ? uploadNocFile(nocFiles.buyerAadhaarFile, "buyer-aadhaar")
+          : Promise.resolve(undefined),
+        nocFiles.buyerPanFile
+          ? uploadNocFile(nocFiles.buyerPanFile, "buyer-pan")
+          : Promise.resolve(undefined),
+        nocFiles.identityProofFile
+          ? uploadNocFile(nocFiles.identityProofFile, "identity-proof")
+          : Promise.resolve(undefined),
+        nocFiles.currentElectricityBillFile
+          ? uploadNocFile(
+              nocFiles.currentElectricityBillFile,
+              "electricity-bill"
+            )
+          : Promise.resolve(undefined),
+        nocFiles.supportingDocsFile
+          ? uploadNocFile(nocFiles.supportingDocsFile, "supporting-docs")
+          : Promise.resolve(undefined),
+      ]);
+
       const submissionData = {
         ...formData,
-        ...documents,
+        agreementDocument: agreementMeta,
+        shareCertificateDocument: shareCertMeta,
+        maintenanceReceiptDocument: receipt1Meta,
+        maintenanceReceipt2Document: receipt2Meta,
+        maintenanceReceipt3Document: receipt3Meta,
+        buyerAadhaarDocument: buyerAadhaarMeta,
+        buyerPanDocument: buyerPanMeta,
+        identityProofDocument: identityProofMeta,
+        currentElectricityBillDocument: electricityBillMeta,
+        supportingDocuments: supportingDocsMeta,
       };
 
       const response = await nocRequestAPI.create(submissionData);
@@ -399,7 +510,7 @@ export default function NocRequestPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#F8FAFC] py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
             <div
@@ -501,15 +612,15 @@ export default function NocRequestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <Header />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">
             NOC Request & Flat Transfer
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm text-slate-500 mt-0.5">
             Submit your No Objection Certificate request for flat ownership
             transfer
           </p>
@@ -716,73 +827,66 @@ export default function NocRequestPage() {
                       <FileUpload
                         label="Agreement Copy / Allotment Letter"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="agreement"
-                        fullName={formData.sellerName}
-                        value={documents.agreementDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            agreementDocument: metadata,
-                          }))
-                        }
+                            agreementFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.agreementDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.agreementFile}
                         error={errors.agreementDocument}
                       />
                       <FileUpload
                         label="Share Certificate Copy (if issued)"
-                        flatNumber={formData.flatNumber}
                         documentType="share-certificate"
-                        fullName={formData.sellerName}
-                        value={documents.shareCertificateDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) =>
+                          setNocFiles((prev) => ({
                             ...prev,
-                            shareCertificateDocument: metadata,
+                            shareCertificateFile: file ?? undefined,
                           }))
                         }
-                      />
-                      <FileUpload
-                        label="Latest Maintenance Receipt (no dues)"
-                        required
-                        flatNumber={formData.flatNumber}
-                        documentType="maintenance-receipt"
-                        fullName={formData.sellerName}
-                        value={documents.maintenanceReceiptDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
-                            ...prev,
-                            maintenanceReceiptDocument: metadata,
-                          }))
-                        }
-                        error={errors.maintenanceReceiptDocument}
+                        selectedFile={nocFiles.shareCertificateFile}
                       />
                       <FileUpload
                         label="Buyer Aadhaar Card"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="buyer-aadhaar"
-                        fullName={formData.buyerName}
-                        value={documents.buyerAadhaarDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.buyerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            buyerAadhaarDocument: metadata,
-                          }))
-                        }
+                            buyerAadhaarFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.buyerAadhaarDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.buyerAadhaarFile}
                         error={errors.buyerAadhaarDocument}
                       />
                       <FileUpload
                         label="Buyer PAN Card (optional)"
-                        flatNumber={formData.flatNumber}
                         documentType="buyer-pan"
-                        fullName={formData.buyerName}
-                        value={documents.buyerPanDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.buyerName}
+                        onFileSelected={(file) =>
+                          setNocFiles((prev) => ({
                             ...prev,
-                            buyerPanDocument: metadata,
+                            buyerPanFile: file ?? undefined,
                           }))
                         }
+                        selectedFile={nocFiles.buyerPanFile}
                       />
                     </>
                   )}
@@ -793,31 +897,41 @@ export default function NocRequestPage() {
                       <FileUpload
                         label="Identity Proof (Aadhaar)"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="identity-proof"
-                        fullName={formData.sellerName}
-                        value={documents.identityProofDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            identityProofDocument: metadata,
-                          }))
-                        }
+                            identityProofFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.identityProofDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.identityProofFile}
                         error={errors.identityProofDocument}
                       />
                       <FileUpload
                         label="Share Certificate"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="share-certificate"
-                        fullName={formData.sellerName}
-                        value={documents.shareCertificateDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            shareCertificateDocument: metadata,
-                          }))
-                        }
+                            shareCertificateFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.shareCertificateDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.shareCertificateFile}
                         error={errors.shareCertificateDocument}
                       />
                     </>
@@ -829,46 +943,61 @@ export default function NocRequestPage() {
                       <FileUpload
                         label="Current Electricity Bill"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="electricity-bill"
-                        fullName={formData.sellerName}
-                        value={documents.currentElectricityBillDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            currentElectricityBillDocument: metadata,
-                          }))
-                        }
+                            currentElectricityBillFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.currentElectricityBillDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.currentElectricityBillFile}
                         error={errors.currentElectricityBillDocument}
                       />
                       <FileUpload
                         label="Identity Proof (Aadhaar)"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="identity-proof"
-                        fullName={formData.sellerName}
-                        value={documents.identityProofDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            identityProofDocument: metadata,
-                          }))
-                        }
+                            identityProofFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.identityProofDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.identityProofFile}
                         error={errors.identityProofDocument}
                       />
                       <FileUpload
                         label="Share Certificate"
                         required
-                        flatNumber={formData.flatNumber}
-                        documentType="share-certificate"
-                        fullName={formData.sellerName}
-                        value={documents.shareCertificateDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        documentType="share-certificate-mseb"
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            shareCertificateDocument: metadata,
-                          }))
-                        }
+                            shareCertificateFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.shareCertificateDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.shareCertificateFile}
                         error={errors.shareCertificateDocument}
                       />
                     </>
@@ -878,67 +1007,189 @@ export default function NocRequestPage() {
                   {formData.nocType === "Other Purpose" && (
                     <>
                       <FileUpload
-                        label="Maintenance Receipt"
-                        required
-                        flatNumber={formData.flatNumber}
-                        documentType="maintenance-receipt"
-                        fullName={formData.sellerName}
-                        value={documents.maintenanceReceiptDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
-                            ...prev,
-                            maintenanceReceiptDocument: metadata,
-                          }))
-                        }
-                        error={errors.maintenanceReceiptDocument}
-                      />
-                      <FileUpload
                         label="Share Certificate"
                         required
-                        flatNumber={formData.flatNumber}
-                        documentType="share-certificate"
-                        fullName={formData.sellerName}
-                        value={documents.shareCertificateDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        documentType="share-certificate-other"
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            shareCertificateDocument: metadata,
-                          }))
-                        }
+                            shareCertificateFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.shareCertificateDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.shareCertificateFile}
                         error={errors.shareCertificateDocument}
                       />
                       <FileUpload
                         label="Supporting Documents"
                         required
-                        flatNumber={formData.flatNumber}
                         documentType="supporting-docs"
-                        fullName={formData.sellerName}
-                        value={documents.supportingDocuments}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            supportingDocuments: metadata,
-                          }))
-                        }
+                            supportingDocsFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.supportingDocuments;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.supportingDocsFile}
                         error={errors.supportingDocuments}
                       />
                       <FileUpload
                         label="Identity Proof (Aadhaar)"
                         required
-                        flatNumber={formData.flatNumber}
-                        documentType="identity-proof"
-                        fullName={formData.sellerName}
-                        value={documents.identityProofDocument}
-                        onUploadSuccess={(metadata) =>
-                          setDocuments((prev) => ({
+                        documentType="identity-proof-other"
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
                             ...prev,
-                            identityProofDocument: metadata,
-                          }))
-                        }
+                            identityProofFile: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.identityProofDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.identityProofFile}
                         error={errors.identityProofDocument}
                       />
                     </>
                   )}
+                </div>
+
+                {/* Last 3 Months Maintenance Receipts — shown for all NOC types */}
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <div className="flex items-start gap-3 mb-5">
+                    <div className="h-9 w-9 bg-green-50 border border-green-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-[#175a00]">
+                        3
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">
+                        Last 3 Months Maintenance Receipts
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Upload paid maintenance receipts for the last 3 months
+                        {currentTypeConfig?.requiredDocuments.includes(
+                          "maintenanceReceiptDocument"
+                        )
+                          ? " — at least Month 1 is required"
+                          : " (all optional)"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Month 1 */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center justify-center h-5 w-5 rounded-full text-xs font-bold flex-shrink-0 ${
+                            currentTypeConfig?.requiredDocuments.includes(
+                              "maintenanceReceiptDocument"
+                            )
+                              ? "bg-[#175a00] text-white"
+                              : "bg-slate-200 text-slate-600"
+                          }`}
+                        >
+                          1
+                        </span>
+                        <span className="text-xs font-semibold text-slate-700">
+                          Month 1{" "}
+                          {currentTypeConfig?.requiredDocuments.includes(
+                            "maintenanceReceiptDocument"
+                          ) && <span className="text-red-500">*</span>}
+                        </span>
+                      </div>
+                      <FileUpload
+                        label=""
+                        required={currentTypeConfig?.requiredDocuments.includes(
+                          "maintenanceReceiptDocument"
+                        )}
+                        documentType="maintenance-receipt"
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) => {
+                          setNocFiles((prev) => ({
+                            ...prev,
+                            maintenanceReceipt1File: file ?? undefined,
+                          }));
+                          if (file)
+                            setErrors((prev) => {
+                              const e = { ...prev };
+                              delete e.maintenanceReceiptDocument;
+                              return e;
+                            });
+                        }}
+                        selectedFile={nocFiles.maintenanceReceipt1File}
+                        error={errors.maintenanceReceiptDocument}
+                      />
+                    </div>
+                    {/* Month 2 */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex-shrink-0">
+                          2
+                        </span>
+                        <span className="text-xs font-semibold text-slate-500">
+                          Month 2{" "}
+                          <span className="text-slate-400 font-normal">
+                            (Optional)
+                          </span>
+                        </span>
+                      </div>
+                      <FileUpload
+                        label=""
+                        documentType="maintenance-receipt-2"
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) =>
+                          setNocFiles((prev) => ({
+                            ...prev,
+                            maintenanceReceipt2File: file ?? undefined,
+                          }))
+                        }
+                        selectedFile={nocFiles.maintenanceReceipt2File}
+                      />
+                    </div>
+                    {/* Month 3 */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex-shrink-0">
+                          3
+                        </span>
+                        <span className="text-xs font-semibold text-slate-500">
+                          Month 3{" "}
+                          <span className="text-slate-400 font-normal">
+                            (Optional)
+                          </span>
+                        </span>
+                      </div>
+                      <FileUpload
+                        label=""
+                        documentType="maintenance-receipt-3"
+                        disabled={!formData.flatNumber || !formData.sellerName}
+                        onFileSelected={(file) =>
+                          setNocFiles((prev) => ({
+                            ...prev,
+                            maintenanceReceipt3File: file ?? undefined,
+                          }))
+                        }
+                        selectedFile={nocFiles.maintenanceReceipt3File}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1065,8 +1316,8 @@ export default function NocRequestPage() {
         </form>
       </div>
 
-      {/* Toast Notification */}
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
+      <Footer />
     </div>
   );
 }

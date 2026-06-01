@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --primary: #175a00;
+  --primary-foreground: #ffffff;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --radius: 0.75rem;
 }
 
 @theme inline {
@@ -12,19 +23,36 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Toast animations */
 @keyframes slide-in-right {
   from {
     transform: translateX(100%);
@@ -45,6 +73,7 @@ body {
   }
 }
 
+/* Building animations for loader */
 @keyframes building-grow {
   0% {
     transform: scaleY(0);
@@ -83,6 +112,18 @@ body {
   }
 }
 
+/* Fade in up for page transitions */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
 }
@@ -97,6 +138,10 @@ body {
 
 .animate-building-grow-delayed {
   animation: building-grow-delayed 1.2s ease-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
 }
 
 .animate-window-1 {

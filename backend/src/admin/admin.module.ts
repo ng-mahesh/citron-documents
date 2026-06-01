@@ -1,35 +1,19 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { Admin, AdminSchema } from './schemas/admin.schema';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { ShareCertificateModule } from '../share-certificate/share-certificate.module';
 import { NominationModule } from '../nomination/nomination.module';
 import { NocRequestModule } from '../noc-request/noc-request.module';
 import { EmailModule } from '../email/email.module';
 import { UploadModule } from '../upload/upload.module';
+import { SharedAuthModule } from '../shared-auth/shared-auth.module';
 
-/**
- * Module for admin authentication and management
- */
 @Module({
   imports: [
+    SharedAuthModule,
     MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
-        },
-      }),
-      inject: [ConfigService],
-    }),
     ShareCertificateModule,
     NominationModule,
     NocRequestModule,
@@ -37,7 +21,7 @@ import { UploadModule } from '../upload/upload.module';
     UploadModule,
   ],
   controllers: [AdminController],
-  providers: [AdminService, JwtStrategy],
+  providers: [AdminService],
   exports: [AdminService],
 })
 export class AdminModule {}

@@ -90,7 +90,7 @@ export const NOC_TYPE_OPTIONS = Object.values(NOC_TYPE_CONFIGS).map(
 export const getDocumentLabel = (docField: string): string => {
   const labels: Record<string, string> = {
     agreementDocument: "Agreement Copy / Allotment Letter",
-    maintenanceReceiptDocument: "Latest Maintenance Receipt (no dues)",
+    maintenanceReceiptDocument: "Month 1 Maintenance Receipt",
     buyerAadhaarDocument: "Buyer Aadhaar Card",
     shareCertificateDocument: "Share Certificate Copy",
     buyerPanDocument: "Buyer PAN Card (optional)",

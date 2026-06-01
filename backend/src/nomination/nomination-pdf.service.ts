@@ -332,7 +332,7 @@ export class NominationPdfService {
     const enclosures: Array<{ name: string; submitted: boolean }> = [
       { name: 'Index II Document', submitted: !!nomination.index2Document },
       { name: 'Possession Letter', submitted: !!nomination.possessionLetterDocument },
-      { name: 'Primary Member Aadhaar Card', submitted: !!(nomination as any).aadhaarCardDocument },
+      { name: 'Primary Member Aadhaar Card', submitted: !!nomination.aadhaarCardDocument },
     ];
 
     if (nomination.jointMemberAadhaar) {

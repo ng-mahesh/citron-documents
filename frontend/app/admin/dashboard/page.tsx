@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import {
   adminAPI,
@@ -34,6 +33,7 @@ import {
   Home,
   Filter,
 } from "lucide-react";
+import { Footer } from "@/components/layout/Footer";
 import { theme } from "@/lib/theme";
 import { Loader } from "@/components/ui/Loader";
 import { ToastContainer } from "@/components/ui/Toast";
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
+    const token = localStorage.getItem("citron_society_token");
     if (!token) {
       router.push("/admin/login");
       return;
@@ -133,8 +133,8 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    router.push("/admin/login");
+    localStorage.removeItem("citron_society_token");
+    window.location.href = "/admin/login";
   };
 
   const handleExport = async (
@@ -373,27 +373,29 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <Loader size="lg" message="Loading dashboard..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
-          <div className="flex justify-between items-center">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-[#175a00] to-[#185900] rounded-xl flex items-center justify-center shadow-lg shadow-green-200">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <div className="h-9 w-9 bg-gradient-to-br from-[#175a00] to-[#185900] rounded-xl flex items-center justify-center shadow-md shadow-green-200">
+                <FileText className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-[#175a00]">
+                <p className="text-sm font-bold text-slate-900 leading-tight">
                   Admin Dashboard
-                </h1>
-                <p className="text-xs text-slate-500">Citron Documents App</p>
+                </p>
+                <p className="text-xs text-slate-500 leading-tight">
+                  Citron Documents App
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -401,18 +403,18 @@ export default function AdminDashboard() {
                 onClick={() => router.push("/")}
                 variant="outline"
                 size="sm"
-                className="gap-2 text-xs sm:text-sm"
+                className="gap-1.5 text-xs sm:text-sm"
               >
-                <Home className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Home className="h-3.5 w-3.5" />
                 Home
               </Button>
               <Button
                 onClick={handleLogout}
                 variant="outline"
                 size="sm"
-                className="gap-2 text-xs sm:text-sm"
+                className="gap-1.5 text-xs sm:text-sm"
               >
-                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                <LogOut className="h-3.5 w-3.5" />
                 Logout
               </Button>
             </div>
@@ -420,141 +422,118 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex flex-col items-center text-center">
-              <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
-              >
-                <FileText className="h-7 w-7 text-white" />
-              </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">
-                Total Certificates
-              </p>
-              <p className="text-3xl font-bold text-slate-900">
-                {stats?.shareCertificates.total || 0}
-              </p>
-            </div>
-          </div>
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Page heading */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-slate-900">Overview</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            All applications at a glance
+          </p>
+        </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex flex-col items-center text-center">
+        {/* Stats Grid — horizontal cards like society app */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
+          {[
+            {
+              label: "Total Certificates",
+              value: stats?.shareCertificates.total || 0,
+              icon: <FileText className="h-6 w-6 text-white" />,
+              bg: theme.iconBg.primary,
+              shadow: theme.colors.shadows.primary,
+            },
+            {
+              label: "Total Nominations",
+              value: stats?.nominations.total || 0,
+              icon: <Users className="h-6 w-6 text-white" />,
+              bg: theme.iconBg.primary,
+              shadow: theme.colors.shadows.primary,
+            },
+            {
+              label: "NOC Requests",
+              value: stats?.nocRequests?.total || 0,
+              icon: <FileSignature className="h-6 w-6 text-white" />,
+              bg: theme.iconBg.green,
+              shadow: theme.colors.shadows.primary,
+            },
+            {
+              label: "Approved",
+              value:
+                (stats?.shareCertificates.approved || 0) +
+                (stats?.nominations.approved || 0) +
+                (stats?.nocRequests?.approved || 0),
+              icon: <CheckCircle className="h-6 w-6 text-white" />,
+              bg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+              shadow: "shadow-emerald-200",
+            },
+            {
+              label: "Pending Review",
+              value:
+                (stats?.shareCertificates.pending || 0) +
+                (stats?.nominations.pending || 0) +
+                (stats?.nocRequests?.pending || 0),
+              icon: <Clock className="h-6 w-6 text-white" />,
+              bg: theme.iconBg.amber,
+              shadow: "shadow-amber-200",
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 py-5 flex items-center gap-4"
+            >
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
+                className={`h-12 w-12 ${stat.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${stat.shadow}`}
               >
-                <Users className="h-7 w-7 text-white" />
+                {stat.icon}
               </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">
-                Total Nominations
-              </p>
-              <p className="text-3xl font-bold text-slate-900">
-                {stats?.nominations.total || 0}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex flex-col items-center text-center">
-              <div
-                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
-              >
-                <FileSignature className="h-7 w-7 text-white" />
+              <div>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {stat.value}
+                </p>
               </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">
-                Total NOC Requests
-              </p>
-              <p className="text-3xl font-bold text-slate-900">
-                {stats?.nocRequests?.total || 0}
-              </p>
             </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex flex-col items-center text-center">
-              <div
-                className={`h-14 w-14 ${theme.iconBg.green} rounded-xl flex items-center justify-center shadow-lg ${theme.colors.shadows.primary} mb-3`}
-              >
-                <CheckCircle className="h-7 w-7 text-white" />
-              </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">
-                Approved
-              </p>
-              <p className="text-3xl font-bold text-slate-900">
-                {(stats?.shareCertificates.approved || 0) +
-                  (stats?.nominations.approved || 0) +
-                  (stats?.nocRequests?.approved || 0)}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex flex-col items-center text-center">
-              <div
-                className={`h-14 w-14 ${theme.iconBg.amber} rounded-xl flex items-center justify-center shadow-lg shadow-amber-200 mb-3`}
-              >
-                <Clock className="h-7 w-7 text-white" />
-              </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">
-                Pending
-              </p>
-              <p className="text-3xl font-bold text-slate-900">
-                {(stats?.shareCertificates.pending || 0) +
-                  (stats?.nominations.pending || 0) +
-                  (stats?.nocRequests?.pending || 0)}
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
-            <nav className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => setActiveTab("certificates")}
-                className={`${
-                  activeTab === "certificates"
-                    ? `${theme.button.primary.bg} text-white shadow-md`
-                    : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
-              >
-                Share Certificates ({shareCertificates.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("nominations")}
-                className={`${
-                  activeTab === "nominations"
-                    ? `${theme.button.primary.bg} text-white shadow-md`
-                    : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
-              >
-                Nominations ({nominations.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("noc-requests")}
-                className={`${
-                  activeTab === "noc-requests"
-                    ? `${theme.button.primary.bg} text-white shadow-md`
-                    : "text-slate-600 hover:bg-slate-100"
-                } px-6 py-3 rounded-xl font-semibold text-sm transition-all w-full sm:w-auto`}
-              >
-                NOC Requests ({nocRequests.length})
-              </button>
-            </nav>
-            <Button
-              onClick={() => handleExport(activeTab)}
-              variant="outline"
-              size="sm"
-              isLoading={exporting}
-              disabled={exporting}
-              className="gap-2 w-full sm:w-auto justify-center"
-            >
-              {!exporting && <Download className="h-4 w-4" />}
-              {exporting ? "Exporting..." : "Export to Excel"}
-            </Button>
+        <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-slate-100 rounded-xl p-1 flex gap-1">
+            {(["certificates", "nominations", "noc-requests"] as const).map(
+              (tab) => {
+                const labels: Record<string, string> = {
+                  certificates: `Certificates (${shareCertificates.length})`,
+                  nominations: `Nominations (${nominations.length})`,
+                  "noc-requests": `NOC Requests (${nocRequests.length})`,
+                };
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                      activeTab === tab
+                        ? "bg-white shadow-sm text-slate-900"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {labels[tab]}
+                  </button>
+                );
+              }
+            )}
           </div>
+          <Button
+            onClick={() => handleExport(activeTab)}
+            variant="outline"
+            size="sm"
+            isLoading={exporting}
+            disabled={exporting}
+            className="gap-2 shrink-0"
+          >
+            {!exporting && <Download className="h-4 w-4" />}
+            {exporting ? "Exporting..." : "Export to Excel"}
+          </Button>
         </div>
 
         {/* Share Certificates Table */}
@@ -611,6 +590,9 @@ export default function AdminDashboard() {
                       Email
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Resale
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -637,6 +619,19 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
                           <div className="truncate">{cert.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {cert.isResaleProperty ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                              Resale
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                              Original
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(cert.status!)}
@@ -674,7 +669,7 @@ export default function AdminDashboard() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-6 py-8 text-center text-slate-500"
                       >
                         No certificates found matching your search.
@@ -797,6 +792,9 @@ export default function AdminDashboard() {
                       Nominees
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Resale
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -838,6 +836,19 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
+                          {nom.isResaleProperty ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                              Resale
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                              Original
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(nom.status!)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -875,7 +886,7 @@ export default function AdminDashboard() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="px-6 py-8 text-center text-slate-500"
                       >
                         No nominations found matching your search.
@@ -1149,29 +1160,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="mt-12 py-8 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm text-slate-600">
-            © 2026 Citron Documents App. All rights reserved.
-          </p>
-          <div className="mt-2 flex items-center justify-center gap-6 text-sm">
-            <Link
-              href="/privacy"
-              className="text-slate-600 hover:text-[#175a00] transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <span className="text-slate-300">|</span>
-            <Link
-              href="/terms"
-              className="text-slate-600 hover:text-[#175a00] transition-colors"
-            >
-              Terms of Service
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Document Viewer Popup */}
       {documentPopup && documentPopup.isOpen && (

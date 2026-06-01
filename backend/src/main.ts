@@ -14,12 +14,20 @@ async function bootstrap() {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
-    // Enable CORS for frontend communication
-    // Remove trailing slash if present to ensure exact match
-    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    // Allow citron frontend + society management frontend/PWA
+    const allowedOrigins = [
+      process.env.FRONTEND_URL, // citron frontend (documents.citronsociety.in)
+      process.env.SOCIETY_FRONTEND_URL, // society management web (citronsociety.in)
+      process.env.SOCIETY_PWA_URL, // society management PWA (same origin or separate)
+      'http://localhost:3000', // society frontend dev
+      'http://localhost:3002', // society PWA dev
+      'http://localhost:4001', // citron frontend dev
+    ]
+      .filter(Boolean)
+      .map((u) => (u as string).replace(/\/$/, ''));
 
     app.enableCors({
-      origin: frontendUrl,
+      origin: allowedOrigins,
       credentials: true,
     });
 
