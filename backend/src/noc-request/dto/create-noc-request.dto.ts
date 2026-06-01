@@ -139,6 +139,18 @@ export class CreateNocRequestDto {
   @IsNotEmpty({ message: 'Supporting documents are required for Other type' })
   supportingDocuments?: UploadedDocument;
 
+  @IsObject()
+  @IsOptional()
+  maintenanceReceipt2Document?: UploadedDocument;
+
+  @IsObject()
+  @IsOptional()
+  maintenanceReceipt3Document?: UploadedDocument;
+
+  @IsBoolean()
+  @IsOptional()
+  isResaleProperty?: boolean;
+
   // Digital Signature & Declaration
   @IsString()
   @IsNotEmpty()

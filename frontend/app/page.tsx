@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { ShareCertificateRegistrationModal } from "@/components/modals/ShareCertificateRegistrationModal";
 import { theme } from "@/lib/theme";
 import {
@@ -18,10 +19,10 @@ import {
   Clock,
   FileCheck,
   Shield,
+  ArrowRight,
 } from "lucide-react";
 import React from "react";
 
-// ─── Feature statuses (resolved at runtime from env vars) ──────────────────
 const shareCertStatus: FeatureStatus = getFeatureStatus(
   process.env.NEXT_PUBLIC_FEATURE_SHARE_CERT,
   process.env.NEXT_PUBLIC_FEATURE_SHARE_CERT_DEADLINE
@@ -37,26 +38,24 @@ const nocRequestStatus: FeatureStatus = getFeatureStatus(
   process.env.NEXT_PUBLIC_FEATURE_NOC_REQUEST_DEADLINE
 );
 
-// ─── Reusable disabled tile badge ──────────────────────────────────────────
 function StatusBadge({ status }: { status: FeatureStatus }) {
   if (status === "deadline-closed") {
     return (
-      <div className="absolute top-4 right-4 bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
-        Registration Closed
-      </div>
+      <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+        Closed
+      </span>
     );
   }
   if (status === "coming-soon") {
     return (
-      <div className="absolute top-4 right-4 bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
-        Announcing Soon
-      </div>
+      <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+        Coming Soon
+      </span>
     );
   }
   return null;
 }
 
-// ─── Tile helpers ──────────────────────────────────────────────────────────
 interface TileProps {
   href: string;
   icon: React.ReactNode;
@@ -80,19 +79,18 @@ function FeatureTile({
 
   if (status !== "enabled") {
     return (
-      <div className="h-full cursor-not-allowed">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left opacity-50 pointer-events-none relative">
+      <div className="cursor-not-allowed h-full">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 h-full flex flex-col opacity-50 pointer-events-none relative">
           <StatusBadge status={status} />
-          <div className="h-14 w-14 bg-slate-400 rounded-xl flex items-center justify-center mb-5">
+          <div className="h-12 w-12 bg-slate-200 rounded-xl flex items-center justify-center mb-4">
             {icon}
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
-          <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+          <h3 className="text-base font-bold text-slate-900 mb-2">{title}</h3>
+          <p className="text-slate-500 text-sm leading-relaxed flex-grow">
             {description}
           </p>
-          <div className="flex items-center text-slate-500 font-medium text-sm">
-            {cta}
-            <span className="inline-block">→</span>
+          <div className="flex items-center gap-1 text-slate-400 font-medium text-sm mt-5">
+            {cta} <ArrowRight className="h-4 w-4" />
           </div>
         </div>
       </div>
@@ -102,75 +100,120 @@ function FeatureTile({
   return (
     <Link href={href} className="group h-full">
       <div
-        className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left relative`}
+        className={`bg-white rounded-2xl p-6 border border-slate-200 hover:border-green-300 hover:shadow-lg transition-all duration-200 h-full flex flex-col relative`}
       >
         {deadlineLabel && (
-          <div className="absolute top-4 right-4 bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">
+          <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
             Till {deadlineLabel}
-          </div>
+          </span>
         )}
         <div
-          className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+          className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-sm`}
         >
           {icon}
         </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
-        <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+        <h3 className="text-base font-bold text-slate-900 mb-2">{title}</h3>
+        <p className="text-slate-500 text-sm leading-relaxed flex-grow">
           {description}
         </p>
-        <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
-          {cta}
-          <span className="inline-block group-hover:translate-x-1 transition-transform">
-            →
-          </span>
+        <div className="flex items-center gap-1 text-[#175a00] font-semibold text-sm mt-5 group-hover:gap-2 transition-all">
+          {cta}{" "}
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
     </Link>
   );
 }
 
+const features = [
+  {
+    icon: <CheckCircle className="h-5 w-5 text-white" />,
+    title: "Quick & Simple",
+    description: "Submit applications without visiting the office",
+    color: theme.iconBg.primary,
+  },
+  {
+    icon: <Clock className="h-5 w-5 text-white" />,
+    title: "Always Available",
+    description: "Access the portal 24/7 from any device",
+    color: theme.iconBg.blue,
+  },
+  {
+    icon: <Shield className="h-5 w-5 text-white" />,
+    title: "Safe & Secure",
+    description: "Your documents are encrypted and protected",
+    color: theme.iconBg.purple,
+  },
+];
+
+const steps = [
+  {
+    n: "1",
+    title: "Fill Details",
+    desc: "Complete your application form online",
+  },
+  { n: "2", title: "Upload Files", desc: "Submit required documents securely" },
+  { n: "3", title: "Get Confirmed", desc: "Receive acknowledgement via email" },
+  { n: "4", title: "Track Progress", desc: "Monitor your application status" },
+];
+
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <ShareCertificateRegistrationModal />
       <Header />
 
-      {/* Hero Section */}
-      <section
-        className={`relative overflow-hidden ${theme.colors.background.section}`}
-      >
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 md:py-20">
+      {/* Hero */}
+      <section className="bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-14 md:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Content */}
-            <div className="text-center lg:text-left order-2 lg:order-1">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+            <div className="order-2 lg:order-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs font-semibold text-[#175a00] mb-6">
+                <div className="h-1.5 w-1.5 bg-green-500 rounded-full" />
+                Citron Phase 2 — Official Portal
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-5 leading-tight tracking-tight">
                 Manage Your Society
                 <span
-                  className={`block mt-2 bg-gradient-to-r ${theme.colors.gradients.text} bg-clip-text text-transparent`}
+                  className={`block mt-1 bg-gradient-to-r ${theme.colors.gradients.text} bg-clip-text text-transparent`}
                 >
                   Documents Online
                 </span>
               </h1>
-              <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
+              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                 Apply for share certificates, register nominations, request NOC
-                for flat transfers, and track applications—all from the comfort
-                of your home.
+                for flat transfers, and track applications — all from home.
               </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/status"
+                  className={`inline-flex items-center gap-2 px-5 h-11 ${theme.button.primary.bg} text-white font-semibold rounded-xl shadow-sm hover:shadow-md ${theme.button.primary.hover} transition-all text-sm`}
+                >
+                  <Search className="h-4 w-4" />
+                  Track Application
+                </Link>
+                <Link
+                  href="/share-certificate"
+                  className="inline-flex items-center gap-2 px-5 h-11 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-all text-sm"
+                >
+                  Apply Now
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
 
-            {/* Right Side - Logo */}
             <div className="flex justify-center items-center order-1 lg:order-2">
               <div className="relative">
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${theme.colors.background.blur} rounded-full blur-3xl opacity-20 scale-110`}
-                ></div>
-                <div className="relative h-64 w-64 sm:h-80 sm:w-80 md:h-96 md:w-96">
+                  className={`absolute inset-0 bg-gradient-to-br ${theme.colors.background.blur} rounded-full blur-3xl opacity-15 scale-110`}
+                />
+                <div className="relative h-56 w-56 sm:h-72 sm:w-72 md:h-80 md:w-80">
                   <Image
                     src="/logo.png"
                     alt="Citron Society Logo"
-                    width={384}
-                    height={384}
-                    className="rounded-3xl object-contain drop-shadow-2xl"
+                    width={320}
+                    height={320}
+                    className="rounded-3xl object-contain drop-shadow-xl"
                     priority
                   />
                 </div>
@@ -180,205 +223,122 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Main Cards */}
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Service tiles */}
+      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-slate-900">Services</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Select a service to get started
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <FeatureTile
             href="/share-certificate"
-            icon={<FileText className="h-7 w-7 text-white" />}
+            icon={<FileText className="h-6 w-6 text-white" />}
             title="Share Certificate"
             description="Apply for your share certificate with online document submission"
             cta="Apply Now"
             status={shareCertStatus}
             deadline={process.env.NEXT_PUBLIC_FEATURE_SHARE_CERT_DEADLINE}
           />
-
           <FeatureTile
             href="/nomination"
-            icon={<Users className="h-7 w-7 text-white" />}
+            icon={<Users className="h-6 w-6 text-white" />}
             title="Nomination Form"
             description="Register your nominees for share certificate inheritance"
             cta="Submit Form"
             status={nominationStatus}
             deadline={process.env.NEXT_PUBLIC_FEATURE_NOMINATION_DEADLINE}
           />
-
           <FeatureTile
             href="/noc-request"
-            icon={<FileCheck className="h-7 w-7 text-white" />}
+            icon={<FileCheck className="h-6 w-6 text-white" />}
             title="NOC Request"
             description="Request No Objection Certificate for flat transfer or sale"
             cta="Request NOC"
             status={nocRequestStatus}
             deadline={process.env.NEXT_PUBLIC_FEATURE_NOC_REQUEST_DEADLINE}
           />
-
-          {/* Track Status — always enabled */}
           <Link href="/status" className="group h-full">
-            <div
-              className={`bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 ${theme.card.borderHover} hover:shadow-xl ${theme.card.shadowHover} transition-all duration-300 h-full flex flex-col items-center sm:items-start text-center sm:text-left`}
-            >
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-green-300 hover:shadow-lg transition-all duration-200 h-full flex flex-col">
               <div
-                className={`h-14 w-14 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
+                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-sm`}
               >
-                <Search className="h-7 w-7 text-white" />
+                <Search className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">
+              <h3 className="text-base font-bold text-slate-900 mb-2">
                 Track Status
               </h3>
-              <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
-                Check real-time status of your applications
+              <p className="text-slate-500 text-sm leading-relaxed flex-grow">
+                Check real-time status of your submitted applications
               </p>
-              <div className="flex items-center text-[#175a00] font-medium text-sm group-hover:gap-2 transition-all">
-                Track Now
-                <span className="inline-block group-hover:translate-x-1 transition-transform">
-                  →
-                </span>
+              <div className="flex items-center gap-1 text-[#175a00] font-semibold text-sm mt-5 group-hover:gap-2 transition-all">
+                Track Now{" "}
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
           </Link>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="bg-slate-50 border-y border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16">
-          <h3 className="text-3xl font-bold text-slate-900 mb-12 text-center">
-            Features
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div
-                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}
-              >
-                <CheckCircle className="h-6 w-6 text-white" />
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Quick & Simple</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Submit applications without office visits
-              </p>
-            </div>
-            <div className="text-center">
-              <div
-                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}
-              >
-                <Clock className="h-6 w-6 text-white" />
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">
-                Always Available
-              </h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Access portal 24/7 from anywhere
-              </p>
-            </div>
-            <div className="text-center">
-              <div
-                className={`h-12 w-12 ${theme.iconBg.primary} rounded-xl flex items-center justify-center mx-auto mb-4`}
-              >
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Safe & Secure</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Your data is encrypted and protected
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Process Steps */}
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-20">
-        <h3 className="text-3xl font-bold text-slate-900 mb-12 text-center">
-          Simple Application Process
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="relative">
-            <div className="text-center">
-              <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
-              >
-                1
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Fill Details</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Complete your application form online
-              </p>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="text-center">
-              <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
-              >
-                2
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Upload Files</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Submit required documents securely
-              </p>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="text-center">
-              <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
-              >
-                3
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Get Confirmed</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Receive acknowledgement via email
-              </p>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="text-center">
-              <div
-                className={`h-16 w-16 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl shadow-lg ${theme.colors.shadows.primary}`}
-              >
-                4
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Track Progress</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Monitor your application status
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200">
+      {/* Features strip */}
+      <section className="bg-white border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <p className="text-sm text-slate-600 mb-2">
-              Need help? We&apos;re here for you
-            </p>
-            <p className="text-sm font-medium text-slate-900">
-              office@citronsociety.in • +91 9673639643
-            </p>
-            <div className="mt-4 flex items-center justify-center gap-6 text-sm">
-              <Link
-                href="/privacy"
-                className="text-slate-600 hover:text-[#175a00] transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <span className="text-slate-300">|</span>
-              <Link
-                href="/terms"
-                className="text-slate-600 hover:text-[#175a00] transition-colors"
-              >
-                Terms of Service
-              </Link>
-            </div>
-            <p className="mt-6 text-xs text-slate-500">
-              &copy; 2025 Citron Phase 2 C & D Co-operative Housing Society
-              Limited. All rights reserved.
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((f) => (
+              <div key={f.title} className="flex items-start gap-4">
+                <div
+                  className={`h-11 w-11 ${f.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}
+                >
+                  {f.icon}
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm mb-1">
+                    {f.title}
+                  </h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    {f.description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Process steps */}
+      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-14">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Four simple steps to complete your application
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {steps.map((step, idx) => (
+            <div key={step.n} className="relative">
+              {idx < steps.length - 1 && (
+                <div className="hidden md:block absolute top-6 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-slate-200" />
+              )}
+              <div className="text-center">
+                <div
+                  className={`h-12 w-12 bg-gradient-to-br ${theme.colors.gradients.primary} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-lg shadow-md shadow-green-200/60`}
+                >
+                  {step.n}
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm mb-1">
+                  {step.title}
+                </h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {step.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }

@@ -107,6 +107,12 @@ export class NocRequest extends Document {
   @Prop({ type: Object })
   supportingDocuments: UploadedDocument; // For Other Purpose
 
+  @Prop({ type: Object })
+  maintenanceReceipt2Document: UploadedDocument;
+
+  @Prop({ type: Object })
+  maintenanceReceipt3Document: UploadedDocument;
+
   // Payment Information
   @Prop({
     type: String,
@@ -135,6 +141,9 @@ export class NocRequest extends Document {
 
   @Prop({ type: Object })
   paymentReceiptDocument: UploadedDocument;
+
+  @Prop({ default: false })
+  isResaleProperty: boolean;
 
   // Digital Signature & Declaration
   @Prop({ required: true })

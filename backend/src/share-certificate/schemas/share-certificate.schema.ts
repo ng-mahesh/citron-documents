@@ -59,6 +59,12 @@ export class ShareCertificate extends Document {
   @Prop({ type: Object })
   aadhaarCardDocument?: UploadedDocument;
 
+  @Prop({ type: [Object], default: [] })
+  maintenanceReceiptsDocuments: UploadedDocument[];
+
+  @Prop({ default: false })
+  isResaleProperty: boolean;
+
   @Prop({ required: true })
   digitalSignature: string;
 

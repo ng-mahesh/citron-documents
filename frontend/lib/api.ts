@@ -17,7 +17,7 @@ export const uploadApi = axios.create({
 // Add token to upload requests if available
 uploadApi.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("adminToken");
+    const token = localStorage.getItem("citron_society_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,7 +28,7 @@ uploadApi.interceptors.request.use((config) => {
 // Add token to requests if available
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("adminToken");
+    const token = localStorage.getItem("citron_society_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -110,9 +110,8 @@ export const uploadAPI = {
 };
 
 export const adminAPI = {
-  login: (data: { username: string; password: string }) =>
-    api.post("/admin/login", data),
-  getProfile: () => api.get("/admin/profile"),
+  login: (username: string, password: string) =>
+    api.post("/admin/login", { username, password }),
   getDashboardStats: () => api.get("/admin/dashboard/stats"),
   sendNotification: (data: Record<string, unknown>) =>
     api.post("/admin/send-notification", data),

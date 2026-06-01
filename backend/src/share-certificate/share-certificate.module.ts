@@ -5,6 +5,7 @@ import { ShareCertificateService } from './share-certificate.service';
 import { ShareCertificatePdfService } from './share-certificate-pdf.service';
 import { ShareCertificate, ShareCertificateSchema } from './schemas/share-certificate.schema';
 import { EmailModule } from '../email/email.module';
+import { SharedAuthModule } from '../shared-auth/shared-auth.module';
 
 /**
  * Module for Share Certificate feature
@@ -13,6 +14,7 @@ import { EmailModule } from '../email/email.module';
   imports: [
     MongooseModule.forFeature([{ name: ShareCertificate.name, schema: ShareCertificateSchema }]),
     EmailModule,
+    SharedAuthModule,
   ],
   controllers: [ShareCertificateController],
   providers: [ShareCertificateService, ShareCertificatePdfService],

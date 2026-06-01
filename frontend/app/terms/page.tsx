@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import {
   FileCheck,
   Shield,
@@ -12,7 +13,7 @@ import {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -326,16 +327,8 @@ export default function TermsPage() {
             </div>
           </section>
         </div>
-
-        <div className="text-center mt-12">
-          <p className="text-sm text-slate-600 mb-2">
-            Need help? We&apos;re here for you
-          </p>
-          <p className="text-sm font-medium text-slate-900">
-            office@citronsociety.in • +91 9673639643
-          </p>
-        </div>
       </div>
+      <Footer />
     </div>
   );
 }

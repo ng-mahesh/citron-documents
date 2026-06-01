@@ -5,6 +5,7 @@ import { NominationService } from './nomination.service';
 import { NominationPdfService } from './nomination-pdf.service';
 import { Nomination, NominationSchema } from './schemas/nomination.schema';
 import { EmailModule } from '../email/email.module';
+import { SharedAuthModule } from '../shared-auth/shared-auth.module';
 
 /**
  * Module for Nomination feature
@@ -13,6 +14,7 @@ import { EmailModule } from '../email/email.module';
   imports: [
     MongooseModule.forFeature([{ name: Nomination.name, schema: NominationSchema }]),
     EmailModule,
+    SharedAuthModule,
   ],
   controllers: [NominationController],
   providers: [NominationService, NominationPdfService],

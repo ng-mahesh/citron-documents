@@ -152,6 +152,10 @@ export class CreateNominationDto {
   @ArrayMaxSize(3)
   nomineeAadhaars: UploadedDocument[];
 
+  @IsArray()
+  @IsOptional()
+  maintenanceReceiptsDocuments?: UploadedDocument[];
+
   // Witnesses
   @IsArray()
   @ArrayMinSize(2)
@@ -159,6 +163,10 @@ export class CreateNominationDto {
   @ValidateNested({ each: true })
   @Type(() => WitnessDto)
   witnesses: WitnessDto[];
+
+  @IsBoolean()
+  @IsOptional()
+  isResaleProperty?: boolean;
 
   // Declaration
   @IsBoolean()

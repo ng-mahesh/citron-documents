@@ -94,9 +94,15 @@ export class Nomination extends Document {
   @Prop({ type: [Object], required: true })
   nomineeAadhaars: UploadedDocument[];
 
+  @Prop({ type: [Object], default: [] })
+  maintenanceReceiptsDocuments: UploadedDocument[];
+
   // Witnesses (2 witnesses required)
   @Prop({ type: [Witness], required: true })
   witnesses: Witness[];
+
+  @Prop({ default: false })
+  isResaleProperty: boolean;
 
   // Declaration
   @Prop({ required: true })

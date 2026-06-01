@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/Button";
+import { Footer } from "@/components/layout/Footer";
 import { shareCertificateAPI, adminAPI, api, uploadApi } from "@/lib/api";
 import { Status } from "@/lib/types";
 import { ToastContainer, ToastType } from "@/components/ui/Toast";
@@ -48,6 +49,7 @@ export default function ShareCertificateDetailPage() {
     carpetArea?: number;
     builtUpArea?: number;
     membershipType: string;
+    isResaleProperty?: boolean;
     status: Status;
     submittedAt: string;
     updatedAt: string;
@@ -105,7 +107,7 @@ export default function ShareCertificateDetailPage() {
   const [currentIndex, setCurrentIndex] = useState(-1);
 
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
+    const token = localStorage.getItem("citron_society_token");
     if (!token) {
       router.push("/admin/login");
       return;
@@ -451,7 +453,7 @@ export default function ShareCertificateDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <Loader size="lg" message="Loading certificate details..." />
       </div>
     );
@@ -459,7 +461,7 @@ export default function ShareCertificateDetailPage() {
 
   if (!certificate) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-600">Certificate not found</p>
           <Button
@@ -474,9 +476,9 @@ export default function ShareCertificateDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
@@ -829,6 +831,24 @@ export default function ShareCertificateDetailPage() {
                       </p>
                     </div>
                   )}
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-slate-500">
+                      Resale Property
+                    </label>
+                    <div className="mt-2">
+                      {certificate.isResaleProperty ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm font-semibold">
+                          <span className="h-2 w-2 rounded-full bg-amber-500 flex-shrink-0" />
+                          Yes — Resale Property
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm font-semibold">
+                          <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                          No — Original Allotment
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1259,8 +1279,8 @@ export default function ShareCertificateDetailPage() {
         </div>
       )}
 
-      {/* Toast Notification */}
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
+      <Footer />
     </div>
   );
 }

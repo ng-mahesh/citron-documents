@@ -5,6 +5,7 @@ import { NocRequestService } from './noc-request.service';
 import { NocRequestPdfService } from './noc-request-pdf.service';
 import { NocRequest, NocRequestSchema } from './schemas/noc-request.schema';
 import { EmailModule } from '../email/email.module';
+import { SharedAuthModule } from '../shared-auth/shared-auth.module';
 
 /**
  * Module for NOC Request feature
@@ -13,6 +14,7 @@ import { EmailModule } from '../email/email.module';
   imports: [
     MongooseModule.forFeature([{ name: NocRequest.name, schema: NocRequestSchema }]),
     EmailModule,
+    SharedAuthModule,
   ],
   controllers: [NocRequestController],
   providers: [NocRequestService, NocRequestPdfService],

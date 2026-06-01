@@ -96,11 +96,19 @@ export class CreateShareCertificateDto {
   @IsNotEmpty()
   aadhaarCardDocument: UploadedDocument;
 
+  @IsArray()
+  @IsOptional()
+  maintenanceReceiptsDocuments?: UploadedDocument[];
+
   @IsString()
   @IsNotEmpty()
   @MinLength(2)
   @MaxLength(100)
   digitalSignature: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isResaleProperty?: boolean;
 
   @IsBoolean()
   @IsNotEmpty()

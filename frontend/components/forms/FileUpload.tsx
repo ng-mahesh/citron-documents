@@ -1,152 +1,161 @@
 "use client";
 
-import React, { useState } from "react";
-import { Upload, File, X, AlertCircle } from "lucide-react";
-import { uploadAPI } from "@/lib/api";
-import { DocumentMetadata } from "@/lib/types";
+import React, { useRef, useState } from "react";
+import { Upload, FileText, X, AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface FileUploadProps {
   label: string;
   required?: boolean;
-  flatNumber: string;
   documentType: string;
-  fullName: string;
-  onUploadSuccess: (metadata: DocumentMetadata) => void;
-  value?: DocumentMetadata;
+  onFileSelected: (file: File | null) => void;
+  selectedFile?: File | null;
   error?: string;
+  disabled?: boolean;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
   label,
   required = false,
-  flatNumber,
   documentType,
-  fullName,
-  onUploadSuccess,
-  value,
+  onFileSelected,
+  selectedFile,
   error,
+  disabled = false,
 }) => {
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>("");
+  const [localError, setLocalError] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size (max 2MB)
+  const validateAndSelect = (file: File) => {
     if (file.size > 2 * 1024 * 1024) {
-      setUploadError("File size must be less than 2MB");
+      setLocalError("File size must be less than 2MB");
       return;
     }
-
-    // Validate file type
     const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg"];
     if (!allowedTypes.includes(file.type)) {
-      setUploadError("Only PDF and JPEG files are allowed");
+      setLocalError("Only PDF and JPEG files are allowed");
       return;
     }
-
-    setUploadError("");
-    setUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("flatNumber", flatNumber);
-      formData.append("documentType", documentType);
-      formData.append("fullName", fullName);
-
-      const response = await uploadAPI.upload(formData);
-      // Backend returns { success, message, data }, we need the nested data object
-      const uploadedFile = response.data.data || response.data;
-      onUploadSuccess(uploadedFile);
-    } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setUploadError(
-        error.response?.data?.message || "Upload failed. Please try again."
-      );
-    } finally {
-      setUploading(false);
-    }
+    setLocalError("");
+    onFileSelected(file);
   };
 
-  const handleRemove = async () => {
-    if (!value?.s3Key) return;
-
-    try {
-      await uploadAPI.delete(value.s3Key);
-      onUploadSuccess(undefined as unknown as DocumentMetadata);
-    } catch (err) {
-      console.error("Failed to delete file:", err);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) validateAndSelect(file);
   };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (disabled) return;
+    const file = e.dataTransfer.files?.[0];
+    if (file) validateAndSelect(file);
+  };
+
+  const handleRemove = () => {
+    setLocalError("");
+    if (inputRef.current) inputRef.current.value = "";
+    onFileSelected(null);
+  };
+
+  const displayError = localError || error;
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
+      {label && (
+        <label className="block text-sm font-semibold text-slate-700 mb-2">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
 
-      {!value?.fileName ? (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
-          <input
-            type="file"
-            onChange={handleFileChange}
-            accept=".pdf,.jpg,.jpeg"
-            className="hidden"
-            id={`file-upload-${documentType}`}
-            disabled={uploading || !flatNumber || !fullName}
-          />
-          <label
-            htmlFor={`file-upload-${documentType}`}
-            className={`cursor-pointer ${uploading || !flatNumber || !fullName ? "opacity-50 cursor-not-allowed" : ""}`}
+      <input
+        ref={inputRef}
+        type="file"
+        onChange={handleFileChange}
+        accept=".pdf,.jpg,.jpeg"
+        className="hidden"
+        id={`file-upload-${documentType}`}
+        disabled={disabled}
+      />
+
+      {!selectedFile ? (
+        <label
+          htmlFor={`file-upload-${documentType}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!disabled) setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`flex flex-col items-center justify-center w-full min-h-[130px] rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+            disabled
+              ? "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60"
+              : isDragging
+                ? "border-green-500 bg-green-50"
+                : displayError
+                  ? "border-red-300 bg-red-50/30 hover:border-red-400"
+                  : "border-slate-300 bg-white hover:border-green-400 hover:bg-green-50/30"
+          }`}
+        >
+          <div
+            className={`h-10 w-10 rounded-xl flex items-center justify-center mb-2 transition-colors ${
+              disabled
+                ? "bg-slate-100"
+                : isDragging
+                  ? "bg-green-100"
+                  : "bg-slate-100 group-hover:bg-green-100"
+            }`}
           >
-            <Upload className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="mt-2 text-sm text-gray-600">
-              {uploading ? "Uploading..." : "Click to upload or drag and drop"}
-            </p>
-            <p className="mt-1 text-xs text-gray-500">PDF or JPEG (max 2MB)</p>
-          </label>
-        </div>
+            <Upload
+              className={`h-5 w-5 ${disabled ? "text-slate-400" : isDragging ? "text-green-600" : "text-slate-500"}`}
+            />
+          </div>
+          <p
+            className={`text-xs font-medium ${disabled ? "text-slate-400" : "text-slate-600"}`}
+          >
+            {disabled
+              ? "Fill required fields first"
+              : "Click to upload or drag & drop"}
+          </p>
+          <p className="text-xs text-slate-400 mt-0.5">PDF or JPEG · max 2MB</p>
+        </label>
       ) : (
-        <div className="border border-gray-300 rounded-lg p-4 flex items-center justify-between bg-gray-50">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <File className="h-8 w-8 text-blue-600 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-sm font-medium text-gray-900 truncate"
-                title={value.fileName}
-              >
-                {value.fileName}
-              </p>
-              <p className="text-xs text-gray-500">
-                {(value.fileSize / 1024).toFixed(2)} KB
-              </p>
-            </div>
+        <div
+          className={`flex items-center gap-3 w-full rounded-xl border px-4 py-3 bg-green-50 border-green-200`}
+        >
+          <div className="h-9 w-9 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <FileText className="h-5 w-5 text-green-700" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p
+              className="text-sm font-semibold text-slate-900 truncate"
+              title={selectedFile.name}
+            >
+              {selectedFile.name}
+            </p>
+            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+              <CheckCircle2 className="h-3 w-3 text-green-600" />
+              {(selectedFile.size / 1024).toFixed(0)} KB · Ready to upload
+            </p>
           </div>
           <button
             type="button"
             onClick={handleRemove}
-            className="text-red-600 hover:text-red-800 flex-shrink-0 ml-3"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors flex-shrink-0"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
-      {(uploadError || error) && (
-        <div className="mt-2 flex items-center text-sm text-red-600">
-          <AlertCircle className="h-4 w-4 mr-1" />
-          {uploadError || error}
-        </div>
-      )}
-
-      {!flatNumber || !fullName ? (
-        <p className="mt-2 text-xs text-gray-500">
-          Please fill in Flat Number and Full Name before uploading files
+      {displayError && (
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-red-600">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+          {displayError}
         </p>
-      ) : null}
+      )}
     </div>
   );
 };

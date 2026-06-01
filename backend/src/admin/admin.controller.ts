@@ -4,64 +4,37 @@ import {
   Get,
   Body,
   UseGuards,
-  Request,
   HttpCode,
   HttpStatus,
   Res,
   Query,
 } from '@nestjs/common';
-import { AdminService } from './admin.service';
 import { ShareCertificateService } from '../share-certificate/share-certificate.service';
 import { NominationService } from '../nomination/nomination.service';
 import { NocRequestService } from '../noc-request/noc-request.service';
 import { EmailService } from '../email/email.service';
 import { UploadService } from '../upload/upload.service';
+import { AdminService } from './admin.service';
 import { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { SocietyAdminGuard } from './guards/society-admin.guard';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
-/**
- * Controller for admin operations
- */
 @Controller('admin')
 export class AdminController {
   constructor(
-    private readonly adminService: AdminService,
     private readonly shareCertificateService: ShareCertificateService,
     private readonly nominationService: NominationService,
     private readonly nocRequestService: NocRequestService,
     private readonly emailService: EmailService,
     private readonly uploadService: UploadService,
+    private readonly adminService: AdminService,
   ) {}
 
-  /**
-   * Admin login
-   * POST /api/admin/login
-   */
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const result = await this.adminService.login(loginDto);
-    return {
-      success: true,
-      message: 'Login successful',
-      data: result,
-    };
-  }
-
-  /**
-   * Get admin profile
-   * GET /api/admin/profile
-   */
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  async getProfile(@Request() req) {
-    const admin = await this.adminService.findById(req.user.userId);
-    return {
-      success: true,
-      data: admin,
-    };
+    return this.adminService.login(loginDto);
   }
 
   /**
@@ -69,7 +42,7 @@ export class AdminController {
    * GET /api/admin/dashboard/stats
    */
   @Get('dashboard/stats')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getDashboardStats() {
     const shareCertStats = await this.shareCertificateService.getStatistics();
     const nominationStats = await this.nominationService.getStatistics();
@@ -91,7 +64,7 @@ export class AdminController {
    * GET /api/admin/email/verify
    */
   @Get('email/verify')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async verifyEmailConnection() {
     const result = await this.emailService.verifyConnection();
     return {
@@ -105,7 +78,7 @@ export class AdminController {
    * POST /api/admin/send-notification
    */
   @Post('send-notification')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   @HttpCode(HttpStatus.OK)
   async sendNotification(
     @Body() body: { type: 'share-certificate' | 'nomination'; acknowledgementNumber: string },
@@ -140,7 +113,7 @@ export class AdminController {
    * GET /api/admin/export/share-certificates
    */
   @Get('export/share-certificates')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async exportShareCertificates(@Res() res: Response) {
     const certificates = await this.shareCertificateService.findAll();
 
@@ -224,7 +197,7 @@ export class AdminController {
    * GET /api/admin/export/nominations
    */
   @Get('export/nominations')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async exportNominations(@Res() res: Response) {
     const nominations = await this.nominationService.findAll();
 
@@ -317,7 +290,7 @@ export class AdminController {
    * GET /api/admin/export/noc-requests
    */
   @Get('export/noc-requests')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async exportNocRequests(@Res() res: Response) {
     const nocRequests = await this.nocRequestService.findAll();
 
@@ -392,7 +365,7 @@ export class AdminController {
    * GET /api/admin/document/presigned-url?s3Key=xxxxx
    */
   @Get('document/presigned-url')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getDocumentPresignedUrl(@Query('s3Key') s3Key: string) {
     if (!s3Key) {
       return {

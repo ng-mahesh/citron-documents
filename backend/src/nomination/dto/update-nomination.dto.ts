@@ -6,7 +6,6 @@ import {
   IsMobilePhone,
   IsIn,
   IsArray,
-  IsObject,
   IsDateString,
   IsNumber,
   Min,

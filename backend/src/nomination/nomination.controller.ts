@@ -17,7 +17,7 @@ import { NominationService } from './nomination.service';
 import { NominationPdfService } from './nomination-pdf.service';
 import { CreateNominationDto } from './dto/create-nomination.dto';
 import { UpdateNominationDto } from './dto/update-nomination.dto';
-import { JwtAuthGuard } from '../admin/guards/jwt-auth.guard';
+import { SocietyAdminGuard } from '../admin/guards/society-admin.guard';
 
 /**
  * Controller handling Nomination HTTP endpoints
@@ -52,7 +52,7 @@ export class NominationController {
    * GET /api/nomination
    */
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async findAll() {
     const nominations = await this.nominationService.findAll();
     return {
@@ -79,7 +79,7 @@ export class NominationController {
    * GET /api/nomination/statistics
    */
   @Get('statistics')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getStatistics() {
     const stats = await this.nominationService.getStatistics();
     return {
@@ -118,7 +118,7 @@ export class NominationController {
    * GET /api/nomination/details/:acknowledgementNumber
    */
   @Get('details/:acknowledgementNumber')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async getDetailsByAckNumber(@Param('acknowledgementNumber') acknowledgementNumber: string) {
     const nomination =
       await this.nominationService.findByAcknowledgementNumber(acknowledgementNumber);
@@ -133,7 +133,7 @@ export class NominationController {
    * GET /api/nomination/:id
    */
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async findOne(@Param('id') id: string) {
     const nomination = await this.nominationService.findById(id);
     return {
@@ -147,7 +147,7 @@ export class NominationController {
    * PUT /api/nomination/:id
    */
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async update(@Param('id') id: string, @Body() updateDto: UpdateNominationDto) {
     const nomination = await this.nominationService.update(id, updateDto);
     return {
@@ -162,7 +162,7 @@ export class NominationController {
    * POST /api/nomination/:id/documents
    */
   @Post(':id/documents')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async addDocument(
     @Param('id') id: string,
     @Body()
@@ -188,7 +188,7 @@ export class NominationController {
    * DELETE /api/nomination/:id/documents/:documentType
    */
   @Delete(':id/documents/:documentType')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
     const nomination = await this.nominationService.removeDocument(id, documentType);
     return {
@@ -203,7 +203,7 @@ export class NominationController {
    * DELETE /api/nomination/:id
    */
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
     await this.nominationService.delete(id);
@@ -236,7 +236,7 @@ export class NominationController {
    * GET /api/nomination/print-form/:acknowledgementNumber
    */
   @Get('print-form/:acknowledgementNumber')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SocietyAdminGuard)
   async printOfficialForm(
     @Param('acknowledgementNumber') acknowledgementNumber: string,
     @Res() res: Response,
