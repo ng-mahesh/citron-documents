@@ -173,6 +173,7 @@ export class ShareCertificateController {
       fileType: string;
       fileSize: number;
       uploadedAt: string;
+      fileUrl?: string;
     },
   ) {
     const certificate = await this.shareCertificateService.addDocument(id, body);

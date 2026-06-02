@@ -203,6 +203,7 @@ export class ShareCertificateService {
       fileType: string;
       fileSize: number;
       uploadedAt: string;
+      fileUrl?: string;
     },
   ): Promise<ShareCertificate> {
     const certificate = await this.shareCertificateModel.findById(id).exec();
@@ -244,12 +245,13 @@ export class ShareCertificateService {
     } else if (documentType === 'maintenanceReceipts') {
       certificate.maintenanceReceiptsDocuments.push({
         fileName: documentInfo.fileName,
-        fileUrl: '',
+        fileUrl: documentInfo.fileUrl || '',
         fileSize: documentInfo.fileSize,
         fileType: documentInfo.fileType,
         uploadedAt: new Date(documentInfo.uploadedAt),
         s3Key: documentInfo.s3Key,
       });
+      certificate.markModified('maintenanceReceiptsDocuments');
     }
 
     certificate.updatedAt = new Date();

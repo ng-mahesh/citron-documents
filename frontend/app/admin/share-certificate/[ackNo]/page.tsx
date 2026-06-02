@@ -356,6 +356,7 @@ export default function ShareCertificateDetailPage() {
         fileType: uploadResponse.data.data.fileType,
         fileSize: uploadResponse.data.data.fileSize,
         uploadedAt: uploadResponse.data.data.uploadedAt,
+        fileUrl: uploadResponse.data.data.fileUrl,
       };
 
       // Add document to certificate

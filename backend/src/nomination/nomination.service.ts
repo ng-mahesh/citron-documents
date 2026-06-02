@@ -217,6 +217,7 @@ export class NominationService {
       fileType: string;
       fileSize: number;
       uploadedAt: string;
+      fileUrl?: string;
     },
   ): Promise<Nomination> {
     const nomination = await this.nominationModel.findById(id).exec();
@@ -258,12 +259,13 @@ export class NominationService {
     } else if (documentType === 'maintenanceReceipts') {
       nomination.maintenanceReceiptsDocuments.push({
         fileName: documentInfo.fileName,
-        fileUrl: '',
+        fileUrl: documentInfo.fileUrl || '',
         fileSize: documentInfo.fileSize,
         fileType: documentInfo.fileType,
         uploadedAt: new Date(documentInfo.uploadedAt),
         s3Key: documentInfo.s3Key,
       });
+      nomination.markModified('maintenanceReceiptsDocuments');
     }
 
     nomination.updatedAt = new Date();
