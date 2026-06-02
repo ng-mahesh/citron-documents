@@ -241,6 +241,15 @@ export class ShareCertificateService {
         uploadedAt: new Date(documentInfo.uploadedAt),
         s3Key: documentInfo.s3Key,
       };
+    } else if (documentType === 'maintenanceReceipts') {
+      certificate.maintenanceReceiptsDocuments.push({
+        fileName: documentInfo.fileName,
+        fileUrl: '',
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      });
     }
 
     certificate.updatedAt = new Date();
@@ -252,7 +261,11 @@ export class ShareCertificateService {
   /**
    * Remove document from share certificate (Admin)
    */
-  async removeDocument(id: string, documentType: string): Promise<ShareCertificate> {
+  async removeDocument(
+    id: string,
+    documentType: string,
+    s3Key?: string,
+  ): Promise<ShareCertificate> {
     const certificate = await this.shareCertificateModel.findById(id).exec();
 
     if (!certificate) {
@@ -266,6 +279,10 @@ export class ShareCertificateService {
       certificate.possessionLetterDocument = undefined;
     } else if (documentType === 'aadhaarCard') {
       certificate.aadhaarCardDocument = undefined;
+    } else if (documentType === 'maintenanceReceipts' && s3Key) {
+      certificate.maintenanceReceiptsDocuments = certificate.maintenanceReceiptsDocuments.filter(
+        (doc) => doc.s3Key !== s3Key,
+      );
     }
 
     certificate.updatedAt = new Date();

@@ -189,8 +189,12 @@ export class NominationController {
    */
   @Delete(':id/documents/:documentType')
   @UseGuards(SocietyAdminGuard)
-  async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
-    const nomination = await this.nominationService.removeDocument(id, documentType);
+  async removeDocument(
+    @Param('id') id: string,
+    @Param('documentType') documentType: string,
+    @Query('s3Key') s3Key?: string,
+  ) {
+    const nomination = await this.nominationService.removeDocument(id, documentType, s3Key);
     return {
       success: true,
       message: 'Document removed successfully',

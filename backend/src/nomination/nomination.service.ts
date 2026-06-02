@@ -255,6 +255,15 @@ export class NominationService {
         uploadedAt: new Date(documentInfo.uploadedAt),
         s3Key: documentInfo.s3Key,
       };
+    } else if (documentType === 'maintenanceReceipts') {
+      nomination.maintenanceReceiptsDocuments.push({
+        fileName: documentInfo.fileName,
+        fileUrl: '',
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      });
     }
 
     nomination.updatedAt = new Date();
@@ -266,7 +275,7 @@ export class NominationService {
   /**
    * Remove document from nomination (Admin)
    */
-  async removeDocument(id: string, documentType: string): Promise<Nomination> {
+  async removeDocument(id: string, documentType: string, s3Key?: string): Promise<Nomination> {
     const nomination = await this.nominationModel.findById(id).exec();
 
     if (!nomination) {
@@ -280,6 +289,10 @@ export class NominationService {
       nomination.possessionLetterDocument = undefined;
     } else if (documentType === 'aadhaarCard') {
       nomination.aadhaarCardDocument = undefined;
+    } else if (documentType === 'maintenanceReceipts' && s3Key) {
+      nomination.maintenanceReceiptsDocuments = nomination.maintenanceReceiptsDocuments.filter(
+        (doc) => doc.s3Key !== s3Key,
+      );
     }
 
     nomination.updatedAt = new Date();
