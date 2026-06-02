@@ -226,6 +226,7 @@ export class NocRequestService {
       fileType: string;
       fileSize: number;
       uploadedAt: string;
+      fileUrl?: string;
     },
   ): Promise<NocRequest> {
     const request = await this.nocRequestModel.findById(id).exec();
@@ -276,7 +277,7 @@ export class NocRequestService {
     } else if (documentType === 'maintenanceReceipt') {
       request.maintenanceReceiptDocument = {
         fileName: documentInfo.fileName,
-        fileUrl: '',
+        fileUrl: documentInfo.fileUrl || '',
         fileSize: documentInfo.fileSize,
         fileType: documentInfo.fileType,
         uploadedAt: new Date(documentInfo.uploadedAt),
@@ -285,7 +286,7 @@ export class NocRequestService {
     } else if (documentType === 'maintenanceReceipt2') {
       request.maintenanceReceipt2Document = {
         fileName: documentInfo.fileName,
-        fileUrl: '',
+        fileUrl: documentInfo.fileUrl || '',
         fileSize: documentInfo.fileSize,
         fileType: documentInfo.fileType,
         uploadedAt: new Date(documentInfo.uploadedAt),
@@ -294,7 +295,7 @@ export class NocRequestService {
     } else if (documentType === 'maintenanceReceipt3') {
       request.maintenanceReceipt3Document = {
         fileName: documentInfo.fileName,
-        fileUrl: '',
+        fileUrl: documentInfo.fileUrl || '',
         fileSize: documentInfo.fileSize,
         fileType: documentInfo.fileType,
         uploadedAt: new Date(documentInfo.uploadedAt),

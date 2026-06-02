@@ -41,6 +41,7 @@ export interface ShareCertificate {
   declarationAccepted: boolean;
   status?: Status;
   submittedAt?: Date;
+  createdAt?: Date;
   updatedAt?: Date;
   adminNotes?: string;
 }
@@ -83,6 +84,7 @@ export interface Nomination {
   maintenanceReceiptsDocuments?: DocumentMetadata[];
   status?: Status;
   submittedAt?: Date;
+  createdAt?: Date;
   updatedAt?: Date;
   adminNotes?: string;
   // Legacy fields for backward compatibility
@@ -180,6 +182,7 @@ export interface NocRequest {
   // Status tracking
   status?: Status;
   submittedAt?: Date;
+  createdAt?: Date;
   updatedAt?: Date;
   adminNotes?: string;
   adminRemarks?: string;

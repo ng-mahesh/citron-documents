@@ -173,6 +173,7 @@ export class NominationController {
       fileType: string;
       fileSize: number;
       uploadedAt: string;
+      fileUrl?: string;
     },
   ) {
     const nomination = await this.nominationService.addDocument(id, body);

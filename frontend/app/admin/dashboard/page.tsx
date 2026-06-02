@@ -32,6 +32,7 @@ import {
   FileSignature,
   Home,
   Filter,
+  Calendar,
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { theme } from "@/lib/theme";
@@ -75,6 +76,8 @@ export default function AdminDashboard() {
   const [certStatusFilter, setCertStatusFilter] = useState<Status | "">(
     "Pending"
   );
+  const [certDateFrom, setCertDateFrom] = useState("");
+  const [certDateTo, setCertDateTo] = useState("");
   const [certCurrentPage, setCertCurrentPage] = useState(1);
   const certItemsPerPage = 10;
 
@@ -83,6 +86,8 @@ export default function AdminDashboard() {
   const [nomStatusFilter, setNomStatusFilter] = useState<Status | "">(
     "Pending"
   );
+  const [nomDateFrom, setNomDateFrom] = useState("");
+  const [nomDateTo, setNomDateTo] = useState("");
   const [nomCurrentPage, setNomCurrentPage] = useState(1);
   const nomItemsPerPage = 10;
 
@@ -91,6 +96,8 @@ export default function AdminDashboard() {
   const [nocStatusFilter, setNocStatusFilter] = useState<Status | "">(
     "Pending"
   );
+  const [nocDateFrom, setNocDateFrom] = useState("");
+  const [nocDateTo, setNocDateTo] = useState("");
   const [nocCurrentPage, setNocCurrentPage] = useState(1);
   const nocItemsPerPage = 10;
 
@@ -288,9 +295,24 @@ export default function AdminDashboard() {
       const matchesStatus =
         certStatusFilter === "" || cert.status === certStatusFilter;
 
-      return matchesSearch && matchesStatus;
+      const submittedAt = cert.createdAt ? new Date(cert.createdAt) : null;
+      const matchesDateFrom =
+        !certDateFrom || (submittedAt && submittedAt >= new Date(certDateFrom));
+      const matchesDateTo =
+        !certDateTo ||
+        (submittedAt &&
+          submittedAt <=
+            new Date(new Date(certDateTo).setHours(23, 59, 59, 999)));
+
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
     });
-  }, [shareCertificates, certSearchQuery, certStatusFilter]);
+  }, [
+    shareCertificates,
+    certSearchQuery,
+    certStatusFilter,
+    certDateFrom,
+    certDateTo,
+  ]);
 
   const paginatedCertificates = useMemo(() => {
     const startIndex = (certCurrentPage - 1) * certItemsPerPage;
@@ -318,9 +340,18 @@ export default function AdminDashboard() {
       const matchesStatus =
         nomStatusFilter === "" || nom.status === nomStatusFilter;
 
-      return matchesSearch && matchesStatus;
+      const submittedAt = nom.createdAt ? new Date(nom.createdAt) : null;
+      const matchesDateFrom =
+        !nomDateFrom || (submittedAt && submittedAt >= new Date(nomDateFrom));
+      const matchesDateTo =
+        !nomDateTo ||
+        (submittedAt &&
+          submittedAt <=
+            new Date(new Date(nomDateTo).setHours(23, 59, 59, 999)));
+
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
     });
-  }, [nominations, nomSearchQuery, nomStatusFilter]);
+  }, [nominations, nomSearchQuery, nomStatusFilter, nomDateFrom, nomDateTo]);
 
   const paginatedNominations = useMemo(() => {
     const startIndex = (nomCurrentPage - 1) * nomItemsPerPage;
@@ -346,9 +377,18 @@ export default function AdminDashboard() {
       const matchesStatus =
         nocStatusFilter === "" || noc.status === nocStatusFilter;
 
-      return matchesSearch && matchesStatus;
+      const submittedAt = noc.createdAt ? new Date(noc.createdAt) : null;
+      const matchesDateFrom =
+        !nocDateFrom || (submittedAt && submittedAt >= new Date(nocDateFrom));
+      const matchesDateTo =
+        !nocDateTo ||
+        (submittedAt &&
+          submittedAt <=
+            new Date(new Date(nocDateTo).setHours(23, 59, 59, 999)));
+
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
     });
-  }, [nocRequests, nocSearchQuery, nocStatusFilter]);
+  }, [nocRequests, nocSearchQuery, nocStatusFilter, nocDateFrom, nocDateTo]);
 
   const paginatedNocRequests = useMemo(() => {
     const startIndex = (nocCurrentPage - 1) * nocItemsPerPage;
@@ -358,18 +398,18 @@ export default function AdminDashboard() {
 
   const nocTotalPages = Math.ceil(filteredNocRequests.length / nocItemsPerPage);
 
-  // Reset to page 1 when search query or status filter changes
+  // Reset to page 1 when search query, status filter, or date filter changes
   useEffect(() => {
     setCertCurrentPage(1);
-  }, [certSearchQuery, certStatusFilter]);
+  }, [certSearchQuery, certStatusFilter, certDateFrom, certDateTo]);
 
   useEffect(() => {
     setNomCurrentPage(1);
-  }, [nomSearchQuery, nomStatusFilter]);
+  }, [nomSearchQuery, nomStatusFilter, nomDateFrom, nomDateTo]);
 
   useEffect(() => {
     setNocCurrentPage(1);
-  }, [nocSearchQuery, nocStatusFilter]);
+  }, [nocSearchQuery, nocStatusFilter, nocDateFrom, nocDateTo]);
 
   if (loading) {
     return (
@@ -540,8 +580,8 @@ export default function AdminDashboard() {
         {activeTab === "certificates" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Search and Filter Bar */}
-            <div className="p-4 border-b border-slate-200">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <div className="p-4 border-b border-slate-200 flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <input
@@ -570,6 +610,42 @@ export default function AdminDashboard() {
                   </select>
                   <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
                 </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={certDateFrom}
+                    onChange={(e) => setCertDateFrom(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    title="From date"
+                  />
+                </div>
+                <span className="text-sm text-slate-400 shrink-0">to</span>
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={certDateTo}
+                    min={certDateFrom || undefined}
+                    onChange={(e) => setCertDateTo(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    title="To date"
+                  />
+                </div>
+                {(certDateFrom || certDateTo) && (
+                  <button
+                    onClick={() => {
+                      setCertDateFrom("");
+                      setCertDateTo("");
+                    }}
+                    className="shrink-0 px-3 py-2.5 text-xs font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Clear dates
+                  </button>
+                )}
               </div>
             </div>
 
@@ -739,8 +815,8 @@ export default function AdminDashboard() {
         {activeTab === "nominations" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Search and Filter Bar */}
-            <div className="p-4 border-b border-slate-200">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <div className="p-4 border-b border-slate-200 flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <input
@@ -769,6 +845,42 @@ export default function AdminDashboard() {
                   </select>
                   <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
                 </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={nomDateFrom}
+                    onChange={(e) => setNomDateFrom(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    title="From date"
+                  />
+                </div>
+                <span className="text-sm text-slate-400 shrink-0">to</span>
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={nomDateTo}
+                    min={nomDateFrom || undefined}
+                    onChange={(e) => setNomDateTo(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    title="To date"
+                  />
+                </div>
+                {(nomDateFrom || nomDateTo) && (
+                  <button
+                    onClick={() => {
+                      setNomDateFrom("");
+                      setNomDateTo("");
+                    }}
+                    className="shrink-0 px-3 py-2.5 text-xs font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Clear dates
+                  </button>
+                )}
               </div>
             </div>
 
@@ -955,8 +1067,8 @@ export default function AdminDashboard() {
         {activeTab === "noc-requests" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Search and Filter Bar */}
-            <div className="p-4 border-b border-slate-200">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <div className="p-4 border-b border-slate-200 flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <input
@@ -985,6 +1097,42 @@ export default function AdminDashboard() {
                   </select>
                   <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
                 </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={nocDateFrom}
+                    onChange={(e) => setNocDateFrom(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    title="From date"
+                  />
+                </div>
+                <span className="text-sm text-slate-400 shrink-0">to</span>
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={nocDateTo}
+                    min={nocDateFrom || undefined}
+                    onChange={(e) => setNocDateTo(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    title="To date"
+                  />
+                </div>
+                {(nocDateFrom || nocDateTo) && (
+                  <button
+                    onClick={() => {
+                      setNocDateFrom("");
+                      setNocDateTo("");
+                    }}
+                    className="shrink-0 px-3 py-2.5 text-xs font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Clear dates
+                  </button>
+                )}
               </div>
             </div>
 

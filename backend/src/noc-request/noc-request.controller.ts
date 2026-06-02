@@ -226,6 +226,7 @@ export class NocRequestController {
       fileType: string;
       fileSize: number;
       uploadedAt: string;
+      fileUrl?: string;
     },
   ) {
     const request = await this.nocRequestService.addDocument(id, body);
