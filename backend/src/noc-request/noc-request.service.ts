@@ -273,6 +273,33 @@ export class NocRequestService {
         uploadedAt: new Date(documentInfo.uploadedAt),
         s3Key: documentInfo.s3Key,
       };
+    } else if (documentType === 'maintenanceReceipt') {
+      request.maintenanceReceiptDocument = {
+        fileName: documentInfo.fileName,
+        fileUrl: '',
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'maintenanceReceipt2') {
+      request.maintenanceReceipt2Document = {
+        fileName: documentInfo.fileName,
+        fileUrl: '',
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
+    } else if (documentType === 'maintenanceReceipt3') {
+      request.maintenanceReceipt3Document = {
+        fileName: documentInfo.fileName,
+        fileUrl: '',
+        fileSize: documentInfo.fileSize,
+        fileType: documentInfo.fileType,
+        uploadedAt: new Date(documentInfo.uploadedAt),
+        s3Key: documentInfo.s3Key,
+      };
     }
 
     request.updatedAt = new Date();
@@ -300,6 +327,12 @@ export class NocRequestService {
       request.buyerAadhaarDocument = undefined;
     } else if (documentType === 'buyerPan') {
       request.buyerPanDocument = undefined;
+    } else if (documentType === 'maintenanceReceipt') {
+      request.maintenanceReceiptDocument = undefined;
+    } else if (documentType === 'maintenanceReceipt2') {
+      request.maintenanceReceipt2Document = undefined;
+    } else if (documentType === 'maintenanceReceipt3') {
+      request.maintenanceReceipt3Document = undefined;
     }
 
     request.updatedAt = new Date();

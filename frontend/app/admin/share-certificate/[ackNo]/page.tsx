@@ -67,6 +67,11 @@ export default function ShareCertificateDetailPage() {
       fileName: string;
       fileType: string;
     };
+    maintenanceReceiptsDocuments?: Array<{
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    }>;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<Status>("Pending");
@@ -389,7 +394,7 @@ export default function ShareCertificateDetailPage() {
     try {
       // Remove document from certificate
       await api.delete(
-        `/share-certificate/${certificate._id}/documents/${documentType}`
+        `/share-certificate/${certificate._id}/documents/${documentType}?s3Key=${encodeURIComponent(s3Key)}`
       );
 
       // Delete file from S3
@@ -1140,6 +1145,85 @@ export default function ShareCertificateDetailPage() {
                       </div>
                     </label>
                   </div>
+                </div>
+
+                {/* Last 3 Months Maintenance Receipts */}
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Last 3 Months Maintenance Receipts
+                    </p>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleFileUpload(e, "maintenanceReceipts")
+                        }
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-1 px-2 py-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-xs font-medium">
+                        {uploadingDocument ? (
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-3.5 w-3.5" />
+                        )}
+                        Add
+                      </div>
+                    </label>
+                  </div>
+                  {certificate.maintenanceReceiptsDocuments &&
+                  certificate.maintenanceReceiptsDocuments.length > 0 ? (
+                    <div className="space-y-2">
+                      {certificate.maintenanceReceiptsDocuments.map(
+                        (doc, idx) => (
+                          <div
+                            key={doc.s3Key}
+                            className="flex items-center gap-2 p-2 bg-white rounded-md border border-slate-200"
+                          >
+                            <FileText className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                            <p className="text-xs text-slate-600 truncate flex-1">
+                              {doc.fileName}
+                            </p>
+                            <button
+                              onClick={() =>
+                                openDocumentPopup(
+                                  doc.s3Key,
+                                  doc.fileName,
+                                  doc.fileType
+                                )
+                              }
+                              className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                              title="View document"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDeleteDocument(
+                                  "maintenanceReceipts",
+                                  doc.s3Key
+                                )
+                              }
+                              disabled={
+                                deletingDocument ===
+                                `maintenanceReceipts_${idx}`
+                              }
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                              title="Delete document"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">
+                      No documents uploaded
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

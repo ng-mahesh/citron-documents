@@ -189,8 +189,12 @@ export class ShareCertificateController {
    */
   @Delete(':id/documents/:documentType')
   @UseGuards(SocietyAdminGuard)
-  async removeDocument(@Param('id') id: string, @Param('documentType') documentType: string) {
-    const certificate = await this.shareCertificateService.removeDocument(id, documentType);
+  async removeDocument(
+    @Param('id') id: string,
+    @Param('documentType') documentType: string,
+    @Query('s3Key') s3Key?: string,
+  ) {
+    const certificate = await this.shareCertificateService.removeDocument(id, documentType, s3Key);
     return {
       success: true,
       message: 'Document removed successfully',

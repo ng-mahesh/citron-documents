@@ -80,6 +80,16 @@ export default function NocRequestDetailPage() {
       fileName: string;
       fileType: string;
     };
+    maintenanceReceipt2Document?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
+    maintenanceReceipt3Document?: {
+      s3Key: string;
+      fileName: string;
+      fileType: string;
+    };
     buyerAadhaarDocument?: {
       s3Key: string;
       fileName: string;
@@ -1455,6 +1465,225 @@ export default function NocRequestDetailPage() {
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
                         onChange={(e) => handleFileUpload(e, "buyerPan")}
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                        {uploadingDocument ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Maintenance Receipt 1 */}
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Maintenance Receipt (Month 1)
+                    </p>
+                    {nocRequest.maintenanceReceiptDocument ? (
+                      <p className="text-xs text-slate-600 truncate">
+                        {nocRequest.maintenanceReceiptDocument!.fileName}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {nocRequest.maintenanceReceiptDocument && (
+                      <>
+                        <button
+                          onClick={() =>
+                            openDocumentPopup(
+                              nocRequest.maintenanceReceiptDocument!.s3Key,
+                              nocRequest.maintenanceReceiptDocument!.fileName,
+                              nocRequest.maintenanceReceiptDocument!.fileType
+                            )
+                          }
+                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "maintenanceReceipt",
+                              nocRequest.maintenanceReceiptDocument!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "maintenanceReceipt"}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingDocument === "maintenanceReceipt" ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleFileUpload(e, "maintenanceReceipt")
+                        }
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                        {uploadingDocument ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Maintenance Receipt 2 */}
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Maintenance Receipt (Month 2)
+                    </p>
+                    {nocRequest.maintenanceReceipt2Document ? (
+                      <p className="text-xs text-slate-600 truncate">
+                        {nocRequest.maintenanceReceipt2Document!.fileName}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {nocRequest.maintenanceReceipt2Document && (
+                      <>
+                        <button
+                          onClick={() =>
+                            openDocumentPopup(
+                              nocRequest.maintenanceReceipt2Document!.s3Key,
+                              nocRequest.maintenanceReceipt2Document!.fileName,
+                              nocRequest.maintenanceReceipt2Document!.fileType
+                            )
+                          }
+                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "maintenanceReceipt2",
+                              nocRequest.maintenanceReceipt2Document!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "maintenanceReceipt2"}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingDocument === "maintenanceReceipt2" ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleFileUpload(e, "maintenanceReceipt2")
+                        }
+                        disabled={uploadingDocument}
+                        className="hidden"
+                      />
+                      <div className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                        {uploadingDocument ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Maintenance Receipt 3 */}
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <FileText className="h-8 w-8 text-slate-600 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Maintenance Receipt (Month 3)
+                    </p>
+                    {nocRequest.maintenanceReceipt3Document ? (
+                      <p className="text-xs text-slate-600 truncate">
+                        {nocRequest.maintenanceReceipt3Document!.fileName}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {nocRequest.maintenanceReceipt3Document && (
+                      <>
+                        <button
+                          onClick={() =>
+                            openDocumentPopup(
+                              nocRequest.maintenanceReceipt3Document!.s3Key,
+                              nocRequest.maintenanceReceipt3Document!.fileName,
+                              nocRequest.maintenanceReceipt3Document!.fileType
+                            )
+                          }
+                          className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                          title="View document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteDocument(
+                              "maintenanceReceipt3",
+                              nocRequest.maintenanceReceipt3Document!.s3Key
+                            )
+                          }
+                          disabled={deletingDocument === "maintenanceReceipt3"}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingDocument === "maintenanceReceipt3" ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleFileUpload(e, "maintenanceReceipt3")
+                        }
                         disabled={uploadingDocument}
                         className="hidden"
                       />
