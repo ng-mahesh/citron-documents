@@ -513,13 +513,13 @@ export default function NocRequestPage() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl px-5 py-8 sm:p-10 text-center">
             <div
               className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
             >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
@@ -527,7 +527,7 @@ export default function NocRequestPage() {
               className={`${theme.status.approved.bg} border-2 ${theme.status.approved.border} rounded-xl p-5 mb-8`}
             >
               <p
-                className={`text-3xl font-bold ${theme.status.approved.text} tracking-wide`}
+                className={`text-xl sm:text-3xl font-bold ${theme.status.approved.text} tracking-wide`}
               >
                 {acknowledgementNumber}
               </p>
@@ -613,12 +613,12 @@ export default function NocRequestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col pb-16 lg:pb-0">
       <Header />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
             NOC Request & Flat Transfer
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -629,9 +629,9 @@ export default function NocRequestPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Seller Information Section */}
-          <Card className="p-8">
+          <Card>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 Seller / Owner Information
               </h2>
             </div>
@@ -729,9 +729,9 @@ export default function NocRequestPage() {
           </Card>
 
           {/* NOC Type & Details Section */}
-          <Card className="p-8">
+          <Card>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 NOC Type & Details
               </h2>
             </div>
@@ -758,7 +758,7 @@ export default function NocRequestPage() {
                     onChange={handleInputChange}
                     placeholder="Please describe the purpose of your NOC request in detail..."
                     rows={4}
-                    className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-base sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 hover:border-slate-400 transition-all min-h-[110px] resize-y"
                   />
                   {errors.purposeDescription && (
                     <p className="text-red-600 text-sm mt-1">
@@ -785,9 +785,9 @@ export default function NocRequestPage() {
 
           {/* Buyer Information Section - Only show for Flat Transfer */}
           {requiresBuyerInfo && (
-            <Card className="p-8">
+            <Card>
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                   Buyer Information
                 </h2>
               </div>
@@ -829,15 +829,15 @@ export default function NocRequestPage() {
           {/* Document Upload Section - Dynamic based on NOC type */}
           {formData.nocType && currentTypeConfig && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-              <div className="px-8 py-5 border-b border-slate-200">
-                <h3 className="text-xl font-bold text-slate-900">
+              <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                   Required Documents
                 </h3>
                 <p className="text-sm text-slate-600 mt-1">
                   Upload clear copies in PDF or JPEG format (max 2MB each)
                 </p>
               </div>
-              <div className="px-8 py-6">
+              <div className="px-4 py-5 sm:px-6 sm:py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Flat Transfer Documents */}
                   {formData.nocType === "Flat Transfer/Sale/Purchase" && (
@@ -1110,7 +1110,7 @@ export default function NocRequestPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Month 1 */}
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-1.5">
@@ -1215,7 +1215,7 @@ export default function NocRequestPage() {
 
           {/* Payment Information - Dynamic based on fees */}
           {currentTypeConfig && totalFees > 0 && (
-            <Card className="p-8">
+            <Card>
               <div
                 className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-6`}
               >
@@ -1260,7 +1260,7 @@ export default function NocRequestPage() {
 
           {/* Free NOC Information */}
           {currentTypeConfig && totalFees === 0 && (
-            <Card className="p-8">
+            <Card>
               <div className="bg-green-50 border-2 border-green-300 rounded-xl p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
@@ -1275,7 +1275,7 @@ export default function NocRequestPage() {
           )}
 
           {/* Digital Signature & Declaration */}
-          <Card className="p-8">
+          <Card>
             <div className="mb-6">
               <Input
                 label="Applicant Digital Signature"
@@ -1313,24 +1313,24 @@ export default function NocRequestPage() {
           </Card>
 
           {/* Submit Button */}
-          <Card className="p-6">
-            <div className="flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push("/")}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!isFormValid() || submitting || checkingPending}
-              >
-                {submitting ? "Submitting..." : "Submit NOC Request"}
-              </Button>
-            </div>
-          </Card>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push("/")}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!isFormValid() || submitting || checkingPending}
+              className="w-full sm:w-auto"
+            >
+              {submitting ? "Submitting..." : "Submit NOC Request"}
+            </Button>
+          </div>
         </form>
       </div>
 

@@ -205,13 +205,13 @@ export default function StatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col pb-16 lg:pb-0">
       <Header />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
             Track Application Status
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -221,7 +221,7 @@ export default function StatusPage() {
 
         {/* Search Card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-8">
-          <div className="px-8 py-6">
+          <div className="px-4 py-5 sm:px-6 sm:py-6">
             <div className="space-y-5">
               <Input
                 label="Acknowledgement Number"
@@ -261,7 +261,7 @@ export default function StatusPage() {
         {result && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-lg mb-8">
             {/* Status Header */}
-            <div className="text-center px-8 py-8 border-b border-slate-200">
+            <div className="text-center px-4 py-6 sm:px-8 sm:py-8 border-b border-slate-200">
               {getStatusIcon(result.status)}
               <h2 className="text-2xl font-bold text-slate-900 mt-6 mb-4">
                 {result.type === "share-certificate"
@@ -280,7 +280,7 @@ export default function StatusPage() {
             </div>
 
             {/* Application Details */}
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-8 sm:py-6">
               <dl className="grid grid-cols-1 gap-6">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                   <dt className="text-sm font-semibold text-slate-600 mb-1">
@@ -525,7 +525,7 @@ export default function StatusPage() {
             </div>
 
             {/* Next Steps */}
-            <div className="px-8 py-6 border-t border-slate-200 bg-slate-50">
+            <div className="px-4 py-5 sm:px-8 sm:py-6 border-t border-slate-200 bg-slate-50">
               <div
                 className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5`}
               >

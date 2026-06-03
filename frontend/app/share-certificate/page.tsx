@@ -368,13 +368,13 @@ export default function ShareCertificatePage() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl px-5 py-8 sm:p-10 text-center">
             <div
               className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
             >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
@@ -382,7 +382,7 @@ export default function ShareCertificatePage() {
               className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}
             >
               <p
-                className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
+                className={`text-xl sm:text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
               >
                 {acknowledgementNumber}
               </p>
@@ -434,12 +434,12 @@ export default function ShareCertificatePage() {
   const fileDisabled = !formData.flatNumber || !formData.fullName;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col pb-16 lg:pb-0">
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
             Share Certificate Application
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -450,15 +450,15 @@ export default function ShareCertificatePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                 Personal Information
               </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Enter your basic details as per official documents
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="mb-6">
                 <Input
                   label="Primary Applicant Full Name"
@@ -496,7 +496,7 @@ export default function ShareCertificatePage() {
                 {formData.index2ApplicantNames.length > 0 ? (
                   <div className="space-y-3">
                     {formData.index2ApplicantNames.map((name, index) => (
-                      <div key={index} className="flex items-start gap-2">
+                      <div key={index} className="flex items-end gap-2">
                         <div className="flex-1">
                           <Input
                             label={`Co-Applicant ${index + 1}`}
@@ -512,7 +512,7 @@ export default function ShareCertificatePage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveApplicantName(index)}
-                          className="mt-8 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="mb-0.5 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -604,15 +604,15 @@ export default function ShareCertificatePage() {
 
           {/* Property Details */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                 Property Details
               </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Provide information about your flat
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Carpet Area"
@@ -668,15 +668,15 @@ export default function ShareCertificatePage() {
 
           {/* Required Documents */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                 Required Documents
               </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Select files — they will be uploaded when you submit the form
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FileUpload
                   label="Index II Document"
@@ -755,7 +755,7 @@ export default function ShareCertificatePage() {
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Month 1 — required */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
@@ -846,13 +846,15 @@ export default function ShareCertificatePage() {
 
           {/* Declaration */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Declaration</h3>
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                Declaration
+              </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Confirm the accuracy of your information
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="space-y-5">
                 <Input
                   label="Applicant Digital Signature"
@@ -894,12 +896,12 @@ export default function ShareCertificatePage() {
           </div>
 
           {/* Form Actions */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
             <Button
               type="button"
               variant="secondary"
               onClick={() => router.push("/")}
-              className="sm:w-auto"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -907,7 +909,7 @@ export default function ShareCertificatePage() {
               type="submit"
               isLoading={submitting}
               disabled={!isFormValid() || submitting}
-              className="sm:w-auto"
+              className="w-full sm:w-auto"
             >
               {submitting ? "Uploading & Submitting..." : "Submit Application"}
             </Button>
