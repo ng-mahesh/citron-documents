@@ -26,6 +26,7 @@ export default function NominationPage() {
     primaryMemberEmail: "",
     primaryMemberMobile: "",
     declarationAccepted: false,
+    isResaleProperty: false,
   });
 
   const [files, setFiles] = useState<{
@@ -408,6 +409,7 @@ export default function NominationPage() {
         witnesses: [witness1, witness2],
         declarationAccepted: formData.declarationAccepted,
         memberSignature,
+        isResaleProperty: formData.isResaleProperty,
       };
 
       const response = await nominationAPI.create(payload);
@@ -618,6 +620,23 @@ export default function NominationPage() {
                   maxLength={10}
                   required
                 />
+                <div className="md:col-span-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="isResaleProperty"
+                      checked={formData.isResaleProperty}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-slate-700">
+                      Resale Property{" "}
+                      <span className="text-slate-500 font-normal">
+                        (Check if this is a resale flat)
+                      </span>
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
