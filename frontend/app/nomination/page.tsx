@@ -26,6 +26,7 @@ export default function NominationPage() {
     primaryMemberEmail: "",
     primaryMemberMobile: "",
     declarationAccepted: false,
+    isResaleProperty: false,
   });
 
   const [files, setFiles] = useState<{
@@ -408,6 +409,7 @@ export default function NominationPage() {
         witnesses: [witness1, witness2],
         declarationAccepted: formData.declarationAccepted,
         memberSignature,
+        isResaleProperty: formData.isResaleProperty,
       };
 
       const response = await nominationAPI.create(payload);
@@ -461,13 +463,13 @@ export default function NominationPage() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-10 text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl px-5 py-8 sm:p-10 text-center">
             <div
               className={`h-20 w-20 ${theme.states.success.bg} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${theme.states.success.shadow}`}
             >
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
               Successfully Submitted!
             </h2>
             <p className="text-slate-600 mb-6">Your acknowledgement number:</p>
@@ -475,7 +477,7 @@ export default function NominationPage() {
               className={`${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl p-5 mb-8`}
             >
               <p
-                className={`text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
+                className={`text-xl sm:text-3xl font-bold ${theme.status.pending.text} tracking-wide`}
               >
                 {acknowledgementNumber}
               </p>
@@ -531,12 +533,14 @@ export default function NominationPage() {
   const fileDisabled = !formData.flatNumber || !formData.primaryMemberName;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col pb-16 lg:pb-0">
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Nomination Form</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+            Nomination Form
+          </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Register your nominees for share certificate inheritance
           </p>
@@ -545,15 +549,15 @@ export default function NominationPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Member Information */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                 Member Information
               </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Enter primary member details
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Primary Member Name"
@@ -618,21 +622,38 @@ export default function NominationPage() {
                   maxLength={10}
                   required
                 />
+                <div className="md:col-span-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="isResaleProperty"
+                      checked={formData.isResaleProperty}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-slate-700">
+                      Resale Property{" "}
+                      <span className="text-slate-500 font-normal">
+                        (Check if this is a resale flat)
+                      </span>
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Required Documents */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                 Required Documents
               </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Select files — they will be uploaded when you submit the form
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FileUpload
                   label="Index II Document"
@@ -723,7 +744,7 @@ export default function NominationPage() {
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
                       <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#175a00] text-white text-xs font-bold flex-shrink-0">
@@ -811,13 +832,15 @@ export default function NominationPage() {
 
           {/* Nominees */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Nominees</h3>
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                Nominees
+              </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Add up to 3 nominees (total share must equal 100%)
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div
                 className={`mb-6 p-5 ${theme.status.pending.bg} border-2 ${theme.status.pending.border} rounded-xl`}
               >
@@ -994,13 +1017,15 @@ export default function NominationPage() {
 
           {/* Witnesses */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Witnesses</h3>
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                Witnesses
+              </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Two witnesses are required to validate the nomination
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="space-y-8">
                 {([1, 2] as const).map((num) => {
                   const w = num === 1 ? witness1 : witness2;
@@ -1009,7 +1034,7 @@ export default function NominationPage() {
                       key={num}
                       className="p-5 bg-slate-50 rounded-xl border border-slate-200"
                     >
-                      <h4 className="text-lg font-bold text-slate-900 mb-4">
+                      <h4 className="text-base sm:text-lg font-bold text-slate-900 mb-4">
                         Witness {num}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1064,13 +1089,15 @@ export default function NominationPage() {
 
           {/* Declaration */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-200">
-              <h3 className="text-xl font-bold text-slate-900">Declaration</h3>
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                Declaration
+              </h3>
               <p className="text-sm text-slate-600 mt-1">
                 Confirm the accuracy of your information
               </p>
             </div>
-            <div className="px-8 py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="space-y-5">
                 <Input
                   label="Applicant Digital Signature"
@@ -1112,12 +1139,12 @@ export default function NominationPage() {
           </div>
 
           {/* Form Actions */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
             <Button
               type="button"
               variant="secondary"
               onClick={() => router.push("/")}
-              className="sm:w-auto"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -1125,7 +1152,7 @@ export default function NominationPage() {
               type="submit"
               isLoading={submitting}
               disabled={!isFormValid() || submitting}
-              className="sm:w-auto"
+              className="w-full sm:w-auto"
             >
               {submitting ? "Uploading & Submitting..." : "Submit Nomination"}
             </Button>

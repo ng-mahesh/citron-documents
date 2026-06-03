@@ -136,13 +136,13 @@ const features = [
     icon: <Clock className="h-5 w-5 text-white" />,
     title: "Always Available",
     description: "Access the portal 24/7 from any device",
-    color: theme.iconBg.blue,
+    color: theme.iconBg.primary,
   },
   {
     icon: <Shield className="h-5 w-5 text-white" />,
     title: "Safe & Secure",
     description: "Your documents are encrypted and protected",
-    color: theme.iconBg.purple,
+    color: theme.iconBg.primary,
   },
 ];
 
@@ -159,13 +159,13 @@ const steps = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col pb-16 lg:pb-0">
       <ShareCertificateRegistrationModal />
       <Header />
 
       {/* Hero */}
       <section className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs font-semibold text-[#175a00] mb-6">
@@ -224,9 +224,11 @@ export default function Home() {
       </section>
 
       {/* Service tiles */}
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">Services</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+            Services
+          </h2>
           <p className="text-sm text-slate-500 mt-0.5">
             Select a service to get started
           </p>
@@ -283,7 +285,7 @@ export default function Home() {
 
       {/* Features strip */}
       <section className="bg-white border-y border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((f) => (
               <div key={f.title} className="flex items-start gap-4">
@@ -307,9 +309,11 @@ export default function Home() {
       </section>
 
       {/* Process steps */}
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-14">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+            How it works
+          </h2>
           <p className="text-sm text-slate-500 mt-1">
             Four simple steps to complete your application
           </p>

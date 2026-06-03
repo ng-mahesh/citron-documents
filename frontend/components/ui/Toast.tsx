@@ -70,9 +70,9 @@ export const Toast: React.FC<ToastProps> = ({
   } = config[type];
 
   return (
-    <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
+    <div className="fixed top-4 right-4 left-4 sm:left-auto sm:right-6 sm:top-6 z-[9999] animate-slide-in-right">
       <div
-        className={`${bgColor} ${textColor} px-6 py-4 rounded-xl shadow-2xl border-2 ${borderColor} min-w-[320px] max-w-md backdrop-blur-sm`}
+        className={`${bgColor} ${textColor} px-6 py-4 rounded-xl shadow-2xl border-2 ${borderColor} w-full sm:min-w-[320px] sm:max-w-md backdrop-blur-sm`}
       >
         <div className="flex items-start gap-3">
           <Icon className={`h-6 w-6 ${iconColor} flex-shrink-0 mt-0.5`} />

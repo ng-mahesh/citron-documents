@@ -115,9 +115,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <p
             className={`text-xs font-medium ${disabled ? "text-slate-400" : "text-slate-600"}`}
           >
-            {disabled
-              ? "Fill required fields first"
-              : "Click to upload or drag & drop"}
+            {disabled ? (
+              "Fill required fields first"
+            ) : (
+              <>
+                <span className="hidden sm:inline">
+                  Click to upload or drag &amp; drop
+                </span>
+                <span className="sm:hidden">Tap to upload</span>
+              </>
+            )}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">PDF or JPEG · max 2MB</p>
         </label>
@@ -143,7 +150,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <button
             type="button"
             onClick={handleRemove}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors flex-shrink-0"
+            className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors flex-shrink-0"
           >
             <X className="h-4 w-4" />
           </button>
