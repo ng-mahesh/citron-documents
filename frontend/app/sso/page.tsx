@@ -25,9 +25,35 @@ function SsoContent() {
         storeSocietyToken(accessToken);
         router.replace(returnUrl);
       })
-      .catch(() => {
+      .catch((err) => {
+        // Surface the real failure cause so we can tell apart:
+        //  - 401 = bridge token genuinely expired / signature mismatch
+        //  - network/CORS = browser blocked the request (often iOS Safari ITP)
+        //  - missing body = some Safari versions strip POST bodies in edge cases
+        const status = err?.response?.status;
+        const serverMsg = err?.response?.data?.message;
+        const networkErr = !err?.response;
+        // eslint-disable-next-line no-console
+        console.error("[SSO exchange failed]", {
+          status,
+          serverMsg,
+          networkErr,
+          tokenLen: token?.length,
+          err,
+        });
+
+        let detail = "Your session link has expired or is invalid.";
+        if (networkErr) {
+          detail =
+            "Couldn't reach the documents server. Please check your connection and try again.";
+        } else if (status === 401) {
+          detail =
+            "Your session has expired. Please return to the Society Management app and tap the link again.";
+        } else if (status) {
+          detail = `Documents server returned ${status}${serverMsg ? `: ${serverMsg}` : ""}. Please try again.`;
+        }
         setError(
-          "Your session link has expired or is invalid. Please return to the Society Management app and try again."
+          `${detail} Please return to the Society Management app and try again.`
         );
       });
   }, [router, token, returnUrl]);
