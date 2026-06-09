@@ -14,21 +14,27 @@ async function bootstrap() {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
-    // Allow citron frontend + society management frontend/PWA
-    const allowedOrigins = [
-      process.env.FRONTEND_URL, // citron frontend (documents.citronsociety.in)
-      process.env.SOCIETY_FRONTEND_URL, // society management web (citronsociety.in)
-      process.env.SOCIETY_PWA_URL, // society management PWA (same origin or separate)
-      'http://localhost:3000', // society frontend dev
-      'http://localhost:3002', // society PWA dev
-      'http://localhost:4001', // citron frontend dev
-    ]
-      .filter(Boolean)
-      .map((u) => (u as string).replace(/\/$/, ''));
+    // Allow any subdomain of citronsociety.in (covers documents, dev-m, dev, m,
+    // production root, etc.) plus localhost for development. Using a regex
+    // matcher avoids hard-failing when a per-environment FRONTEND_URL env var
+    // is missing/misspelled — the most common reason this was breaking on iOS
+    // Safari, which sends a strict preflight and times out faster than Chrome.
+    const CITRON_DOMAIN_REGEX = /^https:\/\/([a-z0-9-]+\.)*citronsociety\.in$/i;
+    const LOCALHOST_REGEX = /^http:\/\/localhost(?::\d+)?$/i;
 
     app.enableCors({
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        // No Origin header (server-to-server, curl, native apps) — allow
+        if (!origin) return callback(null, true);
+        const ok = CITRON_DOMAIN_REGEX.test(origin) || LOCALHOST_REGEX.test(origin);
+        callback(null, ok);
+      },
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      // Cache the preflight for 24h so Safari doesn't re-preflight on every
+      // exchange call (helps reduce cold-start CORS timeouts on Vercel).
+      maxAge: 86400,
     });
 
     // Enable global validation pipe for DTO validation
